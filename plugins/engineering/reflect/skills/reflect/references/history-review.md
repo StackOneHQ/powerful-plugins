@@ -43,8 +43,8 @@ which skills were actually loaded. Do not count those records as user correction
 or infer skill use from a generic command that matches a skill's documentation.
 
 Look for corrections, repeated setup, misunderstood scope, missing context, and
-workflows the user had to explain again. Search terms such as “again”, “wrong
-file”, or “use X” are candidates, not proof: read surrounding turns before
+workflows the user had to explain again. Search terms such as "again", "wrong
+file", or "use X" are candidates, not proof: read surrounding turns before
 classifying a correction. Capture a short relevant excerpt, timestamp, session
 identifier, and line/turn reference. Redact credentials and unrelated personal
 or customer details from the packet.
@@ -54,7 +54,7 @@ or customer details from the packet.
 Inspect recent commit subjects to find possible fixes, reverts, repeated edits,
 and follow-up corrections. For example, `git log -40 --format='%h %as %s'` is a
 starting point when no date range was requested. Read the relevant diff and its
-context before treating a “fix” subject as rework. Ordinary maintenance, feature
+context before treating a "fix" subject as rework. Ordinary maintenance, feature
 work, and one isolated revert do not establish a recurring agent mistake.
 Record commit SHAs and source paths as citations, not proposed permanent rules.
 
@@ -114,7 +114,7 @@ Provide the same compact packet to all three reviewers:
    a skill was used.
 
 For history mode, reviewer evidence may cite a session, git diff, or PR comment.
-The active-session “skill was used” rule still applies to skill-body edits: show
+The active-session "skill was used" rule still applies to skill-body edits: show
 actual invocation evidence. Verified repo-wide conventions may route to the
 existing AGENTS.md/CLAUDE.md owner without pretending a skill was invoked.
 Preserve exact citations and distinguish one incident seen in several sources

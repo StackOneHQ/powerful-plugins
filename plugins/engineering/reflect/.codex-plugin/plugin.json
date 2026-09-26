@@ -1,6 +1,6 @@
 {
   "name": "reflect",
-  "version": "1.0.5",
+  "version": "1.1.0",
   "description": "Learn from the active session or recurring workspace history across sessions, git changes, and PR feedback; propose evidence-backed skill and repository-guidance improvements.",
   "author": {
     "name": "StackOne",

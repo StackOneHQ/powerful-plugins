@@ -16,23 +16,23 @@ You generate production-ready animation code for pages and components without Re
 
 Before reaching for anime.js, check whether the Web Animations API (`element.animate`) does the job: a fade, stagger or sequenced reveal costs zero bytes with WAAPI. Use anime.js for SVG path drawing, morphing, or a timeline you need to scrub.
 
-## Before Writing Code
+## Before writing code
 
-1. **Read the target page/component**: understand the DOM structure and how the page ships scripts (bundler, framework, inline)
-2. **Check if animejs is installed**: look at `package.json` for the `"animejs"` dependency
-3. **If not installed**, tell the user: `pnpm add animejs` (or the project's package manager)
-4. **Identify target selectors**: use `data-*` attributes for animation targets (not class names which may change)
-5. **Check for an existing reveal system**: if the project already has a CSS reveal system, use it for simple fades rather than adding a second one
-6. **Find the project's colour and motion tokens** (CSS variables, theme file). If there are none, ask
+- Read the target page or component: its DOM structure and how the page ships scripts (bundler, framework, inline).
+- If you choose anime.js, check `package.json` for the `"animejs"` dependency. If it is missing, give the user the install command in the project's package manager (`pnpm add animejs` or equivalent) and let them run it, or run it yourself only after they say yes.
+- If the project already has a CSS reveal system, use it for simple fades rather than adding a second one.
+- Find the project's colour and motion tokens (CSS variables, theme file). If there are none, ask rather than inventing values.
 
-## Import Pattern
+Change the target page or component and its styles. Leave unrelated code alone.
+
+## Import pattern
 
 ```js
 // anime.js v4 named exports
 import { animate, stagger, createTimeline, createTimer, svg } from 'animejs'
 ```
 
-## Code Patterns
+## Code patterns
 
 The examples below are HTML fragments with a module script, the way a bundler-backed page ships them. In a component framework, put the script body in the mount hook (`onMounted` in Vue, `onMount` in Svelte) and tear it down in the unmount hook. In an Astro component, a plain `<script>` works as written.
 
@@ -87,8 +87,6 @@ The examples below are HTML fragments with a module script, the way a bundler-ba
   initAnimations()
 </script>
 ```
-
-Call the init function directly when the script runs. If the site swaps pages client-side (a SPA router, or a framework's view transitions), also run it on that router's page-change event and guard against double init, for example with a `data-initialized` flag on the root element.
 
 ### SVG path drawing
 
@@ -169,9 +167,9 @@ cards.forEach((el, i) => {
 })
 ```
 
-## Reduced Motion Support
+## Reduced motion support
 
-Always wrap animations in a reduced-motion check:
+Wrap every animation in a reduced-motion check:
 
 ```js
 const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
@@ -186,15 +184,14 @@ if (!prefersReducedMotion) {
 }
 ```
 
-## Integration Rules
+## Integration rules
 
-- Use `data-*` attributes as selectors (stable, semantic)
+- Select animation targets with `data-*` attributes, not class names, which change with styling
 - Use IntersectionObserver for scroll-triggered animations (don't animate on load)
-- Initial state: set `opacity: 0` in CSS or inline style before animation runs
-- Always call the init function directly; treat a router's page-load event as an extra trigger, not the only one. In Astro, for example, `astro:page-load` fires only when View Transitions are enabled
+- Call the init function directly when the script runs. If the site swaps pages client-side (a SPA router, or a framework's view transitions), also run it on that router's page-change event and guard against double init, for example with a `data-initialized` flag on the root element. The router event is an extra trigger, never the only one: in Astro, `astro:page-load` fires only when View Transitions are enabled
 - Clean up observers and loops through an `AbortController` or a stored reference you control, called from the component's unmount hook where there is one. Don't depend on navigation events for teardown: in Astro, `astro:before-swap` also fires only with View Transitions
 
-## Initial CSS State
+## Initial CSS state
 
 Add to the page or component style:
 
@@ -214,7 +211,7 @@ Add to the page or component style:
 
 This prevents a flash of content before JS loads. If the script can fail to load, add a `<noscript>` style or a class set by JS so the content is never stuck invisible.
 
-## Default Rules
+## Default rules
 
 Override these with the project's motion tokens when it has them.
 
@@ -227,7 +224,4 @@ Override these with the project's motion tokens when it has them.
 
 ## Output
 
-When done, provide:
-1. The page/component code with animation
-2. Any CSS needed for initial states
-3. Whether `pnpm add animejs` is needed
+A short report: the files you created or changed, including the CSS for initial states, and whether the anime.js install is still needed.

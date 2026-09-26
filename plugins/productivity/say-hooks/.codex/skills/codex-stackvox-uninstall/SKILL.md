@@ -7,7 +7,7 @@ description: "Uninstall stackvox and remove its cached models"
 
 # Codex Stackvox Uninstall
 
-Uninstall stackvox and clean up its cache. Hooks will fall back to macOS `say` after this.
+Uninstall stackvox and clean up its cache. Hooks fall back to macOS `say` after this. Running this command is the user's go-ahead to uninstall stackvox; deleting the model cache needs its own yes. Run the steps in order.
 
 ## Steps
 
@@ -16,9 +16,9 @@ Uninstall stackvox and clean up its cache. Hooks will fall back to macOS `say` a
    stackvox stop 2>/dev/null || true
    ```
 
-2. **Ask the user whether they want to also delete the model cache** (~340MB at `~/.cache/stackvox/`).
-   - If yes: `rm -rf "$HOME/.cache/stackvox"`
-   - If no: leave the cache so reinstalling later is fast.
+2. **Ask whether to delete the model cache too** (~340MB at `~/.cache/stackvox/`).
+   - Only on an explicit yes: `rm -rf "$HOME/.cache/stackvox"`
+   - Otherwise leave the cache, so reinstalling later is fast.
 
 3. **Uninstall via pipx:**
    ```
@@ -30,4 +30,4 @@ Uninstall stackvox and clean up its cache. Hooks will fall back to macOS `say` a
    rm -f "$HOME/.cache/say-hooks/last-check"
    ```
 
-5. Confirm uninstall and remind the user the hooks still work via `say` on macOS.
+5. Tell the user stackvox is gone and that the hooks still speak through `say` on macOS.

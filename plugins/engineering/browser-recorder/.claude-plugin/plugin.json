@@ -1,6 +1,6 @@
 {
   "name": "browser-recorder",
-  "version": "1.2.2",
+  "version": "1.3.0",
   "description": "Capture screenshots and video clips (60fps by default) from a shot list, signed in once per domain, with a click and scroll log for video post-processing.",
   "author": {
     "name": "StackOne",

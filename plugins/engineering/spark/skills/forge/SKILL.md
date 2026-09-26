@@ -20,6 +20,8 @@ Forge turns working code into the version a senior engineer would be proud to ha
 
 Default scope is the current branch against its base. Resolve the base; never assume `main`: `git merge-base HEAD <remote>/<default-branch>`, taking the remote whose URL is the canonical repo.
 
+Forge edits the working tree and runs the meter, lint, typecheck and tests without asking. Committing and pushing stay with the user.
+
 ## The loop
 
 Every forge on code runs this loop. The re-check in step 4 is the part that matters most: a rewrite writes new lines and new comments, and slop that forge writes itself is the slop that survives a forge.
@@ -29,7 +31,7 @@ Every forge on code runs this loop. The re-check in step 4 is the part that matt
 3. **Rewrite.** Apply the moves below, in order, to the lines this change owns.
 4. **Re-check your own lines.** Diff your result against the input. Hold every line you wrote or kept to the same bar as the lines you removed: each comment against the comment contract, each check and branch against "does the type or the caller already guarantee this?". For every comment, name the line that makes each of its claims true; a claim you cannot point to is fixed or deleted. Re-run the meter with the same command.
 5. **Prove behaviour.** Run the repo's lint, typecheck and the affected tests. The same tests pass and fail as before your rewrite.
-6. **Repeat 3–5 until a pass changes nothing.** Then report.
+6. **Repeat steps 3 to 5 until a pass changes nothing.** Then report.
 
 Exit only when all hold: a full pass over your own diff found nothing to change; none of the meter's counts (comment lines, longest comment block, type escapes, `try` blocks, optional chains, nullish defaults, risky regexes) is higher than before; every copy it lists is gone or reported as unfinished; the tests match.
 
@@ -56,7 +58,7 @@ A comment in forged code is exactly one of these:
 - **A constraint the code cannot express**: why the obvious alternative is wrong, an invariant another file relies on, an outside behaviour this code depends on.
 - **A contract that the signature does not reveal**: what a function guarantees that a reader would not assume.
 
-Its shape: one sentence where one will do. Two lines by default, four at most, and four only for a function doc stating a genuinely surprising contract. Present tense and evergreen: no ticket ids, no incident names, no "now", "previously" or "was changed to". **Every factual claim in it is checked against the code in this pass**, because a wrong comment is worse than none.
+Its shape: one sentence where one will do. Two lines by default, four at most, and four only for a function doc stating a genuinely surprising contract. Present tense and evergreen: no ticket ids, no incident names, no "now", "previously" or "was changed to". Every factual claim in it is true of the code as this pass leaves it, because a wrong comment is worse than none.
 
 Anything else is deleted: a restatement of the next line, narration of the change, a section banner, a step number, a docstring on a self-evident function, a second explanation of something already explained elsewhere in the diff. Explanatory comments stay at or below the file's existing density. A contract comment on a function that hides real complexity is exempt from that ceiling, and still four lines at most. Structural markers the file already uses, such as `// arrange` / `// act` / `// assert`, are structure and stay.
 
@@ -70,7 +72,6 @@ Anything else is deleted: a restatement of the next line, narration of the chang
 | "Only medium confidence" | Read until it is high. If it still is not, ask the user; never keep silently. |
 | "It's only a comment" | Comments are the most common slop and the most often wrong. |
 | "The tests pass" | Passing is the floor. Forge is about the ceiling. |
-| "I already ran the slop check" | Before the rewrite. Your rewrite is new code; check it. |
 | "It can never be empty here" | If the only guarantee you can name lives in code you cannot read, it is a guess. Put the check back. |
 
 Genuinely out of reach, such as a change in another repo, a public API the diff does not own, or a behaviour choice only the user can make, goes in the report as **unfinished**, with the reason. Never as "kept".

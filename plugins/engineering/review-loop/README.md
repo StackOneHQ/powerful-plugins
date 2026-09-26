@@ -44,8 +44,8 @@ bringing a PR up to date after a sibling merges, and the merge order when you as
 
 ## What it will and won't do
 
-- It pushes and opens the PR when there is none. It never force-pushes, merges, approves or dismisses
-  a review.
+- It pushes and opens the PR when there is none. It merges only when you ask, and never
+  force-pushes, approves or dismisses a review.
 - It verifies each claim before fixing or declining it, and replies on every thread.
 - It resolves threads only when the base branch requires resolved conversations, or when you ask.
 - It stops after five rounds, and says which reviewers never answered instead of calling the PR clean.

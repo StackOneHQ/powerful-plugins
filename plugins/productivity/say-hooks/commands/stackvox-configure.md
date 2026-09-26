@@ -2,11 +2,11 @@
 description: Pick a stackvox voice for say-hooks, preview it and save it to your user config
 ---
 
-Help the user choose a voice for the Stop and Notification hooks. The voice determines both the speaker and the language of the spoken phrase.
+Help the user choose a voice for the Stop and Notification hooks. The voice sets both the speaker and the language of the spoken phrase. If the user already named a voice, skip the matrix and preview that one. A preview only plays audio on this machine, so play it as soon as the user picks a voice.
 
 ## Steps
 
-1. **Check stackvox is installed.** If `command -v stackvox` fails, stop and tell them to run `/stackvox-install` first.
+1. **Check stackvox is installed.** If `command -v stackvox` fails, stop and point the user to the stackvox-install command.
 
 2. **Show the voice matrix** (5 supported languages, 2 female / 2 male where Kokoro provides them):
 
@@ -46,9 +46,9 @@ Help the user choose a voice for the Stop and Notification hooks. The voice dete
    ```
    bash "${CLAUDE_PLUGIN_ROOT}/scripts/preview-voice.sh" <chosen> <speed>
    ```
-   If `$CLAUDE_PLUGIN_ROOT` is not set, use the absolute plugin path. Ask if they're happy or want to try another. Without an explicit speed, the preview uses the currently-configured speed (or `1.0` if none is set); ask whether they want to adjust it.
+   If `$CLAUDE_PLUGIN_ROOT` is not set, use the absolute plugin path. Without an explicit speed, the preview uses the configured speed (or `1.0` if none is set). Ask whether they like it, want another voice or want a different speed.
 
-5. **When they're happy, write the config:**
+5. **When they're happy, write the config.** This replaces the whole file, which holds only these two settings:
    ```
    mkdir -p "$HOME/.claude"
    cat > "$HOME/.claude/say-hooks.local.md" <<EOF
@@ -64,4 +64,4 @@ Help the user choose a voice for the Stop and Notification hooks. The voice dete
    EOF
    ```
 
-6. Confirm the file was written and tell the user the next hook will use the new voice.
+6. Tell the user the next hook will use the new voice.

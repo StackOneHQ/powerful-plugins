@@ -7,16 +7,16 @@ description: "Install stackvox (offline Kokoro-82M TTS) for high-quality voices 
 
 # Codex Stackvox Install
 
-Install stackvox so say-hooks can use high-quality offline voices instead of macOS `say`.
+Install stackvox so say-hooks can use high-quality offline voices instead of macOS `say`. Running this command is the user's go-ahead to install stackvox itself; anything else it would install needs a separate yes. Run the steps in order.
 
 ## Steps
 
-1. **Check pipx is available.** Run `command -v pipx`. If missing:
+1. **Check pipx is available.** Run `command -v pipx`. If it is missing, pipx is a separate package, so ask before installing it:
    - macOS with Homebrew: `brew install pipx && pipx ensurepath`
    - Linux: `python3 -m pip install --user pipx && python3 -m pipx ensurepath`
-   - If neither is possible, stop and tell the user to install pipx manually.
+   - If the user says no, or neither route works, stop and tell them to install pipx themselves.
 
-2. **If stackvox is already installed** (`command -v stackvox` succeeds), tell the user to run `/stackvox-upgrade` instead and stop — that path cleanly migrates old git-URL installs onto the PyPI package.
+2. **If stackvox is already installed** (`command -v stackvox` succeeds), stop and point the user to the stackvox-upgrade command instead, which also moves old git-URL installs onto the PyPI package.
 
 3. **Install stackvox** from PyPI:
    ```
@@ -33,10 +33,11 @@ Install stackvox so say-hooks can use high-quality offline voices instead of mac
 
 6. **Start the daemon** so later hook calls are instant:
    ```
+   mkdir -p "$HOME/.cache/stackvox"
    nohup stackvox serve > "$HOME/.cache/stackvox/daemon.log" 2>&1 &
    disown
    ```
 
-7. Report success: stackvox is installed, welcome played, daemon is running. Future Claude Code sessions will auto-start the daemon via SessionStart.
+7. Report success: stackvox is installed, welcome played, daemon is running. Future sessions start the daemon automatically through the SessionStart hook.
 
 If anything fails, report the failing step and do not proceed.
