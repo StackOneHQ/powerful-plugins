@@ -284,6 +284,83 @@ class ChangedSkillSelectionTests(unittest.TestCase):
                 },
             )
 
+    def test_upload_leaves_out_results_the_allowlist_marks_as_reviewed(self) -> None:
+        scanner = Path(__file__).resolve().parents[1] / "scripts" / "scan-skills.sh"
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            for name in ("first", "second"):
+                skill = root / "plugins" / "example" / "skills" / name
+                skill.mkdir(parents=True)
+                (skill / "SKILL.md").write_text(
+                    f"---\nname: {name}\ndescription: A human-authored workflow.\n---\n"
+                )
+            (root / ".skillspector-allowlist.json").write_text(
+                json.dumps(
+                    {
+                        "version": 1,
+                        "reviewed_high_risk": [
+                            {
+                                "skill": "plugins/example/skills/first",
+                                "rules": ["RA2"],
+                                "rationale": "The daemon start is the documented purpose.",
+                            }
+                        ],
+                    }
+                )
+            )
+            self._git(root, "init")
+
+            fake_bin = root / "bin"
+            fake_bin.mkdir()
+            fake_scanner = fake_bin / "skillspector"
+            fake_scanner.write_text(
+                "#!/usr/bin/env bash\n"
+                "set -eu\n"
+                "output=''\n"
+                "previous=''\n"
+                "for argument in \"$@\"; do\n"
+                "  if [ \"$previous\" = '--output' ]; then output=\"$argument\"; fi\n"
+                "  previous=\"$argument\"\n"
+                "done\n"
+                "printf '%s\\n' '{\"version\":\"2.1.0\",\"runs\":[{\"tool\":{\"driver\":{\"name\":\"skillspector\"}},\"results\":[{\"ruleId\":\"RA2\",\"level\":\"warning\",\"message\":{\"text\":\"reviewed\"},\"locations\":[{\"physicalLocation\":{\"artifactLocation\":{\"uri\":\"SKILL.md\"}}}]},{\"ruleId\":\"EA2\",\"level\":\"warning\",\"message\":{\"text\":\"not reviewed\"},\"locations\":[{\"physicalLocation\":{\"artifactLocation\":{\"uri\":\"SKILL.md\"}}}]}]}]}' > \"$output\"\n"
+            )
+            fake_scanner.chmod(0o755)
+            report_dir = root / "reports"
+            environment = os.environ.copy()
+            environment["PATH"] = f"{fake_bin}:{environment['PATH']}"
+            environment["REPORT_DIR"] = str(report_dir)
+
+            completed = subprocess.run(
+                ["bash", str(scanner), "all"],
+                cwd=root,
+                env=environment,
+                check=False,
+                capture_output=True,
+                text=True,
+            )
+
+            self.assertEqual(completed.returncode, 0, completed.stderr)
+            combined = json.loads((report_dir / "skillspector.sarif").read_text())
+            uploaded = {
+                (
+                    result["ruleId"],
+                    result["locations"][0]["physicalLocation"]["artifactLocation"]["uri"],
+                )
+                for result in combined["runs"][0]["results"]
+            }
+            self.assertEqual(
+                uploaded,
+                {
+                    ("EA2", "plugins/example/skills/first/SKILL.md"),
+                    ("RA2", "plugins/example/skills/second/SKILL.md"),
+                    ("EA2", "plugins/example/skills/second/SKILL.md"),
+                },
+            )
+            per_skill = json.loads(
+                (report_dir / "plugins_example_skills_first.sarif").read_text()
+            )
+            self.assertEqual(len(per_skill["runs"][0]["results"]), 2)
+
     def test_generated_skill_changes_are_scanned_with_new_adapters(self) -> None:
         scanner = Path(__file__).resolve().parents[1] / "scripts" / "scan-skills.sh"
         with tempfile.TemporaryDirectory() as directory:
