@@ -20,10 +20,21 @@ jobs:
       contents: write
       pull-requests: write
     steps:
-      - name: Approve and enable auto-merge
+      # Both steps are pinned to the commit Dependabot pushed: the approval names it, and
+      # auto-merge only merges it, so a push that lands while this runs gets neither.
+      - name: Approve and enable auto-merge for Dependabot's commit
         env:
           GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
           PR_URL: ${{ github.event.pull_request.html_url }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: |
-          gh pr review --approve "$PR_URL"
-          gh pr merge --auto --squash "$PR_URL"
+          current="$(gh api "repos/$REPO/pulls/$PR_NUMBER" --jq .head.sha)"
+          if [ "$current" != "$HEAD_SHA" ]; then
+            echo "::notice::The pull request moved past $HEAD_SHA; leaving it for review."
+            exit 0
+          fi
+          gh api --method POST "repos/$REPO/pulls/$PR_NUMBER/reviews" \
+            -f commit_id="$HEAD_SHA" -f event=APPROVE >/dev/null
+          gh pr merge --auto --squash --match-head-commit "$HEAD_SHA" "$PR_URL"
