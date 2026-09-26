@@ -24,8 +24,10 @@ codex plugin add natural-writing@powerful-plugins
 With no argument, the review command uses the latest draft in the conversation.
 It returns findings and a proposed rewrite. It edits a file only when requested.
 The command follows the review process in
-[SKILL.md](skills/natural-writing/SKILL.md), including the mechanical
-check in [scripts/check-copy.sh](scripts/check-copy.sh).
+[references/copy-review.md](skills/natural-writing/references/copy-review.md),
+including the mechanical check in [scripts/check-copy.sh](scripts/check-copy.sh).
+[SKILL.md](skills/natural-writing/SKILL.md) holds the hard rules and links each
+reference in the step that needs it.
 
 Plugin commands use a namespace. Use the full command above if another installed
 skill has a similar name. Reload plugins or restart Claude Code after updating.

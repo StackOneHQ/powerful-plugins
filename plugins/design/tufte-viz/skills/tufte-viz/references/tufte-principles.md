@@ -1,6 +1,6 @@
-# Tufte's Principles for Data Visualization
+# Tufte's principles for data visualization
 
-## 1. Graphical Excellence
+## 1. Graphical excellence
 
 Excellence in statistical graphics consists of complex ideas communicated with clarity, precision, and efficiency.
 
@@ -22,11 +22,11 @@ Excellence in statistical graphics consists of complex ideas communicated with c
 
 ---
 
-## 2. Graphical Integrity
+## 2. Graphical integrity
 
 Graphics must tell the truth about the data.
 
-**The Lie Factor:**
+**The lie factor:**
 ```
 Lie Factor = Size of effect shown in graphic / Size of effect in data
 ```
@@ -50,7 +50,7 @@ Lie Factor = Size of effect shown in graphic / Size of effect in data
 
 ---
 
-## 3. Data-Ink Ratio
+## 3. Data-ink ratio
 
 The data-ink ratio is the proportion of a graphic's ink devoted to the non-redundant display of data-information.
 
@@ -86,7 +86,7 @@ Chartjunk is the interior decoration of graphics that does not convey informatio
 - Cross-hatching that vibrates
 - Competing visual frequencies
 
-### B. The Grid
+### B. The grid
 - Heavy grids compete with data
 - Grids should be muted or eliminated
 - If needed, use light gray or dotted lines
@@ -104,7 +104,7 @@ Chartjunk is the interior decoration of graphics that does not convey informatio
 
 ---
 
-## 5. Small Multiples
+## 5. Small multiples
 
 Small multiples are series of graphics showing the same combination of variables, indexed by changes in another variable.
 
@@ -130,7 +130,7 @@ Small multiples are series of graphics showing the same combination of variables
 
 ---
 
-## 6. Data Density & Information Resolution
+## 6. Data density and information resolution
 
 **Data density = numbers plotted per unit area**
 
@@ -148,7 +148,7 @@ High data density is a sign of graphical quality. Maps and time-series can achie
 
 ---
 
-## 7. Multifunctioning Graphical Elements
+## 7. Multifunctioning graphical elements
 
 Every graphical element should serve multiple purposes when possible.
 
@@ -165,7 +165,7 @@ Every graphical element should serve multiple purposes when possible.
 
 ---
 
-## 8. Aesthetics and Technique
+## 8. Aesthetics and technique
 
 **Balance complexity and simplicity:**
 - Simple design, complex data
@@ -189,7 +189,7 @@ Every graphical element should serve multiple purposes when possible.
 
 ---
 
-## Quick Reference: The Tufte Test
+## Quick reference: the Tufte test
 
 For any visualization, ask:
 

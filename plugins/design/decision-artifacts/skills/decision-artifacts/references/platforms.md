@@ -30,7 +30,7 @@ Use the Sites capability for a shareable full-page site. Use the visualization c
 - Save a reviewed version before deployment. Every deployment URL is a production URL.
 - Do not deploy until the user has asked for a shareable or published result and the site has been reviewed.
 - Sites cannot connect directly to live data at the time of this review. Use a dated snapshot or a separately reviewed refresh workflow, and show the source and last refresh in the site.
-- Open the deployed URL in Chrome and test it from the intended visitor's access level before sharing. Do not treat the in-app preview as proof of the deployed result.
+- Open the deployed URL in a browser and test it from the intended visitor's access level before sharing. Do not treat the in-app preview as proof of the deployed result.
 - Confirm the selected audience before publishing, especially when public access is available.
 
 Official references: [creating and managing ChatGPT Sites](https://help.openai.com/en/articles/20001339) and [ChatGPT Sites guidance](https://openai.com/academy/chatgpt-sites/).
