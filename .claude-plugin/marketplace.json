@@ -1,0 +1,320 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "powerful-plugins",
+  "version": "1.0.0",
+  "description": "Plugins for Claude Code and OpenAI Codex, built by the StackOne team for anyone to use: design and data visualization, natural writing, code review loops, browser automation and recording, session reflection, spoken notifications and conversation export.",
+  "owner": {
+    "name": "StackOne",
+    "url": "https://github.com/StackOneHQ"
+  },
+  "metadata": {
+    "pluginRoot": "./plugins"
+  },
+  "plugins": [
+    {
+      "name": "animation-studio",
+      "source": "./plugins/design/animation-studio",
+      "description": "Plan and build web animations and short videos with Motion, anime.js and Remotion, starting from a rough spec.",
+      "category": "design",
+      "tags": [
+        "animation",
+        "motion",
+        "animejs",
+        "remotion",
+        "video"
+      ],
+      "version": "1.1.7",
+      "author": {
+        "name": "StackOne",
+        "url": "https://github.com/StackOneHQ"
+      }
+    },
+    {
+      "name": "decision-artifacts",
+      "source": "./plugins/design/decision-artifacts",
+      "description": "Turn findings, options, plans and status into concise, evidence-backed interactive pages that help people decide.",
+      "category": "design",
+      "tags": [
+        "artifacts",
+        "decisions",
+        "reports",
+        "dashboards",
+        "evidence"
+      ],
+      "version": "1.1.2",
+      "author": {
+        "name": "StackOne",
+        "url": "https://github.com/StackOneHQ"
+      }
+    },
+    {
+      "name": "tufte-viz",
+      "source": "./plugins/design/tufte-viz",
+      "description": "Design and critique charts with Edward Tufte's principles: data-ink ratio, no chartjunk, graphical integrity, small multiples and sparklines.",
+      "category": "design",
+      "tags": [
+        "data-visualization",
+        "tufte",
+        "charts",
+        "dashboards",
+        "sparklines"
+      ],
+      "version": "1.1.3",
+      "author": {
+        "name": "StackOne",
+        "url": "https://github.com/StackOneHQ"
+      }
+    },
+    {
+      "name": "natural-writing",
+      "source": "./plugins/documentation/natural-writing",
+      "description": "Write and edit like a person, not a language model: bans the words, sentence patterns and formatting that give AI text away, with a mechanical checker and a review command.",
+      "category": "documentation",
+      "tags": [
+        "writing",
+        "documentation",
+        "copy",
+        "llm-isms",
+        "editing"
+      ],
+      "version": "1.1.3",
+      "author": {
+        "name": "StackOne",
+        "url": "https://github.com/StackOneHQ"
+      }
+    },
+    {
+      "name": "browser-recorder",
+      "source": "./plugins/engineering/browser-recorder",
+      "description": "Capture screenshots and video clips (60fps by default) from a shot list, signed in once per domain, with a click and scroll log for video post-processing.",
+      "category": "engineering",
+      "tags": [
+        "browser",
+        "recording",
+        "video",
+        "screenshots",
+        "automation"
+      ],
+      "version": "1.2.2",
+      "author": {
+        "name": "StackOne",
+        "url": "https://github.com/StackOneHQ"
+      }
+    },
+    {
+      "name": "spark",
+      "source": "./plugins/engineering/spark",
+      "description": "Find the most useful next addition to a change, pressure-test plans and implementations, and run read-only simplification audits across a codebase.",
+      "category": "engineering",
+      "tags": [
+        "ideation",
+        "design-review",
+        "code-quality",
+        "audit",
+        "refactoring"
+      ],
+      "version": "1.2.0",
+      "author": {
+        "name": "StackOne",
+        "url": "https://github.com/StackOneHQ"
+      }
+    },
+    {
+      "name": "reflect",
+      "source": "./plugins/engineering/reflect",
+      "description": "Learn from the current session or from recurring history across sessions, git changes and review feedback, and propose evidence-backed skill and guidance improvements.",
+      "category": "engineering",
+      "tags": [
+        "reflect",
+        "retrospective",
+        "skills",
+        "session-history",
+        "repo-guidance"
+      ],
+      "version": "1.0.5",
+      "author": {
+        "name": "StackOne",
+        "url": "https://github.com/StackOneHQ"
+      }
+    },
+    {
+      "name": "review-loop",
+      "source": "./plugins/engineering/review-loop",
+      "description": "Get a PR through every AI code reviewer on it: trigger each, verify and fix or decline each comment, repeat until all are clean.",
+      "category": "engineering",
+      "tags": [
+        "code-review",
+        "pull-request",
+        "copilot",
+        "cubic",
+        "greptile",
+        "coderabbit",
+        "codex",
+        "bugbot",
+        "gemini",
+        "code-scanning"
+      ],
+      "version": "1.1.0",
+      "author": {
+        "name": "StackOne",
+        "url": "https://github.com/StackOneHQ"
+      }
+    },
+    {
+      "name": "browser-automation",
+      "source": "./plugins/engineering/browser-automation",
+      "description": "Drive a browser with the coding agent's own browser first (Claude in Chrome, Codex's Chrome or in-app Browser), falling back to agent-browser, Playwright or Chrome DevTools only when the job needs them.",
+      "category": "engineering",
+      "tags": [
+        "browser",
+        "automation",
+        "agent-browser",
+        "playwright",
+        "testing"
+      ],
+      "version": "1.2.1",
+      "author": {
+        "name": "StackOne",
+        "url": "https://github.com/StackOneHQ"
+      }
+    },
+    {
+      "name": "cc-print",
+      "source": "./plugins/productivity/cc-print",
+      "description": "Export Claude Code and Codex conversations to terminal-styled PNG, SVG, PDF or HTML.",
+      "category": "productivity",
+      "tags": [
+        "print",
+        "export",
+        "conversation",
+        "screenshot",
+        "terminal"
+      ],
+      "version": "1.2.0",
+      "author": {
+        "name": "StackOne",
+        "url": "https://github.com/StackOneHQ"
+      }
+    },
+    {
+      "name": "say-hooks",
+      "source": "./plugins/productivity/say-hooks",
+      "description": "Speak when Claude Code or Codex finishes a turn or is blocked, with offline stackvox voices or the macOS say fallback.",
+      "category": "productivity",
+      "tags": [
+        "hooks",
+        "tts",
+        "notifications",
+        "voice"
+      ],
+      "version": "1.0.0",
+      "author": {
+        "name": "StackOne",
+        "url": "https://github.com/StackOneHQ"
+      }
+    },
+    {
+      "name": "agent-browser",
+      "source": {
+        "source": "github",
+        "repo": "vercel-labs/agent-browser",
+        "sha": "72007a6788d863611b23bed0b59d0d659c638d8e"
+      },
+      "description": "Browser automation CLI for AI agents - interact with and test code in Chromium using natural language",
+      "category": "engineering",
+      "tags": [
+        "browser",
+        "automation",
+        "testing",
+        "vercel"
+      ],
+      "homepage": "https://github.com/vercel-labs/agent-browser",
+      "author": {
+        "name": "Vercel"
+      }
+    },
+    {
+      "name": "pr-review-toolkit",
+      "source": {
+        "source": "git-subdir",
+        "url": "anthropics/claude-plugins-official",
+        "path": "plugins/pr-review-toolkit",
+        "sha": "3da105324a27aa7b1f435a3925f8626092891d4e"
+      },
+      "description": "Comprehensive PR review with specialized agents for code review, silent failure hunting, and test analysis",
+      "category": "engineering",
+      "tags": [
+        "pr",
+        "review",
+        "code-quality"
+      ],
+      "homepage": "https://github.com/anthropics/claude-plugins-official",
+      "author": {
+        "name": "Anthropic"
+      }
+    },
+    {
+      "name": "remotion-best-practices",
+      "source": {
+        "source": "git-subdir",
+        "url": "remotion-dev/skills",
+        "path": "skills/remotion-best-practices",
+        "sha": "eed702478ce34eff4eb77230b748375332c536ae"
+      },
+      "description": "Best practices for Remotion - React-based video creation. Covers compositions, animations, media handling, Three.js 3D, captions, TailwindCSS, and 27 rule files",
+      "category": "design",
+      "tags": [
+        "remotion",
+        "video",
+        "react",
+        "animation",
+        "media"
+      ],
+      "homepage": "https://www.remotion.dev/docs/ai/skills",
+      "author": {
+        "name": "Remotion"
+      }
+    },
+    {
+      "name": "vercel-web-design-guidelines",
+      "source": {
+        "source": "git-subdir",
+        "url": "vercel-labs/agent-skills",
+        "path": "skills/web-design-guidelines",
+        "sha": "7c180d9044c9ae2b442b567aad4e42a28dd5ed62"
+      },
+      "description": "Comprehensive web design audit tool with 100+ rules covering accessibility, performance, and UX",
+      "category": "design",
+      "tags": [
+        "design",
+        "accessibility",
+        "ux",
+        "vercel"
+      ],
+      "homepage": "https://github.com/vercel-labs/agent-skills",
+      "author": {
+        "name": "Vercel"
+      }
+    },
+    {
+      "name": "skill-creator",
+      "source": {
+        "source": "git-subdir",
+        "url": "anthropics/claude-plugins-official",
+        "path": "plugins/skill-creator",
+        "sha": "ad30d62cd52ad0d0af1beda1eab7f61c601045d0"
+      },
+      "description": "Create, test and improve agent skills, with an eval loop and description tuning",
+      "category": "engineering",
+      "tags": [
+        "skills",
+        "authoring",
+        "evals"
+      ],
+      "homepage": "https://github.com/anthropics/claude-plugins-official",
+      "author": {
+        "name": "Anthropic"
+      }
+    }
+  ]
+}

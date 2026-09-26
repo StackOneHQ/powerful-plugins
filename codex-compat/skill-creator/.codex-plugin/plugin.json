@@ -1,0 +1,24 @@
+{
+  "name": "skill-creator",
+  "version": "0.1.0+ad30d62cd52a.ea3016f329f2",
+  "description": "Create, test and improve agent skills, with an eval loop and description tuning",
+  "author": {
+    "name": "Anthropic"
+  },
+  "repository": "https://github.com/anthropics/claude-plugins-official",
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Skill Creator",
+    "shortDescription": "Create, test and improve agent skills, with an eval loop and description tuning",
+    "longDescription": "Create, test and improve agent skills, with an eval loop and description tuning",
+    "developerName": "Anthropic",
+    "category": "Engineering",
+    "capabilities": [
+      "Interactive"
+    ],
+    "websiteURL": "https://github.com/anthropics/claude-plugins-official",
+    "defaultPrompt": [
+      "Use Skill Creator for this workflow."
+    ]
+  }
+}

@@ -1,0 +1,37 @@
+---
+description: Install stackvox (offline Kokoro-82M TTS) for high-quality voices in say-hooks
+---
+
+Install stackvox so say-hooks can use high-quality offline voices instead of macOS `say`.
+
+## Steps
+
+1. **Check pipx is available.** Run `command -v pipx`. If missing:
+   - macOS with Homebrew: `brew install pipx && pipx ensurepath`
+   - Linux: `python3 -m pip install --user pipx && python3 -m pipx ensurepath`
+   - If neither is possible, stop and tell the user to install pipx manually.
+
+2. **If stackvox is already installed** (`command -v stackvox` succeeds), tell the user to run `/stackvox-upgrade` instead and stop — that path cleanly migrates old git-URL installs onto the PyPI package.
+
+3. **Install stackvox** from PyPI:
+   ```
+   pipx install stackvox
+   ```
+
+4. **Verify** by running `stackvox --help` and `stackvox-say --help`. Both should succeed.
+
+5. **Play the stackvox welcome** (in-process and multilingual, which confirms synthesis and audio work). First run will download ~340MB of model files to `~/.cache/stackvox/`, so allow a minute or two:
+   ```
+   stackvox welcome
+   ```
+   If audio plays, synthesis is verified. If it errors, report and stop.
+
+6. **Start the daemon** so later hook calls are instant:
+   ```
+   nohup stackvox serve > "$HOME/.cache/stackvox/daemon.log" 2>&1 &
+   disown
+   ```
+
+7. Report success: stackvox is installed, welcome played, daemon is running. Future Claude Code sessions will auto-start the daemon via SessionStart.
+
+If anything fails, report the failing step and do not proceed.

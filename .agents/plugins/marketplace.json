@@ -1,0 +1,201 @@
+{
+  "name": "powerful-plugins",
+  "interface": {
+    "displayName": "Powerful Plugins"
+  },
+  "plugins": [
+    {
+      "name": "animation-studio",
+      "source": {
+        "source": "local",
+        "path": "./plugins/design/animation-studio"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Design"
+    },
+    {
+      "name": "decision-artifacts",
+      "source": {
+        "source": "local",
+        "path": "./plugins/design/decision-artifacts"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Design"
+    },
+    {
+      "name": "tufte-viz",
+      "source": {
+        "source": "local",
+        "path": "./plugins/design/tufte-viz"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Design"
+    },
+    {
+      "name": "natural-writing",
+      "source": {
+        "source": "local",
+        "path": "./plugins/documentation/natural-writing"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Documentation"
+    },
+    {
+      "name": "browser-recorder",
+      "source": {
+        "source": "local",
+        "path": "./plugins/engineering/browser-recorder"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Engineering"
+    },
+    {
+      "name": "spark",
+      "source": {
+        "source": "local",
+        "path": "./plugins/engineering/spark"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Engineering"
+    },
+    {
+      "name": "reflect",
+      "source": {
+        "source": "local",
+        "path": "./plugins/engineering/reflect"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Engineering"
+    },
+    {
+      "name": "review-loop",
+      "source": {
+        "source": "local",
+        "path": "./plugins/engineering/review-loop"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Engineering"
+    },
+    {
+      "name": "browser-automation",
+      "source": {
+        "source": "local",
+        "path": "./plugins/engineering/browser-automation"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Engineering"
+    },
+    {
+      "name": "cc-print",
+      "source": {
+        "source": "local",
+        "path": "./plugins/productivity/cc-print"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    },
+    {
+      "name": "say-hooks",
+      "source": {
+        "source": "local",
+        "path": "./plugins/productivity/say-hooks"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    },
+    {
+      "name": "agent-browser",
+      "source": {
+        "source": "url",
+        "url": "https://github.com/vercel-labs/agent-browser.git",
+        "ref": "72007a6788d863611b23bed0b59d0d659c638d8e"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Engineering"
+    },
+    {
+      "name": "pr-review-toolkit",
+      "source": {
+        "source": "local",
+        "path": "./codex-compat/pr-review-toolkit"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Engineering"
+    },
+    {
+      "name": "remotion-best-practices",
+      "source": {
+        "source": "local",
+        "path": "./codex-compat/remotion-best-practices"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Design"
+    },
+    {
+      "name": "vercel-web-design-guidelines",
+      "source": {
+        "source": "local",
+        "path": "./codex-compat/vercel-web-design-guidelines"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Design"
+    },
+    {
+      "name": "skill-creator",
+      "source": {
+        "source": "local",
+        "path": "./codex-compat/skill-creator"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Engineering"
+    }
+  ]
+}

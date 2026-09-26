@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "reviewed_high_risk": [
+    {
+      "skill": "plugins/productivity/say-hooks/commands",
+      "rules": ["RA2", "TM1"],
+      "rationale": "RA2: /stackvox-install and /stackvox-upgrade start the local stackvox text-to-speech daemon with nohup, which is the documented purpose of those commands. TM1: /stackvox-uninstall deletes only the stackvox model cache (after asking the user) and the plugin's own check stamp."
+    },
+    {
+      "skill": "plugins/productivity/say-hooks/scripts",
+      "rules": ["RA2", "SC2"],
+      "rationale": "RA2: the SessionStart hook boots the local stackvox daemon, and the Codex hook scripts re-run themselves in the background because Codex does not support async hooks. SC2: check-install.sh reads the stackvox version from the PyPI JSON API at most once a week to suggest /stackvox-upgrade; nothing it fetches is executed."
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "name": "say-hooks",
+  "version": "1.0.0",
+  "description": "Spoken announcements when Claude Code or Codex finishes a turn or is blocked. Uses stackvox (offline Kokoro-82M) when installed and falls back to macOS `say`.",
+  "author": {
+    "name": "StackOne",
+    "url": "https://github.com/StackOneHQ"
+  },
+  "homepage": "https://github.com/StackOneHQ/powerful-plugins",
+  "repository": "https://github.com/StackOneHQ/powerful-plugins",
+  "interface": {
+    "displayName": "Say Hooks",
+    "shortDescription": "Spoken announcements when Claude Code or Codex finishes a turn or is blocked. Uses stackvox (offline Kokoro-82M) when…",
+    "longDescription": "Spoken announcements when Claude Code or Codex finishes a turn or is blocked. Uses stackvox (offline Kokoro-82M) when installed and falls back to macOS `say`.",
+    "developerName": "StackOne",
+    "category": "Productivity",
+    "capabilities": [
+      "Interactive"
+    ],
+    "websiteURL": "https://github.com/StackOneHQ/powerful-plugins",
+    "defaultPrompt": [
+      "Use Say Hooks to run this workflow."
+    ]
+  },
+  "license": "MIT",
+  "keywords": [
+    "hooks",
+    "tts",
+    "notifications",
+    "productivity",
+    "stackvox",
+    "kokoro"
+  ],
+  "skills": "./.codex/skills/"
+}

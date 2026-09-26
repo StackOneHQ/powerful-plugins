@@ -1,0 +1,25 @@
+{
+  "name": "review-loop",
+  "version": "1.1.0",
+  "description": "Push, get every AI code reviewer on the pull request (Copilot, Cubic, Greptile, CodeRabbit, Codex, Bugbot, Gemini, GitHub code scanning) to review it, verify and fix or decline each finding, and repeat until all are clean.",
+  "author": {
+    "name": "StackOne",
+    "url": "https://github.com/StackOneHQ"
+  },
+  "homepage": "https://github.com/StackOneHQ/powerful-plugins",
+  "repository": "https://github.com/StackOneHQ/powerful-plugins",
+  "license": "MIT",
+  "keywords": [
+    "code-review",
+    "pull-request",
+    "review-comments",
+    "copilot",
+    "cubic",
+    "greptile",
+    "coderabbit",
+    "codex",
+    "bugbot",
+    "gemini",
+    "code-scanning"
+  ]
+}

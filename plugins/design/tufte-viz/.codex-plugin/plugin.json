@@ -1,0 +1,37 @@
+{
+  "name": "tufte-viz",
+  "version": "1.1.3",
+  "description": "Ideate and critique data visualizations using Edward Tufte's principles: data-ink ratio, chartjunk elimination, graphical integrity, lie factor, small multiples, sparklines, and layering.",
+  "author": {
+    "name": "StackOne",
+    "url": "https://github.com/StackOneHQ"
+  },
+  "homepage": "https://github.com/StackOneHQ/powerful-plugins",
+  "repository": "https://github.com/StackOneHQ/powerful-plugins",
+  "interface": {
+    "displayName": "Tufte Viz",
+    "shortDescription": "Ideate and critique data visualizations using Edward Tufte's principles: data-ink ratio, chartjunk elimination,…",
+    "longDescription": "Ideate and critique data visualizations using Edward Tufte's principles: data-ink ratio, chartjunk elimination, graphical integrity, lie factor, small multiples, sparklines, and layering.",
+    "developerName": "StackOne",
+    "category": "Design",
+    "capabilities": [
+      "Interactive"
+    ],
+    "websiteURL": "https://github.com/StackOneHQ/powerful-plugins",
+    "defaultPrompt": [
+      "Use Tufte Viz to run this workflow."
+    ]
+  },
+  "license": "MIT",
+  "keywords": [
+    "data-visualization",
+    "tufte",
+    "charts",
+    "dashboards",
+    "design",
+    "data-ink",
+    "sparklines",
+    "render-verification"
+  ],
+  "skills": "./.codex/skills/"
+}

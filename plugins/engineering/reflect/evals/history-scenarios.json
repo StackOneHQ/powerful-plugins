@@ -1,0 +1,65 @@
+[
+  {
+    "name": "skill-proposal-workflow",
+    "description": "Recurring multi-step workflow should trigger a skill proposal, not just a CLAUDE.md rule.",
+    "input": "You are running /reflect --history. Here is the session correction data you've mined:\n\n## Session Data (no git/PR data available — focus on session corrections only)\n\n**Session 1 (2 days ago):**\n- User: \"verify this plan is resilient and scalable before I build it\"\n- User: \"is this the best way to handle retries?\"\n- User: \"check if there's a library for this instead of reimplementing\"\n\n**Session 2 (4 days ago):**\n- User: \"are we leveraging these abstractions effectively?\"\n- User: \"critique this design — is it future-proof?\"\n\n**Session 3 (6 days ago):**\n- User: \"pressure-test this plan for edge cases\"\n- User: \"is this composable enough?\"\n\n**Session 4 (8 days ago):**\n- User: \"verify the plan is simple and elegant\"\n- User: \"are there well-known patterns for this?\"\n\n**Current CLAUDE.md:** (empty — no rules yet)\n**Current skills:** (none)\n\nProduce your evidence scope and Accepted / Rejected / Backlog report following the skill instructions.",
+    "expected": [
+      "Should propose a NEW SKILL (not just a CLAUDE.md rule) for recurring design critique",
+      "Should identify the pattern as recurring design/plan verification"
+    ],
+    "must_not": [
+      "Should not say there are no patterns to fix"
+    ]
+  },
+  {
+    "name": "claude-md-rule-simple",
+    "description": "Simple repeated correction should get a CLAUDE.md rule, NOT a skill.",
+    "input": "You are running /reflect --history. Here is the session correction data you've mined:\n\n## Session Data\n\n**Session 1 (1 day ago):**\n- User: \"don't use D1 for session details — D1 is only for aggregates and listings. Session details go in the Durable Object first.\"\n- User: \"why flushed to D1?? we only ever want to use D1 for aggregate/listing purposes\"\n\n**Session 2 (3 days ago):**\n- User: \"stop putting session data in D1 directly — DO first, D1 for aggregates only\"\n\n**Session 3 (5 days ago):**\n- User: \"again, session state belongs in the DO, not D1\"\n\n**Current CLAUDE.md:** (empty)\n**Current skills:** (none)\n\nProduce your evidence scope and Accepted / Rejected / Backlog report.",
+    "expected": [
+      "Should propose a CLAUDE.md rule about D1 vs DO",
+      "Should identify this as a repeated correction pattern"
+    ],
+    "must_not": [
+      "Should NOT propose a new skill for this — it's a simple rule"
+    ]
+  },
+  {
+    "name": "mixed-patterns",
+    "description": "Mix of simple corrections and complex workflows — should propose both rules and skills.",
+    "input": "You are running /reflect --history. Here is the session correction data:\n\n## Session Data\n\n**Session 1 (1 day ago):**\n- User: \"don't hardcode values — make them configurable\"\n- User: \"dogfood the staging environment after every deploy\"\n- User: \"take screenshots of every page and compare before/after\"\n\n**Session 2 (3 days ago):**\n- User: \"you hardcoded the budget again — it should be configurable\"\n- User: \"after pushing, dogfood the whole app — check for regressions\"\n- User: \"screenshot each critical flow and verify nothing broke\"\n\n**Session 3 (5 days ago):**\n- User: \"stop hardcoding maps and constants\"\n- User: \"run through the app systematically after deploy and report issues\"\n\n**Session 4 (7 days ago):**\n- User: \"i do not want hardcoded maps at all\"\n- User: \"test the whole app end-to-end after each push\"\n\n**Current CLAUDE.md:** (empty)\n**Current skills:** (none)\n\nProduce your evidence scope and Accepted / Rejected / Backlog report.",
+    "expected": [
+      "Should propose CLAUDE.md rule for hardcoded values",
+      "Should propose a skill for the dogfood/QA workflow (multi-step, structured output)"
+    ],
+    "must_not": []
+  },
+  {
+    "name": "over-engineering-pattern",
+    "description": "User repeatedly says 'too complex' — should propose simplicity rule.",
+    "input": "You are running /reflect --history. Session corrections:\n\n## Session Data\n\n**Session 1:** User: \"this is way too complex, just do the simple thing\"\n**Session 2:** User: \"you're over-engineering this — I asked for a simple function not an abstract class hierarchy\"\n**Session 3:** User: \"stop creating interfaces for single implementations\"\n**Session 4:** User: \"just call the function directly, we don't need an event bus for one event\"\n**Session 5:** User: \"too complex, just do X\"\n\n**Current CLAUDE.md:** (empty)\n**Current skills:** (none)\n\nProduce your evidence scope and Accepted / Rejected / Backlog report.",
+    "expected": [
+      "Should identify over-engineering as the pattern",
+      "Should propose a CLAUDE.md rule about simplicity"
+    ],
+    "must_not": []
+  },
+  {
+    "name": "tool-misuse",
+    "description": "User keeps correcting tool usage — should add tool preference rule.",
+    "input": "You are running /reflect --history. Session corrections:\n\n## Session Data\n\n**Session 1:** User: \"use agent-browser not the Chrome MCP extension\"\n**Session 2:** User: \"why are you using Chrome DevTools? I said use agent-browser\"\n**Session 3:** User: \"stop using mcp__claude-in-chrome, use agent-browser instead\"\n**Session 4:** User: \"agent-browser, not playwright. agent-browser.\"\n\n**Current CLAUDE.md:** (empty)\n**Current skills:** (none)\n\nProduce your evidence scope and Accepted / Rejected / Backlog report.",
+    "expected": [
+      "Should identify tool misuse pattern",
+      "Should propose a CLAUDE.md rule about browser tool preference"
+    ],
+    "must_not": []
+  },
+  {
+    "name": "no-false-patterns",
+    "description": "Clean session history with no corrections — should not manufacture issues.",
+    "input": "You are running /reflect --history. Session corrections:\n\n## Session Data\n\n**Session 1:** No correction signals found.\n**Session 2:** No correction signals found.\n**Session 3:** No correction signals found.\n**Session 4:** No correction signals found.\n**Session 5:** No correction signals found.\n\n**Git history:** No fix/revert patterns found.\n**PR comments:** No recurring review themes found.\n\n**Current CLAUDE.md:** Contains comprehensive rules about architecture, testing, and tooling.\n**Current skills:** 3 skills installed and working well.\n\nProduce your evidence scope and Accepted / Rejected / Backlog report.",
+    "expected": [],
+    "must_not": [
+      "Should not manufacture corrections that don't exist"
+    ]
+  }
+]

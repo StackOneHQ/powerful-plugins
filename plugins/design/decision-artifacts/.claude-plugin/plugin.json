@@ -1,0 +1,21 @@
+{
+  "name": "decision-artifacts",
+  "version": "1.1.2",
+  "description": "Turn model findings, options, plans, and status into concise, evidence-backed, interactive artifacts that help people understand and decide.",
+  "author": {
+    "name": "StackOne",
+    "url": "https://github.com/StackOneHQ"
+  },
+  "homepage": "https://github.com/StackOneHQ/powerful-plugins",
+  "repository": "https://github.com/StackOneHQ/powerful-plugins",
+  "license": "MIT",
+  "keywords": [
+    "artifacts",
+    "decisions",
+    "visualization",
+    "interactive",
+    "reports",
+    "dashboards",
+    "evidence"
+  ]
+}

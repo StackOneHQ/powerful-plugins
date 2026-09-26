@@ -1,0 +1,29 @@
+{
+  "description": "Say-hooks - Codex-compatible spoken cues for session startup and turn completion.",
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "PLUGIN_ROOT=\"${PLUGIN_ROOT:-${CLAUDE_PLUGIN_ROOT:-}}\"; CLAUDE_PLUGIN_ROOT=\"$PLUGIN_ROOT\" bash \"$PLUGIN_ROOT/scripts/boot-daemon.sh\""
+          },
+          {
+            "type": "command",
+            "command": "PLUGIN_ROOT=\"${PLUGIN_ROOT:-${CLAUDE_PLUGIN_ROOT:-}}\"; CLAUDE_PLUGIN_ROOT=\"$PLUGIN_ROOT\" SAY_HOOKS_CODEX_HOOK=1 bash \"$PLUGIN_ROOT/scripts/check-install.sh\""
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "PLUGIN_ROOT=\"${PLUGIN_ROOT:-${CLAUDE_PLUGIN_ROOT:-}}\"; CLAUDE_PLUGIN_ROOT=\"$PLUGIN_ROOT\" SAY_HOOKS_CODEX_HOOK=1 bash \"$PLUGIN_ROOT/scripts/say-response.sh\""
+          }
+        ]
+      }
+    ]
+  }
+}

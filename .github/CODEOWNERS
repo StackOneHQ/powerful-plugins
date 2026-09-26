@@ -1,0 +1,4 @@
+# Reviewers GitHub asks for on each path. Approval is not required to merge; the required
+# checks and resolved review threads are. The last matching line wins.
+*                                   @glebedel
+/plugins/productivity/say-hooks/    @StuBehan @glebedel

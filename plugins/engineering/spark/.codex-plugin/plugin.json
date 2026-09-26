@@ -1,0 +1,39 @@
+{
+  "name": "spark",
+  "version": "1.2.0",
+  "description": "Ideation and design quality tools. Spark finds the single best addition to your PR or project. Forge pressure-tests a plan or implementation and strips AI-generated slop from code. Audit runs a read-only simplification audit across whole codebases.",
+  "author": {
+    "name": "StackOne",
+    "url": "https://github.com/StackOneHQ"
+  },
+  "homepage": "https://github.com/StackOneHQ/powerful-plugins",
+  "repository": "https://github.com/StackOneHQ/powerful-plugins",
+  "interface": {
+    "displayName": "Spark",
+    "shortDescription": "Ideation and design quality tools. Spark finds the single best addition to your PR or project. Forge pressure-tests a…",
+    "longDescription": "Ideation and design quality tools. Spark finds the single best addition to your PR or project. Forge pressure-tests a plan or implementation and strips AI-generated slop from code. Audit runs a read-only simplification audit across whole codebases.",
+    "developerName": "StackOne",
+    "category": "Engineering",
+    "capabilities": [
+      "Interactive"
+    ],
+    "websiteURL": "https://github.com/StackOneHQ/powerful-plugins",
+    "defaultPrompt": [
+      "Use Spark to run this workflow."
+    ]
+  },
+  "license": "MIT",
+  "keywords": [
+    "ideation",
+    "productivity",
+    "pr-review",
+    "engineering",
+    "design-review",
+    "code-quality",
+    "audit",
+    "refactoring",
+    "ai-slop",
+    "deslop"
+  ],
+  "skills": "./.codex/skills/"
+}

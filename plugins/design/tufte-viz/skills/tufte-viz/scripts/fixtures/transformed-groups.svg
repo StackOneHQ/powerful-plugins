@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 240" width="400" height="240">
+  <rect width="400" height="240" fill="#ffffff"/>
+
+  <g transform="translate(20,40)">
+    <text x="0" y="0" font-family="sans-serif" font-size="14" fill="#111">Fine label</text>
+  </g>
+
+  <g transform="translate(20,90)">
+    <text x="0" y="0" font-family="sans-serif" font-size="14" fill="#111">Trains arriving on schedule</text>
+  </g>
+  <g transform="translate(26,90)">
+    <text x="0" y="0" font-family="sans-serif" font-size="14" fill="#111">Trains arriving after a delay</text>
+  </g>
+
+  <g transform="translate(330,140)">
+    <text x="0" y="0" font-family="sans-serif" font-size="14" fill="#111">38.7% (2,914)</text>
+  </g>
+
+  <g transform="translate(20,190)">
+    <text x="0" y="0" font-family="sans-serif" font-size="14" fill="#111">hidden under the card</text>
+  </g>
+  <g transform="translate(10,170)">
+    <rect width="220" height="40" fill="#111111"/>
+  </g>
+</svg>

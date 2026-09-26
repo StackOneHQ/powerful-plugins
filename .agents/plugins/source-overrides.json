@@ -1,0 +1,35 @@
+{
+  "version": 2,
+  "plugins": {
+    "pr-review-toolkit": {
+      "source": "runtime-adapter",
+      "entrypoints": [
+        "commands/review-pr.md",
+        "agents/code-reviewer.md",
+        "agents/silent-failure-hunter.md",
+        "agents/code-simplifier.md",
+        "agents/comment-analyzer.md",
+        "agents/pr-test-analyzer.md",
+        "agents/type-design-analyzer.md"
+      ]
+    },
+    "remotion-best-practices": {
+      "source": "runtime-adapter",
+      "entrypoints": [
+        "SKILL.md"
+      ]
+    },
+    "skill-creator": {
+      "source": "runtime-adapter",
+      "entrypoints": [
+        "skills/skill-creator/SKILL.md"
+      ]
+    },
+    "vercel-web-design-guidelines": {
+      "source": "runtime-adapter",
+      "entrypoints": [
+        "SKILL.md"
+      ]
+    }
+  }
+}

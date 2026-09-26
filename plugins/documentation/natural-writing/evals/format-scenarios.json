@@ -1,0 +1,21 @@
+[
+  {
+    "request": "Tighten these UI labels. Keep each at three words or fewer and retain the meaning. Return only the labels.",
+    "input": [
+      "View action logs",
+      "Save changes",
+      "Try again"
+    ],
+    "allowed_actions": "Local text only."
+  },
+  {
+    "request": "Make this Slack FYI concise without changing its meaning.",
+    "input": "The export is in the shared folder. I checked all 12 rows. No action needed.",
+    "allowed_actions": "Draft only; do not send."
+  },
+  {
+    "request": "Improve this short personal post using only the facts and perspective supplied.",
+    "input": "We switched from one huge tool list to separate lists for each workflow. My team found these lists easier to inspect. We have not measured latency or accuracy. I think explicit lists help us review permission choices, but this is only our team experience.",
+    "allowed_actions": "Draft only; no research or invented facts."
+  }
+]

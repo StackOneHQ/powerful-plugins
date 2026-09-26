@@ -1,0 +1,24 @@
+{
+  "name": "vercel-web-design-guidelines",
+  "version": "0.1.0+7c180d9044c9.9bb5f4e0555d",
+  "description": "Comprehensive web design audit tool with 100+ rules covering accessibility, performance, and UX",
+  "author": {
+    "name": "Vercel"
+  },
+  "repository": "https://github.com/vercel-labs/agent-skills",
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Vercel Web Design Guidelines",
+    "shortDescription": "Comprehensive web design audit tool with 100+ rules covering accessibility, performance, and UX",
+    "longDescription": "Comprehensive web design audit tool with 100+ rules covering accessibility, performance, and UX",
+    "developerName": "Vercel",
+    "category": "Design",
+    "capabilities": [
+      "Interactive"
+    ],
+    "websiteURL": "https://github.com/vercel-labs/agent-skills",
+    "defaultPrompt": [
+      "Use Vercel Web Design Guidelines for this workflow."
+    ]
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "name": "pr-review-toolkit",
+  "version": "0.1.0+3da105324a27.a5dcd3a68c9f",
+  "description": "Comprehensive PR review with specialized agents for code review, silent failure hunting, and test analysis",
+  "author": {
+    "name": "Anthropic"
+  },
+  "repository": "https://github.com/anthropics/claude-plugins-official",
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "PR Review Toolkit",
+    "shortDescription": "Comprehensive PR review with specialized agents for code review, silent failure hunting, and test analysis",
+    "longDescription": "Comprehensive PR review with specialized agents for code review, silent failure hunting, and test analysis",
+    "developerName": "Anthropic",
+    "category": "Engineering",
+    "capabilities": [
+      "Interactive"
+    ],
+    "websiteURL": "https://github.com/anthropics/claude-plugins-official",
+    "defaultPrompt": [
+      "Use PR Review Toolkit for this workflow."
+    ]
+  }
+}

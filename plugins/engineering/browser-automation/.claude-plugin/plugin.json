@@ -1,0 +1,20 @@
+{
+  "name": "browser-automation",
+  "version": "1.2.1",
+  "description": "Drive a browser with the coding agent's own browser first (Claude in Chrome, Codex's Chrome or in-app Browser), falling back to agent-browser, Playwright or Chrome DevTools only when the job needs them.",
+  "author": {
+    "name": "StackOne",
+    "url": "https://github.com/StackOneHQ"
+  },
+  "homepage": "https://github.com/StackOneHQ/powerful-plugins",
+  "repository": "https://github.com/StackOneHQ/powerful-plugins",
+  "license": "MIT",
+  "keywords": [
+    "browser",
+    "automation",
+    "agent-browser",
+    "playwright",
+    "testing",
+    "scraping"
+  ]
+}

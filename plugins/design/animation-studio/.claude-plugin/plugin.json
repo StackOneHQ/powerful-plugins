@@ -1,0 +1,24 @@
+{
+  "name": "animation-studio",
+  "version": "1.1.7",
+  "description": "Create web animations, scroll-driven 3D explainers and short videos with the Web Animations API, Motion, anime.js, Three.js and Remotion. Picks the lightest library for the job, follows your design tokens, and routes to specialist agents that ideate and build.",
+  "author": {
+    "name": "StackOne",
+    "url": "https://github.com/StackOneHQ"
+  },
+  "homepage": "https://github.com/StackOneHQ/powerful-plugins",
+  "repository": "https://github.com/StackOneHQ/powerful-plugins",
+  "license": "MIT",
+  "keywords": [
+    "animation",
+    "motion",
+    "animejs",
+    "waapi",
+    "remotion",
+    "video",
+    "3d",
+    "webgl",
+    "threejs",
+    "scrollytelling"
+  ]
+}

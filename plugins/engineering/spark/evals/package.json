@@ -1,0 +1,15 @@
+{
+  "name": "forge-eval",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "eval": "npx tsx forge-eval.ts",
+    "eval:fast": "npx tsx forge-eval.ts --runs=1",
+    "eval:judge": "npx tsx forge-eval.ts --runs=3 --judge",
+    "eval:scenario": "npx tsx forge-eval.ts --runs=1 --scenario"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.39.0",
+    "tsx": "^4.19.0"
+  }
+}

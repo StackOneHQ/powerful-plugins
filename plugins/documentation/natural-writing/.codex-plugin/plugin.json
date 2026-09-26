@@ -1,0 +1,35 @@
+{
+  "name": "natural-writing",
+  "version": "1.1.3",
+  "description": "Write and edit like a human developer, not an LLM. Bans the words, sentence patterns, typography and formatting that give AI text away, adds a line-level pass for active voice, concrete detail and rhythm, and has a slot for your own house terms. Includes scripts/check-copy.sh as a mechanical check and /natural-writing:review-copy to review existing drafts.",
+  "author": {
+    "name": "StackOne",
+    "url": "https://github.com/StackOneHQ"
+  },
+  "homepage": "https://github.com/StackOneHQ/powerful-plugins",
+  "repository": "https://github.com/StackOneHQ/powerful-plugins",
+  "interface": {
+    "displayName": "Natural Writing",
+    "shortDescription": "Write and edit like a human developer, not an LLM. Bans the words, sentence patterns, typography and formatting that…",
+    "longDescription": "Write and edit like a human developer, not an LLM. Bans the words, sentence patterns, typography and formatting that give AI text away, adds a line-level pass for active voice, concrete detail and rhythm, and has a slot for your own house terms. Includes scripts/check-copy.sh as a mechanical check and /natural-writing:review-copy to review existing drafts.",
+    "developerName": "StackOne",
+    "category": "Documentation",
+    "capabilities": [
+      "Interactive"
+    ],
+    "websiteURL": "https://github.com/StackOneHQ/powerful-plugins",
+    "defaultPrompt": [
+      "Use Natural Writing to run this workflow."
+    ]
+  },
+  "license": "MIT",
+  "keywords": [
+    "writing",
+    "documentation",
+    "copy",
+    "llm-isms",
+    "ai-slop",
+    "natural-language"
+  ],
+  "skills": "./.codex/skills/"
+}

@@ -1,0 +1,11 @@
+{
+  "name": "plugin-name",
+  "version": "1.0.0",
+  "description": "Brief description of what this plugin provides",
+  "author": {
+    "name": "Your Name",
+    "url": "https://github.com/your-handle"
+  },
+  "license": "MIT",
+  "keywords": ["keyword1", "keyword2"]
+}

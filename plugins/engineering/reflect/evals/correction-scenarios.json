@@ -1,0 +1,63 @@
+[
+  {
+    "name": "unknown-activation",
+    "description": "A current install and incomplete prompt history do not prove historical missed activation.",
+    "input": "Run reflect --history on this supplied synthetic packet. Scope is one repository and these two incidents only; no additional history or external lookups. Give concrete proposals without editing files.\n\nCoverage: two user-message extracts, no assistant/tool trace, no historical skill catalog or source version, no git/PR data.\nA1: Initial request: \"Write a brief release announcement from the supplied notes.\" Later user message: \"Please use the writing skill next time.\" The first output and original notes are unavailable.\nA2: Initial request: \"Prepare another release announcement.\" Later user message: \"Use our usual writing guidance.\" The first output is unavailable.\nCurrent inventory, captured after both incidents: skills/release-note/SKILL.md is installed; description: \"Write release announcements from product notes.\" Body: \"Read the supplied product notes, draft a concise announcement, and verify factual claims against those notes.\"\n\nAssess whether we should change that skill's body or description to prevent repeated guidance.",
+    "expected": [
+      "Activation remains unknown because historical visibility and complete loading evidence are unavailable.",
+      "First-result failure is unproven because original outputs are missing.",
+      "Reject unsupported body or description changes; identify the evidence needed for a diagnosis."
+    ],
+    "must_not": [
+      "Must not treat the current install or user references as proof the skill was visible or loaded historically.",
+      "Must not call two related prompts a skill failure rate or claim to have run evaluations."
+    ]
+  },
+  {
+    "name": "known-requirement-and-later-preference",
+    "description": "Separate an ignored initial requirement from a new preference; avoid duplicated clear guidance.",
+    "input": "Use reflect to evaluate this synthetic completed task and propose the smallest supported improvement. This packet is the whole scope; no further reads or edits are needed.\n\nI1 initial request: \"Write a short launch note using only the supplied facts. State the monthly price and the enabled plans.\"\nI2 supplied facts: Monthly price is GBP 20. The feature is enabled on the Basic plan.\nI3 execution trace: Read skills/release-note/SKILL.md version 1.0 before drafting. Its complete relevant guidance: \"Use only facts in the supplied notes. Verify every price and plan claim against those notes before delivery.\"\nI4 first delivery: \"The feature costs GBP 20 per month and is available on every plan.\"\nI5 user correction: \"The notes say Basic only. Also, use euros for this audience; the approved euro price is EUR 24.\"\nI6 corrected delivery: \"The feature costs EUR 24 per month and is available on Basic.\"\nI7 user reply: \"Approved.\"\n\nWhy did I need to correct this, and what should change?",
+    "expected": [
+      "Treat the every-plan claim as a miss of an initially supplied requirement under a skill proven loaded.",
+      "Exclude the euro currency preference and EUR 24 fact from the original-result failure score.",
+      "Reject repeating the existing claim-verification prose; consider a focused execution diagnostic or check.",
+      "Distinguish the historical approved revision from a replay result."
+    ],
+    "must_not": [
+      "Must not universalize euros as a shared skill requirement.",
+      "Must not route this as a missed description trigger.",
+      "Must not claim the first output was accepted or that changing instructions has already fixed the behavior."
+    ]
+  },
+  {
+    "name": "separate-replay-inputs",
+    "description": "Prepare a correction-driven skill-creator handoff without revealing future answers to the executor.",
+    "input": "Use reflect to prepare the evaluation handoff for an authorized substantive update to skills/release-note/SKILL.md. Do not edit files or run the future launch-writing task. Use only this synthetic packet.\n\nR1 initial request: \"Produce a complete internal launch note from the attached brief, including its rollout caveats.\"\nR2 original brief: The feature is available for new workspaces on the Team plan. Existing workspaces require a support migration.\nR3 execution trace: Skill version 1.0 was loaded. Relevant complete body: \"Write a concise launch note from the provided brief. Explain the feature and who benefits.\"\nR4 first output: \"The new feature is available on the Team plan.\"\nR5 correction: \"You left out the existing-workspace migration caveat. It is in the brief.\"\nR6 revised output includes the migration caveat. No subsequent acceptance message is available.\nR7 separate incident: Same initial task type with another brief explicitly excluding preview tenants; the loaded v1.0 skill again omitted the supplied rollout caveat. Its first output and user correction are retained with that incident.\n\nApproved proposal: clarify completeness against the provided brief and add a targeted review of rollout conditions before delivery. Our aim is a usable first result with less repeated prompting. Prepare the skill-creator test handoff and explain what evidence could show improvement.",
+    "expected": [
+      "Execution inputs contain the original request, raw brief and relevant prior context; corrections, historical outputs and expected answers are grader-only.",
+      "Criterion for migration caveat cites the original brief and is admissible; acceptance of the historical revision remains unknown.",
+      "Compare baseline and candidate with matched conditions and inspect actual first delivered artifacts.",
+      "Record skill versions and actual loading; distinguish normal selection from explicitly invoked diagnostics if discovery is tested.",
+      "Treat cases already used to design the approved change as regression cases, not untouched held-out evaluation.",
+      "Keep inherited historical permissions out of replay authorization and preserve source-data privacy."
+    ],
+    "must_not": [
+      "Must not put the later correction, approved proposal or intended answer into the execution prompt.",
+      "Must not claim a measured reduction in corrective prompts before trials or prospective use.",
+      "Must not require another approval for the already-authorized proposal merely because it is substantive."
+    ]
+  },
+  {
+    "name": "ordinary-reflection-stays-small",
+    "description": "A trivial source correction should not become a mandatory replay program.",
+    "input": "Use reflect on this synthetic session digest. Scope is this digest and the quoted source; do not collect history. The user asked to correct a misspelled label in skills/table-helper/SKILL.md and already authorized that one-line edit. The execution trace confirms that skill was read. Its body says \"Use the colum label provided by the user\"; the proposed edit changes \"colum\" to \"column\". There are no repeated behavioral corrections, other findings or output-quality evaluation requests. Give the relevant reflection summary; do not edit files in this evaluation.",
+    "expected": [
+      "Treat the typo as trivial and outside durable learning; an empty Accepted list is valid.",
+      "Keep the proposed one-line edit within its existing authorization without requiring a substantive skill-creator workflow."
+    ],
+    "must_not": [
+      "Must not require paired replays, a held-out dataset, or a new evaluation artifact for this ordinary trivial task.",
+      "Must not manufacture a recurring pattern, new skill, tracker issue, or historical failure rate."
+    ]
+  }
+]

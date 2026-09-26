@@ -1,0 +1,75 @@
+name: Sync Codex Plugins
+
+# Keeps the Codex side of the marketplace in step with the Claude plugins. On every pull
+# request from this repository, it regenerates the Codex catalogue, manifests and skill
+# adapters, and commits any change back to the pull request branch. Pull requests from
+# forks cannot be pushed to, so there it only checks and fails with instructions.
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: write
+  actions: write # to re-run the required checks on the regenerated commit
+
+concurrency:
+  group: codex-sync-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  codex-sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout the pull request branch
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+
+      - name: Setup Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: '3.12'
+          cache: pip
+
+      - name: Install generator dependencies
+        run: python -m pip install --requirement requirements.txt
+
+      - name: Regenerate Codex metadata
+        run: python scripts/generate_codex_marketplace.py
+
+      - name: Commit regenerated files to this branch
+        if: github.event.pull_request.head.repo.full_name == github.repository
+        env:
+          HEAD_REF: ${{ github.head_ref }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if git diff --quiet && [ -z "$(git ls-files --others --exclude-standard)" ]; then
+            echo "Codex metadata already up to date."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "chore: regenerate Codex metadata"
+          git push origin "HEAD:refs/heads/${HEAD_REF}"
+          # A push made with the workflow token starts no new runs, so start the required
+          # checks on the new commit explicitly (workflow_dispatch is the allowed exception).
+          # Passing the pull request makes them test its merge ref, not the branch head alone.
+          head_sha="$(git rev-parse HEAD)"
+          gh workflow run validate-plugins.yml --ref "${HEAD_REF}" \
+            -f pr_number="${PR_NUMBER}" -f head_sha="${head_sha}"
+          gh workflow run scan-skills.yml --ref "${HEAD_REF}" \
+            -f pr_number="${PR_NUMBER}" -f head_sha="${head_sha}"
+
+      - name: Fail with instructions on forks
+        if: github.event.pull_request.head.repo.full_name != github.repository
+        run: |
+          if ! git diff --quiet || [ -n "$(git ls-files --others --exclude-standard)" ]; then
+            git status --short
+            echo "::error::Codex metadata is out of date. Run: python scripts/generate_codex_marketplace.py and commit the result."
+            exit 1
+          fi

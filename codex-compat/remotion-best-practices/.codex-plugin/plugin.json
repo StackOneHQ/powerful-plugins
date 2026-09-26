@@ -1,0 +1,24 @@
+{
+  "name": "remotion-best-practices",
+  "version": "0.1.0+eed702478ce3.58a12d56c2b0",
+  "description": "Best practices for Remotion - React-based video creation. Covers compositions, animations, media handling, Three.js 3D, captions, TailwindCSS, and 27 rule files",
+  "author": {
+    "name": "Remotion"
+  },
+  "repository": "https://github.com/remotion-dev/skills",
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Remotion Best Practices",
+    "shortDescription": "Best practices for Remotion - React-based video creation. Covers compositions, animations, media handling, Three.js 3D,…",
+    "longDescription": "Best practices for Remotion - React-based video creation. Covers compositions, animations, media handling, Three.js 3D, captions, TailwindCSS, and 27 rule files",
+    "developerName": "Remotion",
+    "category": "Design",
+    "capabilities": [
+      "Interactive"
+    ],
+    "websiteURL": "https://github.com/remotion-dev/skills",
+    "defaultPrompt": [
+      "Use Remotion Best Practices for this workflow."
+    ]
+  }
+}

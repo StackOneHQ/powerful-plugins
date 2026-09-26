@@ -1,0 +1,21 @@
+{
+  "name": "browser-recorder",
+  "version": "1.2.2",
+  "description": "Capture screenshots and video clips (60fps by default) from a shot list, signed in once per domain, with a click and scroll log for video post-processing.",
+  "author": {
+    "name": "StackOne",
+    "url": "https://github.com/StackOneHQ"
+  },
+  "homepage": "https://github.com/StackOneHQ/powerful-plugins",
+  "repository": "https://github.com/StackOneHQ/powerful-plugins",
+  "license": "MIT",
+  "keywords": [
+    "browser",
+    "recording",
+    "video",
+    "screenshots",
+    "automation",
+    "1password",
+    "remotion"
+  ]
+}

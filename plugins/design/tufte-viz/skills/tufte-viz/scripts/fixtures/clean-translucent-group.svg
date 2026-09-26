@@ -1,0 +1,3 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 300" width="600" height="300">
+<text x="50" y="100" font-size="20" font-family="sans-serif">tinted label</text><g opacity="0.3"><rect x="40" y="70" width="200" height="50" fill="#111"/></g>
+</svg>
