@@ -1,18 +1,26 @@
 #!/bin/bash
-# Shared helpers for say-hooks. Sourced by say-*.sh scripts.
+# Shared helpers for say-hooks, sourced by the scripts next to it.
 
+SAY_HOOKS_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 DEFAULT_VOICE="af_heart"
 DEFAULT_SPEED="1.0"
 CONFIG_FILE="$HOME/.claude/say-hooks.local.md"
 RATE_LIMIT_SECONDS=3
-# Per-project stamp: hash $PWD so two sessions in different repos get
-# independent rate limits, but repeat hooks in the same repo debounce.
-RATE_LIMIT_STAMP="/tmp/claude-say.$(printf '%s' "$PWD" | shasum -a 1 2>/dev/null | cut -c1-12).last"
+CACHE_DIR="$HOME/.cache/say-hooks"
+# Shared by every session, so two that finish together take turns instead of talking over each other.
+SPEECH_LOCK="$CACHE_DIR/speech.lock"
 
 TERMINAL_NAMES_PATTERN='^(iTerm2|Terminal|Alacritty|kitty|Ghostty|Warp|WezTerm|Hyper|Tabby|Code|Cursor|Electron)$'
 
-# _file_mtime — epoch mtime of a file. Handles BSD stat (macOS default) and
-# GNU stat (Linux, or macOS with coreutils on PATH). Returns 0 if file is absent.
+# detach_under_codex <script>: Codex hooks cannot be async, so under Codex the
+# script re-runs itself in the background and the hook returns at once.
+detach_under_codex() {
+  [[ "${SAY_HOOKS_CODEX_HOOK:-}" == "1" && "${SAY_HOOKS_BACKGROUND:-}" != "1" ]] || return 0
+  SAY_HOOKS_BACKGROUND=1 nohup bash "$1" >/dev/null 2>&1 &
+  exit 0
+}
+
+# Epoch mtime of a file, or 0 when it is absent. BSD stat on macOS, GNU stat elsewhere.
 _file_mtime() {
   [[ -f "$1" ]] || { echo 0; return; }
   if stat --version >/dev/null 2>&1; then
@@ -22,35 +30,26 @@ _file_mtime() {
   fi
 }
 
-# should_skip — returns 0 (skip) when the hook should stay silent.
-# Honors STACKVOX_ALWAYS_SPEAK=1 to bypass both checks.
+# Succeeds when the hook should stay silent. STACKVOX_ALWAYS_SPEAK=1 never skips.
 should_skip() {
   [[ "${STACKVOX_ALWAYS_SPEAK:-}" == "1" ]] && return 1
-  rate_limited && return 0
-  is_hosting_terminal_focused && return 0
-  return 1
+  rate_limited || is_hosting_terminal_focused
 }
 
-# rate_limited — 0 if the previous hook fired within RATE_LIMIT_SECONDS.
-# Side effect: on non-skip, touches the stamp file so the next call sees us.
+# Succeeds when a hook in this directory spoke under RATE_LIMIT_SECONDS ago, and
+# otherwise records now. Per directory, so another repo's session never silences this one.
 rate_limited() {
-  local now age mtime
+  local stamp now
+  mkdir -p "$CACHE_DIR"
+  stamp="$CACHE_DIR/$(printf '%s' "$PWD" | shasum -a 1 2>/dev/null | cut -c1-12).last"
   now=$(date +%s)
-  if [[ -f "$RATE_LIMIT_STAMP" ]]; then
-    mtime=$(_file_mtime "$RATE_LIMIT_STAMP")
-    age=$(( now - mtime ))
-    if (( age < RATE_LIMIT_SECONDS )); then
-      return 0
-    fi
-  fi
-  echo "$now" > "$RATE_LIMIT_STAMP"
+  (( now - $(_file_mtime "$stamp") < RATE_LIMIT_SECONDS )) && return 0
+  echo "$now" > "$stamp"
   return 1
 }
 
-# is_hosting_terminal_focused — macOS only. Walks up from $PPID to find the
-# terminal process that ultimately hosts Claude Code, then checks whether that
-# PID is the frontmost application. Returns 0 if focused, 1 otherwise.
-# Returns 1 (not focused) on non-macOS or if we can't determine.
+# macOS only: walks up from $PPID to the terminal hosting the session and
+# succeeds when it is the frontmost application. Anything undetermined is "not focused".
 is_hosting_terminal_focused() {
   [[ "$(uname)" == "Darwin" ]] || return 1
   command -v osascript >/dev/null || return 1
@@ -72,9 +71,8 @@ is_hosting_terminal_focused() {
   [[ "$host_pid" == "$front" ]]
 }
 
-# _read_config_field — pulls `<field>: value` from YAML frontmatter.
-# Strips surrounding whitespace + quotes and drops trailing `# comment`.
-# Empty string if absent.
+# The value of `<field>:` in the config file's YAML frontmatter, without quotes
+# or a trailing `# comment`; empty when absent.
 _read_config_field() {
   [[ -f "$CONFIG_FILE" ]] || return
   awk -v field="$1" '
@@ -89,21 +87,19 @@ _read_config_field() {
   ' "$CONFIG_FILE"
 }
 
-# read_config_voice — returns configured voice or DEFAULT_VOICE.
 read_config_voice() {
   local v
   v=$(_read_config_field voice)
   echo "${v:-$DEFAULT_VOICE}"
 }
 
-# read_config_speed — returns configured speed (as float string) or DEFAULT_SPEED.
 read_config_speed() {
   local s
   s=$(_read_config_field speed)
   echo "${s:-$DEFAULT_SPEED}"
 }
 
-# voice_to_lang — maps voice prefix to phrase-file language code (en/fr/hi/it/pt).
+# The phrases/ file for a voice, by its prefix.
 voice_to_lang() {
   case "${1:0:2}" in
     af|am|bf|bm) echo "en" ;;
@@ -115,7 +111,7 @@ voice_to_lang() {
   esac
 }
 
-# voice_to_kokoro_lang — maps voice prefix to the --lang code stackvox expects.
+# The --lang code stackvox expects for a voice, by its prefix.
 voice_to_kokoro_lang() {
   case "${1:0:2}" in
     af|am) echo "en-us" ;;
@@ -128,34 +124,55 @@ voice_to_kokoro_lang() {
   esac
 }
 
-# repo_name_raw — basename of PWD, normalized for Kokoro pronunciation.
-# Kokoro reads most acronyms correctly, so we only expand the ones it gets wrong.
-repo_name_raw() {
-  local repo parts=() word
-  repo=$(basename "$PWD")
-  for word in $(echo "$repo" | tr '_-' '  '); do
-    case "$word" in
-      cli|CLI)           word="C L I" ;;
+# Defines TEMPLATES_RESPONSE and TEMPLATES_NOTIFICATION for a language, falling back to English.
+load_phrases() {
+  # shellcheck source=../phrases/en.sh
+  source "$SAY_HOOKS_ROOT/phrases/$1.sh" 2>/dev/null || source "$SAY_HOOKS_ROOT/phrases/en.sh"
+}
+
+# repo_label <spelling>...: the directory name split into words on - and _, with
+# each word that matches a listed spelling spelt out as capital letters.
+repo_label() {
+  local word parts=()
+  for word in $(basename "$PWD" | tr '_-' '  '); do
+    case " $* " in
+      *" $word "*) word=$(printf '%s' "$word" | tr '[:lower:]' '[:upper:]' | sed 's/./& /g; s/ $//') ;;
     esac
     parts+=("$word")
   done
   echo "${parts[*]}"
 }
 
-# repo_name_expanded — English-phonetic form for the macOS `say` backend.
-# Letter-splits common acronyms so `say` pronounces them correctly.
-repo_name_expanded() {
-  local repo parts=() word
-  repo=$(basename "$PWD")
-  for word in $(echo "$repo" | tr '_-' '  '); do
-    case "$word" in
-      mcp|MCP)           word="M C P" ;;
-      api|API)           word="A P I" ;;
-      cli|CLI)           word="C L I" ;;
-      hris|HRIS)         word="H R I S" ;;
-      ai|AI)             word="A I" ;;
-    esac
-    parts+=("$word")
-  done
-  echo "${parts[*]}"
+# announce <array name>: speak a random phrase from that array, labelled with the
+# repo, in the configured voice through stackvox, or in English through macOS `say`.
+announce() {
+  local voice speed lang=en repo
+  if command -v stackvox-say >/dev/null; then
+    voice=$(read_config_voice)
+    speed=$(read_config_speed)
+    lang=$(voice_to_lang "$voice")
+    # Kokoro reads most acronyms correctly; `say` needs more of them spelt out.
+    repo=$(repo_label cli CLI)
+  else
+    repo=$(repo_label mcp MCP api API cli CLI hris HRIS ai AI)
+  fi
+
+  load_phrases "$lang"
+  local ref="$1[@]"
+  local templates=("${!ref}")
+  local sentence
+  # shellcheck disable=SC2059
+  sentence=$(printf "${templates[RANDOM % ${#templates[@]}]}" "$repo")
+
+  if command -v shlock >/dev/null; then
+    mkdir -p "$CACHE_DIR"
+    until shlock -f "$SPEECH_LOCK" -p $$ 2>/dev/null; do sleep 0.2; done
+    trap 'rm -f "$SPEECH_LOCK"' EXIT
+  fi
+
+  if command -v stackvox-say >/dev/null; then
+    stackvox-say --voice "$voice" --lang "$(voice_to_kokoro_lang "$voice")" --speed "$speed" "$sentence"
+  else
+    say "$sentence"
+  fi
 }

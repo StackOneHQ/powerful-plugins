@@ -1,6 +1,6 @@
 {
   "name": "review-loop",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Push, get every AI code reviewer on the pull request (Copilot, Cubic, Greptile, CodeRabbit, Codex, Bugbot, Gemini, GitHub code scanning) to review it, verify and fix or decline each finding, and repeat until all are clean.",
   "author": {
     "name": "StackOne",

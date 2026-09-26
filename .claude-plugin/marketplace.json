@@ -59,7 +59,7 @@
         "dashboards",
         "sparklines"
       ],
-      "version": "1.1.4",
+      "version": "1.1.5",
       "author": {
         "name": "StackOne",
         "url": "https://github.com/StackOneHQ"
@@ -77,7 +77,7 @@
         "llm-isms",
         "editing"
       ],
-      "version": "1.2.0",
+      "version": "1.2.1",
       "author": {
         "name": "StackOne",
         "url": "https://github.com/StackOneHQ"
@@ -113,7 +113,7 @@
         "audit",
         "refactoring"
       ],
-      "version": "1.3.0",
+      "version": "1.3.1",
       "author": {
         "name": "StackOne",
         "url": "https://github.com/StackOneHQ"
@@ -154,7 +154,7 @@
         "gemini",
         "code-scanning"
       ],
-      "version": "1.2.0",
+      "version": "1.2.1",
       "author": {
         "name": "StackOne",
         "url": "https://github.com/StackOneHQ"
@@ -190,7 +190,7 @@
         "screenshot",
         "terminal"
       ],
-      "version": "1.2.1",
+      "version": "1.2.2",
       "author": {
         "name": "StackOne",
         "url": "https://github.com/StackOneHQ"
@@ -207,7 +207,7 @@
         "notifications",
         "voice"
       ],
-      "version": "1.1.0",
+      "version": "1.1.1",
       "author": {
         "name": "StackOne",
         "url": "https://github.com/StackOneHQ"

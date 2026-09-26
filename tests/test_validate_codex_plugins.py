@@ -44,7 +44,7 @@ class CodexPluginValidatorTests(unittest.TestCase):
                 "---\n"
             )
 
-            _validate_plugin(root, plugin, "example")
+            _validate_plugin(plugin, "example")
 
     def test_non_mapping_policy_is_a_validation_error_not_a_crash(self) -> None:
         for policy in ("", " []", " allow"):

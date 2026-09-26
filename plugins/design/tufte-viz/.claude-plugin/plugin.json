@@ -1,6 +1,6 @@
 {
   "name": "tufte-viz",
-  "version": "1.1.4",
+  "version": "1.1.5",
   "description": "Ideate and critique data visualizations using Edward Tufte's principles: data-ink ratio, chartjunk elimination, graphical integrity, lie factor, small multiples, sparklines, and layering.",
   "author": {
     "name": "StackOne",

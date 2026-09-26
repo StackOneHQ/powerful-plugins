@@ -1,6 +1,6 @@
 {
   "name": "pr-review-toolkit",
-  "version": "0.1.0+3da105324a27.a5dcd3a68c9f",
+  "version": "0.1.0+3da105324a27.42524368dc20",
   "description": "Comprehensive PR review with specialized agents for code review, silent failure hunting, and test analysis",
   "author": {
     "name": "Anthropic"

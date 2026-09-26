@@ -8,7 +8,7 @@ from unittest.mock import Mock, patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
 
-from scripts.smoke_test_claude_marketplace import SmokeError, _catalog, _run, smoke
+from scripts.smoke_test_claude_marketplace import SmokeError, _plugin_names, _run, smoke
 
 
 class ClaudeSmokeRunnerTests(unittest.TestCase):
@@ -28,7 +28,7 @@ class ClaudeSmokeRunnerTests(unittest.TestCase):
 
 
 class ClaudeSmokeCatalogTests(unittest.TestCase):
-    def test_catalog_preserves_marketplace_name_and_locality(self) -> None:
+    def test_catalog_lists_local_and_external_plugins_in_order(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             catalog = root / ".claude-plugin" / "marketplace.json"
@@ -54,10 +54,9 @@ class ClaudeSmokeCatalogTests(unittest.TestCase):
                 encoding="utf-8",
             )
 
-            marketplace, plugins = _catalog(root)
+            names = _plugin_names(root)
 
-        self.assertEqual(marketplace, "powerful-plugins")
-        self.assertEqual(plugins, [("local", True), ("external", False)])
+        self.assertEqual(names, ["local", "external"])
 
     def test_catalog_rejects_a_ref_in_place_of_a_sha(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -84,7 +83,7 @@ class ClaudeSmokeCatalogTests(unittest.TestCase):
             )
 
             with self.assertRaisesRegex(SmokeError, "pin a commit with sha, not ref"):
-                _catalog(root)
+                _plugin_names(root)
 
     def test_catalog_rejects_a_github_source_with_a_path(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -112,7 +111,7 @@ class ClaudeSmokeCatalogTests(unittest.TestCase):
             )
 
             with self.assertRaisesRegex(SmokeError, "^external: .*use git-subdir"):
-                _catalog(root)
+                _plugin_names(root)
 
     def test_catalog_rejects_a_marketplace_identity_change(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -125,7 +124,7 @@ class ClaudeSmokeCatalogTests(unittest.TestCase):
             )
 
             with self.assertRaisesRegex(SmokeError, "marketplace identity changed"):
-                _catalog(root)
+                _plugin_names(root)
 
 
 

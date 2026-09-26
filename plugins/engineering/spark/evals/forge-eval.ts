@@ -1,22 +1,7 @@
 #!/usr/bin/env npx tsx
-/**
- * Forge Skill Evaluator v2
- *
- * Tests the forge skill against scenarios covering:
- * - True positives: issues forge MUST catch
- * - True negatives: clean code forge must NOT over-flag
- * - Adversarial: tricky cases that test calibration
- * - AI slop: agent-written diffs forge must deslop without flagging legitimate boundary code
- * - LLM-as-judge: subjective quality scoring
- * - Statistical reliability: 3 runs per scenario, majority vote
- *
- * Usage:
- *   npx tsx forge-eval.ts                        # Run all scenarios (3 runs each)
- *   npx tsx forge-eval.ts --scenario retry       # Run one scenario
- *   npm run eval:scenario -- retry               # The same, one run, through npm
- *   npx tsx forge-eval.ts --runs 1               # Single run (fast, less reliable)
- *   npx tsx forge-eval.ts --judge                 # Enable LLM-as-judge scoring
- */
+// Forge's synthetic eval (README.md): each scenario goes to the model with the forge skill as its
+// system prompt, and pattern checks, plus an LLM judge with --judge, grade the reply.
+// usage: npx tsx forge-eval.ts [--scenario <part of a name>] [--runs <n, default 3; majority vote>] [--judge]
 
 import Anthropic from "@anthropic-ai/sdk";
 import { readFileSync } from "fs";
@@ -29,48 +14,40 @@ const SKILL_PATH = join(__dirname, "..", "skills", "forge", "SKILL.md");
 const MODEL = process.env.FORGE_EVAL_MODEL ?? "claude-sonnet-5";
 const JUDGE_MODEL = process.env.FORGE_EVAL_JUDGE ?? "claude-sonnet-5";
 
-// ─── Types ───────────────────────────────────────────────────────────────────
+const CATEGORIES = ["true-positive", "true-negative", "adversarial"] as const;
+type Category = (typeof CATEGORIES)[number];
 
 interface Scenario {
   name: string;
   description: string;
-  category: "true-positive" | "true-negative" | "adversarial" | "calibration";
+  category: Category;
   input: string;
   mustCatch: { label: string; patterns: string[] }[];
   mustNotFlag: { label: string; patterns: string[] }[];
-  structuralChecks: string[];
-  /** Optional LLM-as-judge rubric for subjective quality */
+  structuralChecks: StructuralCheck[];
   judgeRubric?: string;
 }
 
 interface RunResult {
-  output: string;
   truePositives: { label: string; found: boolean }[];
   falsePositives: { label: string; triggered: boolean }[];
-  structural: { check: string; passed: boolean }[];
+  structural: { check: StructuralCheck; passed: boolean }[];
   score: number;
   totalChecks: number;
   passed: boolean;
-  judgeScore?: number;
-  judgeReasoning?: string;
+  judge?: { score: number; reasoning: string };
 }
 
 interface ScenarioResult {
   scenario: string;
-  category: string;
+  category: Category;
   runs: RunResult[];
   majorityPassed: boolean;
   passRate: string;
   avgJudgeScore?: number;
 }
 
-// ─── Scenarios ───────────────────────────────────────────────────────────────
-
 const scenarios: Scenario[] = [
-  // ════════════════════════════════════════════════════════════════════════════
-  // TRUE POSITIVES — Forge MUST catch these issues
-  // ════════════════════════════════════════════════════════════════════════════
-
   {
     name: "retry-reinvented",
     category: "true-positive",
@@ -366,10 +343,6 @@ eventBus.on('user.signup', new WelcomeEmailHandler());
     judgeRubric: "Does the response recognize that an event bus with middleware, plugins, and serializers is massive over-engineering for 'send welcome email on signup'? Does it recommend starting with a direct function call and extracting patterns only when actual complexity demands it?",
   },
 
-  // ════════════════════════════════════════════════════════════════════════════
-  // TRUE NEGATIVES — Clean code forge should NOT over-critique
-  // ════════════════════════════════════════════════════════════════════════════
-
   {
     name: "good-design",
     category: "true-negative",
@@ -454,10 +427,6 @@ export function elapsed(ctx: RequestContext): number {
     structuralChecks: ["leaves sound code alone"],
     judgeRubric: "Does the response respect idiomatic TypeScript patterns (type aliases, nullish coalescing, immutable spread)? Does it avoid manufacturing issues with code that is genuinely clean and focused? A good response leaves the code essentially as it is, with at most one small, concrete fix.",
   },
-
-  // ════════════════════════════════════════════════════════════════════════════
-  // ADVERSARIAL — Edge cases that test forge's calibration
-  // ════════════════════════════════════════════════════════════════════════════
 
   {
     name: "llm-slop-abstraction",
@@ -629,11 +598,6 @@ async function checkS3(): Promise<ComponentStatus> {
     judgeRubric: "Does the response catch that (1) no timeouts means a hung DB connection blocks the health endpoint itself, and (2) Promise.all rejects on ANY failure so a Redis blip makes the entire health check throw instead of returning degraded status? These are classic cascade failure patterns from 'Release It!'",
   },
 
-  // ════════════════════════════════════════════════════════════════════════════
-  // AI SLOP — Agent-written diffs. Forge must catch the slop and spare the
-  // legitimate boundary code that slop imitates.
-  // ════════════════════════════════════════════════════════════════════════════
-
   {
     name: "deslop-diff",
     category: "true-positive",
@@ -786,7 +750,7 @@ The real \`applyDiscount\` clamps pct to [0, 1] and rounds to cents; none of tha
   },
 ];
 
-// ─── Pattern Matching ────────────────────────────────────────────────────────
+const mean = (xs: number[]) => xs.reduce((a, b) => a + b, 0) / xs.length;
 
 function checkPatternMatch(output: string, patterns: string[]): boolean {
   const lower = output.toLowerCase();
@@ -796,27 +760,25 @@ function checkPatternMatch(output: string, patterns: string[]): boolean {
   });
 }
 
-function checkStructural(output: string, check: string): boolean {
-  const lower = output.toLowerCase();
-  switch (check) {
-    case "contains a concrete rewrite":
-      return output.includes("```") && /\b(delet|remov|inlin|replac|renam|collaps|reus|cut|drop|merg|extract|mov)\w*|\bgone\b/i.test(output);
-    case "cites specific code":
-      return lower.includes("```") || lower.includes("withretry") || lower.includes("file:") || lower.includes(".ts");
-    case "proposes concrete split":
-      return (lower.includes("split") || lower.includes("separate")) &&
-        (lower.includes("class") || lower.includes("module") || lower.includes("interface"));
-    case "leaves sound code alone": {
-      const saysSound = /\b(no changes?|nothing to (change|remove)|leave (it|this|as)|already (clean|simple|idiomatic|sound|in good shape)|is fine|sound as|(almost|essentially) (exactly )?as (written|it (is|was))|as you wrote it|left (it|the rest) alone)\b/i.test(output);
-      const codeBlocks = (output.match(/```/g) ?? []).length / 2;
-      return saysSound && codeBlocks <= 1;
-    }
-    default:
-      return false;
-  }
-}
-
-// ─── LLM-as-Judge ────────────────────────────────────────────────────────────
+const STRUCTURAL_CHECKS = {
+  "contains a concrete rewrite": (output: string) =>
+    output.includes("```") && /\b(delet|remov|inlin|replac|renam|collaps|reus|cut|drop|merg|extract|mov)\w*|\bgone\b/i.test(output),
+  "cites specific code": (output: string) => {
+    const lower = output.toLowerCase();
+    return lower.includes("```") || lower.includes("withretry") || lower.includes("file:") || lower.includes(".ts");
+  },
+  "proposes concrete split": (output: string) => {
+    const lower = output.toLowerCase();
+    return (lower.includes("split") || lower.includes("separate")) &&
+      (lower.includes("class") || lower.includes("module") || lower.includes("interface"));
+  },
+  "leaves sound code alone": (output: string) => {
+    const saysSound = /\b(no changes?|nothing to (change|remove)|leave (it|this|as)|already (clean|simple|idiomatic|sound|in good shape)|is fine|sound as|(almost|essentially) (exactly )?as (written|it (is|was))|as you wrote it|left (it|the rest) alone)\b/i.test(output);
+    const codeBlocks = (output.match(/```/g) ?? []).length / 2;
+    return saysSound && codeBlocks <= 1;
+  },
+};
+type StructuralCheck = keyof typeof STRUCTURAL_CHECKS;
 
 async function judgeOutput(
   client: Anthropic,
@@ -865,8 +827,6 @@ SCORE: [1-5]`,
   };
 }
 
-// ─── Runner ──────────────────────────────────────────────────────────────────
-
 async function runOnce(
   client: Anthropic,
   skill: string,
@@ -888,46 +848,20 @@ Apply this skill to the user's input. Follow the skill instructions exactly. The
 
   const output = response.content[0].type === "text" ? response.content[0].text : "";
 
-  const truePositives = scenario.mustCatch.map((tc) => ({
-    label: tc.label,
-    found: checkPatternMatch(output, tc.patterns),
-  }));
-
-  const falsePositives = scenario.mustNotFlag.map((tn) => ({
-    label: tn.label,
-    triggered: checkPatternMatch(output, tn.patterns),
-  }));
-
-  const structural = scenario.structuralChecks.map((check) => ({
-    check,
-    passed: checkStructural(output, check),
-  }));
-
-  const tpScore = truePositives.filter((t) => t.found).length;
-  const fpScore = falsePositives.filter((f) => !f.triggered).length;
-  const structScore = structural.filter((s) => s.passed).length;
-  const totalChecks = truePositives.length + falsePositives.length + structural.length;
-  const score = tpScore + fpScore + structScore;
-
-  let judgeScore: number | undefined;
-  let judgeReasoning: string | undefined;
-
-  if (useJudge && scenario.judgeRubric) {
-    const judge = await judgeOutput(client, scenario, output);
-    judgeScore = judge.score;
-    judgeReasoning = judge.reasoning;
-  }
+  const truePositives = scenario.mustCatch.map(({ label, patterns }) => ({ label, found: checkPatternMatch(output, patterns) }));
+  const falsePositives = scenario.mustNotFlag.map(({ label, patterns }) => ({ label, triggered: checkPatternMatch(output, patterns) }));
+  const structural = scenario.structuralChecks.map((check) => ({ check, passed: STRUCTURAL_CHECKS[check](output) }));
+  const outcomes = [...truePositives.map((t) => t.found), ...falsePositives.map((f) => !f.triggered), ...structural.map((s) => s.passed)];
+  const score = outcomes.filter(Boolean).length;
 
   return {
-    output,
     truePositives,
     falsePositives,
     structural,
     score,
-    totalChecks,
-    passed: score === totalChecks,
-    judgeScore,
-    judgeReasoning,
+    totalChecks: outcomes.length,
+    passed: score === outcomes.length,
+    judge: useJudge && scenario.judgeRubric ? await judgeOutput(client, scenario, output) : undefined,
   };
 }
 
@@ -947,26 +881,18 @@ async function runScenario(
     if (numRuns > 1) console.log(` ${result.passed ? "✓" : "✗"} (${result.score}/${result.totalChecks})`);
   }
 
-  // Majority vote: pass if more than half of runs pass
   const passCount = runs.filter((r) => r.passed).length;
-  const majorityPassed = passCount > numRuns / 2;
-
-  const judgeScores = runs.map((r) => r.judgeScore).filter((s): s is number => s !== undefined);
-  const avgJudgeScore = judgeScores.length > 0
-    ? judgeScores.reduce((a, b) => a + b, 0) / judgeScores.length
-    : undefined;
+  const judgeScores = runs.flatMap((r) => (r.judge ? [r.judge.score] : []));
 
   return {
     scenario: scenario.name,
     category: scenario.category,
     runs,
-    majorityPassed,
+    majorityPassed: passCount > numRuns / 2,
     passRate: `${passCount}/${numRuns}`,
-    avgJudgeScore,
+    avgJudgeScore: judgeScores.length > 0 ? mean(judgeScores) : undefined,
   };
 }
-
-// ─── Main ────────────────────────────────────────────────────────────────────
 
 async function main() {
   // Arguments first, so a typo fails before anything needs an API key.
@@ -986,7 +912,6 @@ async function main() {
     console.error(`--runs must be a positive integer, got ${args.runs}`);
     process.exit(1);
   }
-  const useJudge = args.judge;
 
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) {
@@ -1006,19 +931,16 @@ async function main() {
     process.exit(1);
   }
 
-  const totalApiCalls = toRun.length * numRuns + (useJudge ? toRun.filter((s) => s.judgeRubric).length * numRuns : 0);
+  const totalApiCalls = toRun.length * numRuns + (args.judge ? toRun.filter((s) => s.judgeRubric).length * numRuns : 0);
 
   console.log(`\n╔══ Forge Skill Eval v2 ═══════════════════════════════════════╗`);
-  console.log(`║  Scenarios: ${String(toRun.length).padEnd(2)}  │  Runs: ${String(numRuns).padEnd(1)}x  │  Judge: ${useJudge ? "ON " : "OFF"}  │  Model: ${MODEL.slice(0, 20)}  ║`);
+  console.log(`║  Scenarios: ${String(toRun.length).padEnd(2)}  │  Runs: ${String(numRuns).padEnd(1)}x  │  Judge: ${args.judge ? "ON " : "OFF"}  │  Model: ${MODEL.slice(0, 20)}  ║`);
   console.log(`║  API calls: ~${String(totalApiCalls).padEnd(3)} │  Est. time: ~${Math.ceil(totalApiCalls * 8 / 60)}min${" ".repeat(25)}║`);
   console.log(`╚══════════════════════════════════════════════════════════════════╝`);
 
   const results: ScenarioResult[] = [];
 
-  // Group by category for cleaner output
-  const categories = ["true-positive", "true-negative", "adversarial", "calibration"] as const;
-
-  for (const cat of categories) {
+  for (const cat of CATEGORIES) {
     const catScenarios = toRun.filter((s) => s.category === cat);
     if (catScenarios.length === 0) continue;
 
@@ -1026,77 +948,57 @@ async function main() {
 
     for (const scenario of catScenarios) {
       console.log(`\n  ${scenario.name} — ${scenario.description}`);
-      const result = await runScenario(client, skill, scenario, numRuns, useJudge);
-      results.push(result);
+      results.push(await runScenario(client, skill, scenario, numRuns, args.judge));
     }
   }
 
-  // ── Results ──
   console.log(`\n${"═".repeat(66)}`);
   console.log("RESULTS\n");
 
-  let totalScenarios = 0;
-  let passedScenarios = 0;
-  const judgeScores: number[] = [];
-
-  for (const cat of categories) {
+  for (const cat of CATEGORIES) {
     const catResults = results.filter((r) => r.category === cat);
     if (catResults.length === 0) continue;
 
     console.log(`── ${cat.toUpperCase()} ──`);
 
     for (const r of catResults) {
-      totalScenarios++;
-      if (r.majorityPassed) passedScenarios++;
-
       const icon = r.majorityPassed ? "✅" : "❌";
       const judge = r.avgJudgeScore !== undefined ? ` │ Judge: ${r.avgJudgeScore.toFixed(1)}/5` : "";
       console.log(`${icon} ${r.scenario} (${r.passRate} runs passed${judge})`);
 
-      // Show detailed checks from the best (or worst) run
-      const detailRun = r.runs[0];
-      for (const tp of detailRun.truePositives) {
+      const [first] = r.runs;
+      for (const tp of first.truePositives) {
         console.log(`   ${tp.found ? "✓" : "✗"} Must catch: ${tp.label}`);
       }
-      for (const fp of detailRun.falsePositives) {
+      for (const fp of first.falsePositives) {
         console.log(`   ${!fp.triggered ? "✓" : "✗"} Must NOT flag: ${fp.label}`);
       }
-      for (const s of detailRun.structural) {
+      for (const s of first.structural) {
         console.log(`   ${s.passed ? "✓" : "✗"} Structure: ${s.check}`);
       }
-      if (detailRun.judgeReasoning) {
-        console.log(`   Judge: ${detailRun.judgeReasoning.slice(0, 120)}`);
+      if (first.judge) {
+        console.log(`   Judge: ${first.judge.reasoning.slice(0, 120)}`);
       }
       console.log();
-
-      if (r.avgJudgeScore !== undefined) judgeScores.push(r.avgJudgeScore);
     }
   }
 
-  // ── Summary ──
-  const passRate = Math.round((passedScenarios / totalScenarios) * 100);
-  const avgJudge = judgeScores.length > 0
-    ? (judgeScores.reduce((a, b) => a + b, 0) / judgeScores.length).toFixed(1)
-    : "N/A";
+  const passedScenarios = results.filter((r) => r.majorityPassed).length;
+  const judgeScores = results.flatMap((r) => (r.avgJudgeScore !== undefined ? [r.avgJudgeScore] : []));
 
   console.log(`${"─".repeat(66)}`);
-  console.log(`Scenarios: ${passedScenarios}/${totalScenarios} passed (${passRate}%)`);
-  if (judgeScores.length > 0) console.log(`Judge avg: ${avgJudge}/5`);
+  console.log(`Scenarios: ${passedScenarios}/${results.length} passed (${Math.round((passedScenarios / results.length) * 100)}%)`);
+  if (judgeScores.length > 0) console.log(`Judge avg: ${mean(judgeScores).toFixed(1)}/5`);
 
-  // Statistical confidence (only meaningful with 3+ runs)
+  // Only meaningful with three or more runs per scenario.
   if (numRuns >= 3) {
-    const runPassRates = results.map((r) => {
-      const passes = r.runs.filter((run) => run.passed).length;
-      return passes / r.runs.length;
-    });
-    const mean = runPassRates.reduce((a, b) => a + b, 0) / runPassRates.length;
-    const variance = runPassRates.reduce((sum, r) => sum + (r - mean) ** 2, 0) / runPassRates.length;
-    const sem = Math.sqrt(variance / runPassRates.length);
-    const ci95 = 1.96 * sem;
-    console.log(`Pass rate: ${(mean * 100).toFixed(0)}% ± ${(ci95 * 100).toFixed(0)}% (95% CI)`);
+    const runPassRates = results.map((r) => r.runs.filter((run) => run.passed).length / r.runs.length);
+    const avg = mean(runPassRates);
+    const sem = Math.sqrt(mean(runPassRates.map((rate) => (rate - avg) ** 2)) / runPassRates.length);
+    console.log(`Pass rate: ${(avg * 100).toFixed(0)}% ± ${(1.96 * sem * 100).toFixed(0)}% (95% CI)`);
   }
 
-  const allPass = results.every((r) => r.majorityPassed);
+  const allPass = passedScenarios === results.length;
   console.log(`\nVerdict: ${allPass ? "ALL PASS ✅" : "ISSUES FOUND ❌"}\n`);
 
   process.exit(allPass ? 0 : 1);

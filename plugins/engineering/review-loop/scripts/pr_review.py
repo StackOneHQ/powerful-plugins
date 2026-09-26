@@ -27,6 +27,7 @@ import sys
 import time
 from collections.abc import Callable
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any
 
 TRANSIENT = re.compile(
@@ -72,10 +73,6 @@ def gh(args: list[str]) -> str:
 
 def gh_json(args: list[str]) -> Any:
     return json.loads(gh(args))
-
-
-def gh_lines(args: list[str]) -> list[Any]:
-    return [json.loads(line) for line in gh(args).splitlines() if line.strip()]
 
 
 def same_login(a: str, b: str) -> bool:
@@ -170,7 +167,7 @@ def cmd_threads(repo: str, args: argparse.Namespace, me: str) -> int:
 
 
 def cmd_reply(repo: str, args: argparse.Namespace, me: str) -> int:
-    body = args.body if args.body is not None else open(args.body_file, encoding="utf-8").read()
+    body = args.body if args.body is not None else Path(args.body_file).read_text(encoding="utf-8")
     if not body.strip():
         raise GhError("empty reply body")
 
@@ -193,6 +190,13 @@ def cmd_reply(repo: str, args: argparse.Namespace, me: str) -> int:
     return 0
 
 
+def _one_line(text: str) -> str:
+    # A fork's pull request names its own workflow jobs, so a check name with a newline
+    # could print a fake status line into the output the agent reads. Applied only when
+    # printing: as a key, a cleaned name could merge two distinct checks.
+    return "".join(c if c.isprintable() else " " for c in text)
+
+
 def _check_states(rollup: list[dict[str, Any]]) -> dict[str, str]:
     states: dict[str, str] = {}
     for item in rollup:
@@ -207,8 +211,9 @@ def _check_states(rollup: list[dict[str, Any]]) -> dict[str, str]:
 
 
 def _reviewer_states(repo: str, pr: int, head: str, logins: list[str]) -> dict[str, str]:
-    reviews = gh_lines(["api", "--paginate", f"repos/{repo}/pulls/{pr}/reviews",
-                        "--jq", ".[] | [.user.login, .commit_id, (.body // \"\")] | @json"])
+    out = gh(["api", "--paginate", f"repos/{repo}/pulls/{pr}/reviews",
+              "--jq", ".[] | [.user.login, .commit_id, (.body // \"\")] | @json"])
+    reviews = [json.loads(line) for line in out.splitlines() if line.strip()]
     states: dict[str, str] = {}
     for login in logins:
         states[login] = "waiting"
@@ -238,13 +243,13 @@ def cmd_wait(repo: str, args: argparse.Namespace, me: str) -> int:
         waiting += [n for n, s in reviewers.items() if s == "waiting"]
         if not waiting or monotonic() >= deadline:
             for name, state in sorted(checks.items()):
-                print(f"check {name}: {state}")
+                print(f"check {_one_line(name)}: {state}")
             for name, state in reviewers.items():
                 print(f"reviewer {name}: {state}")
             open_ids = [str(t.comment) for t in load_threads(repo, args.pr, me) if not t.answered]
             print(f"unanswered threads: {len(open_ids)} {' '.join(open_ids)}".rstrip())
             if waiting:
-                print(f"timed out waiting for: {', '.join(waiting)}")
+                print(f"timed out waiting for: {', '.join(map(_one_line, waiting))}")
                 return 3
             return 5 if "did-not-review" in reviewers.values() else 0
         sleep(min(args.interval, max(deadline - monotonic(), 0)))

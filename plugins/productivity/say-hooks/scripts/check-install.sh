@@ -1,16 +1,11 @@
 #!/bin/bash
-# Weekly check: is stackvox installed? Is the installed version behind PyPI?
-# Prints a one-line hint to stderr at most once per 7 days. Never installs
-# or upgrades automatically — user must run /stackvox-install or /stackvox-upgrade.
+# SessionStart, at most once every 7 days: a one-line hint on stderr when stackvox
+# is missing or behind PyPI. It never installs or upgrades anything; the user
+# runs /stackvox-install or /stackvox-upgrade.
 
-if [[ "${SAY_HOOKS_CODEX_HOOK:-}" == "1" && "${SAY_HOOKS_BACKGROUND:-}" != "1" ]]; then
-  SAY_HOOKS_BACKGROUND=1 nohup bash "$0" >/dev/null 2>&1 &
-  exit 0
-fi
-
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=lib.sh
-source "$SCRIPT_DIR/lib.sh"
+source "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
+detach_under_codex "$0"
 
 cache_dir="$HOME/.cache/say-hooks"
 stamp="$cache_dir/last-check"
@@ -28,9 +23,7 @@ fi
 
 # Missing curl/pipx/python3 or unreachable PyPI: exit without stamping so we retry
 # next session instead of swallowing the check for 7 days.
-command -v curl >/dev/null || exit 0
-command -v pipx >/dev/null || exit 0
-command -v python3 >/dev/null || exit 0
+for tool in curl pipx python3; do command -v "$tool" >/dev/null || exit 0; done
 
 installed=$(pipx list --short 2>/dev/null | awk '$1 == "stackvox" {print $2; exit}')
 [[ -z "$installed" ]] && exit 0
@@ -40,10 +33,8 @@ latest=$(curl -fsSL --max-time 5 https://pypi.org/pypi/stackvox/json 2>/dev/null
 [[ -z "$latest" ]] && exit 0
 touch "$stamp"
 
-# Only warn when the installed version is strictly older than PyPI's latest.
-# `sort -V` orders versions naturally; if the smallest version is not `$latest`,
-# then `$installed` is ≥ `$latest` (newer or equal) and we stay silent — so dev
-# builds and pre-releases don't trip a false "update available" hint.
+# Warn only when installed sorts strictly before latest, so a dev build or
+# pre-release ahead of PyPI stays silent.
 oldest=$(printf '%s\n%s\n' "$installed" "$latest" | sort -V | head -1)
 if [[ "$installed" != "$latest" && "$oldest" == "$installed" ]]; then
   echo "[say-hooks] stackvox update available ($installed → $latest). Run /stackvox-upgrade" >&2

@@ -11,14 +11,17 @@ import sys
 import tempfile
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Any
 
 import yaml
 
 from scripts.generate_codex_marketplace import (
-    GENERATED_MARKER,
+    SKILL_DESCRIPTION_LIMIT,
     SKILL_NAME_PATTERN,
     GenerationError,
+    _read_text,
     _short_description,
+    _text_has_generated_marker,
     split_claude_frontmatter,
 )
 
@@ -40,7 +43,12 @@ BARE_RELATIVE_REFERENCE = re.compile(r"(?<![\w./$}~@-])(?:\./)?(scripts|site|src
 class SkillSource:
     name: str
     path: Path
-    text: str
+    metadata: dict[str, Any]
+    body: str
+
+    @property
+    def portable_description(self) -> str:
+        return _short_description(self.metadata["description"], SKILL_DESCRIPTION_LIMIT)
 
 
 def _parser() -> argparse.ArgumentParser:
@@ -65,13 +73,6 @@ def _parser() -> argparse.ArgumentParser:
     return parser
 
 
-def _read_text(path: Path) -> str:
-    try:
-        return path.read_text(encoding="utf-8")
-    except (OSError, UnicodeError) as error:
-        raise GenerationError(f"unable to read {path}: {error}") from error
-
-
 def _reject_symlinks(path: Path, stop: Path) -> None:
     current = path
     while current != stop and current.is_relative_to(stop):
@@ -93,9 +94,9 @@ def discover_skills(root: Path) -> dict[str, SkillSource]:
         if "skills" not in skill_path.parts or skill_path.is_symlink():
             continue
         text = _read_text(skill_path)
-        if GENERATED_MARKER in "\n".join(text.splitlines()[:8]):
+        if _text_has_generated_marker(text):
             continue
-        metadata, _ = split_claude_frontmatter(text, skill_path)
+        metadata, body = split_claude_frontmatter(text, skill_path)
         name = metadata.get("name")
         description = metadata.get("description")
         if not isinstance(name, str) or not SKILL_NAME_PATTERN.fullmatch(name) or len(name) > 64:
@@ -106,7 +107,7 @@ def discover_skills(root: Path) -> dict[str, SkillSource]:
         for child in skill_path.parent.rglob("*"):
             if child.is_symlink():
                 raise GenerationError(f"{skill_path}: bundled symlink is not standalone: {child}")
-        by_name.setdefault(name, []).append(SkillSource(name, skill_path, text))
+        by_name.setdefault(name, []).append(SkillSource(name, skill_path, metadata, body))
 
     duplicates = {name: sources for name, sources in by_name.items() if len(sources) > 1}
     if duplicates:
@@ -144,52 +145,25 @@ def _standalone_problem(source: SkillSource) -> str | None:
     return None
 
 
-def _remove_invoke_frontmatter(text: str, source: Path) -> str:
-    """Render portable Agent Skills metadata while preserving the Markdown body."""
-    metadata, body = split_claude_frontmatter(text, source)
-    name = metadata.get("name")
-    description = metadata.get("description")
-    if not isinstance(name, str) or not isinstance(description, str):
-        raise GenerationError(f"{source}: missing portable skill metadata")
-    portable: dict[str, object] = {
-        "name": name,
-        "description": _short_description(description, 1024),
-    }
+def _portable_skill_text(source: SkillSource) -> str:
+    portable: dict[str, object] = {"name": source.name, "description": source.portable_description}
     for key in ("license", "compatibility", "metadata", "allowed-tools"):
-        if key in metadata:
-            portable[key] = metadata[key]
-    frontmatter = yaml.safe_dump(
-        portable,
-        allow_unicode=True,
-        sort_keys=False,
-        width=1000,
-    )
-    return f"---\n{frontmatter}---\n\n{body}"
+        if key in source.metadata:
+            portable[key] = source.metadata[key]
+    frontmatter = yaml.safe_dump(portable, allow_unicode=True, sort_keys=False, width=1000)
+    return f"---\n{frontmatter}---\n\n{source.body}"
 
 
 def _safe_destination(destination: Path) -> Path:
     destination = destination.expanduser().absolute()
-    # macOS exposes these two system aliases as symlinks; canonicalize only the
-    # known aliases before applying strict no-symlink checks to user paths.
-    if sys.platform == "darwin":
-        destination_text = destination.as_posix()
-        if destination_text == "/var" or destination_text.startswith("/var/"):
-            destination = Path("/private") / destination.relative_to("/")
-        elif destination_text == "/tmp" or destination_text.startswith("/tmp/"):
-            destination = Path("/private") / destination.relative_to("/")
-    existing = destination
-    while not existing.exists():
-        if existing.parent == existing:
-            break
-        existing = existing.parent
-    if existing.is_symlink():
-        raise GenerationError(f"refusing symlinked destination: {existing}")
-    current = existing
-    while current != current.parent:
+    # macOS links /tmp and /var into /private; resolve only those before refusing symlinks.
+    macos_alias = any(destination.is_relative_to(alias) for alias in ("/tmp", "/var"))
+    if sys.platform == "darwin" and macos_alias:
+        destination = Path("/private") / destination.relative_to("/")
+    for current in (destination, *destination.parents):
         if current.is_symlink():
-            raise GenerationError(f"refusing symlinked destination parent: {current}")
-        current = current.parent
-    if destination.exists() and (destination.is_symlink() or not destination.is_dir()):
+            raise GenerationError(f"refusing symlinked destination: {current}")
+    if destination.exists() and not destination.is_dir():
         raise GenerationError(f"destination must be a regular directory: {destination}")
     return destination
 
@@ -197,10 +171,7 @@ def _safe_destination(destination: Path) -> Path:
 def _stage_skill(source: SkillSource, staging_root: Path) -> Path:
     staged = staging_root / source.name
     shutil.copytree(source.path.parent, staged, symlinks=False)
-    skill_file = staged / "SKILL.md"
-    skill_file.write_text(
-        _remove_invoke_frontmatter(source.text, source.path), encoding="utf-8"
-    )
+    (staged / "SKILL.md").write_text(_portable_skill_text(source), encoding="utf-8")
     return staged
 
 
@@ -222,7 +193,6 @@ def export_skills(
     if dry_run:
         return
 
-    destination.parent.mkdir(parents=True, exist_ok=True)
     destination.mkdir(parents=True, exist_ok=True)
     staging_root = Path(
         tempfile.mkdtemp(prefix=".standalone-skills-stage-", dir=destination.parent)
@@ -282,50 +252,35 @@ def main() -> int:
             return 0
 
         if args.all:
-            problems = {
-                name: _standalone_problem(source) for name, source in catalog.items()
-            }
-            names = sorted(name for name, problem in problems.items() if problem is None)
-        else:
-            names = args.skills
-        missing = [name for name in names if name not in catalog]
-        if missing:
-            raise GenerationError(f"requested skill(s) not found: {', '.join(missing)}")
-        selected = [catalog[name] for name in names]
-        if not args.all:
-            problems = {
-                source.name: _standalone_problem(source) for source in selected
-            }
-        dependent = [
-            f"{source.name} ({problem})"
-            for source in selected
-            if (problem := problems[source.name]) is not None
-        ]
-        if dependent:
-            raise GenerationError(
-                "these skills depend on their plugin and cannot be exported standalone: "
-                + ", ".join(dependent)
+            selected = [
+                source
+                for _, source in sorted(catalog.items())
+                if _standalone_problem(source) is None
+            ]
+            metadata_size = sum(
+                len(source.name) + len(source.portable_description) for source in selected
             )
-        metadata_size = sum(
-            len(source.name)
-            + len(
-                _short_description(
-                    str(
-                        split_claude_frontmatter(source.text, source.path)[0][
-                            "description"
-                        ]
-                    ),
-                    1024,
+            if metadata_size > 8000 and not args.allow_large_catalog:
+                raise GenerationError(
+                    f"--all would expose about {metadata_size:,} skill-list characters, above "
+                    "Codex's 8,000-character guidance; select skills explicitly or pass "
+                    "--allow-large-catalog"
                 )
-            )
-            for source in selected
-        )
-        if args.all and metadata_size > 8000 and not args.allow_large_catalog:
-            raise GenerationError(
-                f"--all would expose about {metadata_size:,} skill-list characters, above "
-                "Codex's 8,000-character guidance; select skills explicitly or pass "
-                "--allow-large-catalog"
-            )
+        else:
+            missing = [name for name in args.skills if name not in catalog]
+            if missing:
+                raise GenerationError(f"requested skill(s) not found: {', '.join(missing)}")
+            selected = [catalog[name] for name in args.skills]
+            dependent = [
+                f"{source.name} ({problem})"
+                for source in selected
+                if (problem := _standalone_problem(source)) is not None
+            ]
+            if dependent:
+                raise GenerationError(
+                    "these skills depend on their plugin and cannot be exported standalone: "
+                    + ", ".join(dependent)
+                )
 
         if args.global_destination:
             user_home = os.environ.get("HOME")

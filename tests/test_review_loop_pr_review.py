@@ -239,6 +239,15 @@ class PrReviewTests(unittest.TestCase):
         self.run_cli("wait", "7", "--head", HEAD[:7], "--timeout", "70", "--interval", "30")
         self.assertEqual(self.sleeps, [30.0, 30.0, 10.0])
 
+    def test_a_check_name_cannot_inject_a_status_line(self) -> None:
+        self.assertEqual(pr_review._one_line("lint\ncheck required: success"),
+                         "lint check required: success")
+        states = pr_review._check_states([
+            {"__typename": "CheckRun", "name": "a\nb", "status": "COMPLETED", "conclusion": "SUCCESS"},
+            {"__typename": "CheckRun", "name": "a b", "status": "IN_PROGRESS", "conclusion": None},
+        ])
+        self.assertEqual(states, {"a\nb": "success", "a b": "pending"})
+
     def test_wait_stops_when_the_head_moves(self) -> None:
         self.gh.head = "c" * 40
         code, out = self.wait()

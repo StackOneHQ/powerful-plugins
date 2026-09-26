@@ -4,7 +4,6 @@
 from __future__ import annotations
 
 import argparse
-import json
 import re
 import sys
 from pathlib import Path
@@ -12,10 +11,15 @@ from typing import Any
 
 import yaml
 from generate_codex_marketplace import (  # type: ignore[import-not-found]
+    CODEX_MARKETPLACE,
     GENERATED_MARKER,
+    SKILL_DESCRIPTION_LIMIT,
     SKILL_NAME_PATTERN,
     GenerationError,
     _is_semver,
+    _load_json,
+    _marketplace_entries,
+    _read_text,
     convert_source,
     split_frontmatter,
 )
@@ -42,25 +46,6 @@ FORBIDDEN_GENERATED_TOKENS = (
 SHA_PATTERN = re.compile(r"^[0-9a-f]{40}$")
 
 
-def _unique_object(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
-    result: dict[str, Any] = {}
-    for key, value in pairs:
-        if key in result:
-            raise GenerationError(f"duplicate JSON key: {key}")
-        result[key] = value
-    return result
-
-
-def _load_json(path: Path) -> dict[str, Any]:
-    try:
-        value = json.loads(path.read_text(encoding="utf-8"), object_pairs_hook=_unique_object)
-    except (OSError, UnicodeError, json.JSONDecodeError) as error:
-        raise GenerationError(f"{path}: invalid JSON: {error}") from error
-    if not isinstance(value, dict):
-        raise GenerationError(f"{path}: expected a JSON object")
-    return value
-
-
 def _contained_file(plugin: Path, reference: object, label: str) -> Path:
     if not isinstance(reference, str) or not reference.startswith("./"):
         raise GenerationError(f"{plugin}: {label} must be a ./-prefixed path")
@@ -73,10 +58,7 @@ def _contained_file(plugin: Path, reference: object, label: str) -> Path:
 
 
 def _validate_skill(path: Path) -> None:
-    try:
-        text = path.read_text(encoding="utf-8")
-    except (OSError, UnicodeError) as error:
-        raise GenerationError(f"{path}: unable to read skill: {error}") from error
+    text = _read_text(path)
     metadata, _ = split_frontmatter(text, path)
     name = metadata.get("name")
     description = metadata.get("description")
@@ -84,7 +66,7 @@ def _validate_skill(path: Path) -> None:
         raise GenerationError(f"{path}: invalid Agent Skills name")
     if path.parent.name != name:
         raise GenerationError(f"{path}: name must match its parent directory")
-    if not isinstance(description, str) or not description.strip() or len(description) > 1024:
+    if not isinstance(description, str) or not description.strip() or len(description) > SKILL_DESCRIPTION_LIMIT:
         raise GenerationError(f"{path}: description must contain 1-1024 characters")
     if GENERATED_MARKER in text:
         for token in FORBIDDEN_GENERATED_TOKENS:
@@ -173,7 +155,7 @@ def _validate_mcp(plugin: Path, manifest: dict[str, Any]) -> bool:
     return True
 
 
-def _validate_plugin(root: Path, plugin: Path, expected_name: str) -> None:
+def _validate_plugin(plugin: Path, expected_name: str) -> None:
     manifest_path = plugin / ".codex-plugin" / "plugin.json"
     manifest = _load_json(manifest_path)
     if manifest.get("name") != expected_name:
@@ -189,7 +171,7 @@ def _validate_plugin(root: Path, plugin: Path, expected_name: str) -> None:
             raise GenerationError(
                 f"{manifest_path}: skills must use ./skills/ or ./.codex/skills/"
             )
-        skills_root = plugin / str(skills_reference)[2:]
+        skills_root = plugin / skills_reference[2:]
         if (
             skills_root.is_symlink()
             or not skills_root.is_dir()
@@ -207,27 +189,20 @@ def _validate_plugin(root: Path, plugin: Path, expected_name: str) -> None:
             _validate_skill(skill)
     has_mcp = _validate_mcp(plugin, manifest)
     has_hooks = _validate_hooks(plugin, manifest)
-    has_apps = False
-    if "apps" in manifest:
-        app = _load_json(_contained_file(plugin, manifest["apps"], "app config"))
-        if not app:
-            raise GenerationError(f"{plugin}: app config must not be empty")
-        has_apps = True
+    has_apps = "apps" in manifest
+    if has_apps and not _load_json(_contained_file(plugin, manifest["apps"], "app config")):
+        raise GenerationError(f"{plugin}: app config must not be empty")
     if not (skill_files or has_mcp or has_hooks or has_apps):
         raise GenerationError(f"{plugin}: plugin exposes no Codex capability")
-    if not plugin.resolve().is_relative_to(root.resolve()):
-        raise GenerationError(f"{plugin}: plugin escapes repository")
 
 
 def validate(root: Path) -> tuple[int, int]:
     root = root.resolve()
-    claude = _load_json(root / ".claude-plugin" / "marketplace.json")
-    codex = _load_json(root / ".agents" / "plugins" / "marketplace.json")
-    claude_entries = claude.get("plugins")
-    codex_entries = codex.get("plugins")
-    if not isinstance(claude_entries, list) or not isinstance(codex_entries, list):
-        raise GenerationError("both catalogs must contain plugin arrays")
-    claude_names = [entry.get("name") for entry in claude_entries if isinstance(entry, dict)]
+    claude_entries = _marketplace_entries(root)
+    codex_entries = _load_json(root / CODEX_MARKETPLACE).get("plugins")
+    if not isinstance(codex_entries, list):
+        raise GenerationError("Codex marketplace must contain a plugins array")
+    claude_names = [entry.get("name") for entry in claude_entries]
     codex_names = [entry.get("name") for entry in codex_entries if isinstance(entry, dict)]
     if claude_names != codex_names or len(claude_names) != len(set(claude_names)):
         raise GenerationError("Claude and Codex catalogs must have identical unique names")
@@ -236,8 +211,6 @@ def validate(root: Path) -> tuple[int, int]:
         entry.get("name"): entry for entry in codex_entries if isinstance(entry, dict)
     }
     for entry in claude_entries:
-        if not isinstance(entry, dict):
-            raise GenerationError("Claude catalog entries must be objects")
         source = entry.get("source")
         if isinstance(source, dict):
             external += 1
@@ -272,10 +245,10 @@ def validate(root: Path) -> tuple[int, int]:
         reference = source.get("path")
         if not isinstance(reference, str) or not reference.startswith("./"):
             raise GenerationError(f"{entry.get('name')}: invalid local plugin source")
-        plugin = (root / reference[2:]).resolve()
-        if not plugin.is_relative_to(root) or plugin.is_symlink() or not plugin.is_dir():
+        plugin = root / reference[2:]
+        if plugin.is_symlink() or not plugin.is_dir() or not plugin.resolve().is_relative_to(root):
             raise GenerationError(f"{entry.get('name')}: unsafe local plugin source")
-        _validate_plugin(root, plugin, str(entry.get("name")))
+        _validate_plugin(plugin.resolve(), str(entry.get("name")))
     return local, external
 
 

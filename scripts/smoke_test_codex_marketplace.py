@@ -14,6 +14,12 @@ import threading
 from pathlib import Path
 from typing import Any
 
+from generate_codex_marketplace import (  # type: ignore[import-not-found]
+    CODEX_MARKETPLACE,
+    GenerationError,
+    _load_json,
+)
+
 
 class SmokeError(RuntimeError):
     """Raised when the real Codex CLI rejects or cannot discover a plugin."""
@@ -26,9 +32,7 @@ BAD_DIAGNOSTIC = re.compile(
 
 
 def _environment(home: Path) -> dict[str, str]:
-    environment = os.environ.copy()
-    environment["CODEX_HOME"] = str(home)
-    return environment
+    return {**os.environ, "CODEX_HOME": str(home)}
 
 
 def _run(codex: Path, arguments: list[str], *, cwd: Path, home: Path) -> str:
@@ -52,12 +56,20 @@ def _run(codex: Path, arguments: list[str], *, cwd: Path, home: Path) -> str:
     return completed.stdout
 
 
+def _run_json(codex: Path, arguments: list[str], *, cwd: Path, home: Path) -> Any:
+    output = _run(codex, arguments, cwd=cwd, home=home)
+    try:
+        return json.loads(output)
+    except json.JSONDecodeError as error:
+        raise SmokeError(f"codex {' '.join(arguments)} returned invalid JSON: {error}") from error
+
+
 def _catalog(root: Path) -> tuple[str, list[tuple[str, str | None]]]:
     try:
-        value = json.loads((root / ".agents" / "plugins" / "marketplace.json").read_text(encoding="utf-8"))
-    except (OSError, UnicodeError, json.JSONDecodeError) as error:
+        value = _load_json(root / CODEX_MARKETPLACE)
+    except GenerationError as error:
         raise SmokeError(f"unable to read Codex marketplace: {error}") from error
-    if not isinstance(value, dict) or not isinstance(value.get("name"), str) or not isinstance(value.get("plugins"), list):
+    if not isinstance(value.get("name"), str) or not isinstance(value.get("plugins"), list):
         raise SmokeError("Codex marketplace has an invalid top-level shape")
     plugins: list[tuple[str, str | None]] = []
     for entry in value["plugins"]:
@@ -70,10 +82,9 @@ def _catalog(root: Path) -> tuple[str, list[tuple[str, str | None]]]:
             if not isinstance(source_path, str) or not source_path.startswith("./"):
                 raise SmokeError(f"{entry['name']}: invalid local source")
             plugin_root = root / source_path[2:]
-            manifest_path = plugin_root / ".codex-plugin" / "plugin.json"
             try:
-                manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-            except (OSError, UnicodeError, json.JSONDecodeError) as error:
+                manifest = _load_json(plugin_root / ".codex-plugin" / "plugin.json")
+            except GenerationError as error:
                 raise SmokeError(
                     f"{entry['name']}: unable to read Codex manifest: {error}"
                 ) from error
@@ -134,7 +145,7 @@ def _response(stream: Any, request_id: int) -> dict[str, Any]:
     return {}
 
 
-def _enabled_skills(codex: Path, *, cwd: Path, home: Path, timeout: float = 240) -> set[str]:
+def _enabled_skills(codex: Path, *, cwd: Path, home: Path) -> set[str]:
     """Skills the Codex app server resolved. An explicit-only skill is absent from the prompt's
     skill list, and `debug prompt-input` does not expand a `$plugin:skill` mention.
     """
@@ -155,7 +166,7 @@ def _enabled_skills(codex: Path, *, cwd: Path, home: Path, timeout: float = 240)
                 stderr=errors,
                 text=True,
             ) as process:
-                timer = threading.Timer(timeout, process.kill)
+                timer = threading.Timer(240, process.kill)
                 timer.start()
                 try:
                     if process.stdin is None or process.stdout is None:
@@ -203,13 +214,11 @@ def smoke(root: Path, codex: Path, batch_size: int) -> int:
     with tempfile.TemporaryDirectory(prefix="codex-marketplace-smoke-") as directory:
         home = Path(directory)
         _run(codex, ["plugin", "marketplace", "add", str(root), "--json"], cwd=root, home=home)
-        listing = json.loads(
-            _run(
-                codex,
-                ["plugin", "list", "--marketplace", marketplace, "--available", "--json"],
-                cwd=root,
-                home=home,
-            )
+        listing = _run_json(
+            codex,
+            ["plugin", "list", "--marketplace", marketplace, "--available", "--json"],
+            cwd=root,
+            home=home,
         )
         available = listing.get("available") if isinstance(listing, dict) else None
         actual_names = [item.get("name") for item in available or [] if isinstance(item, dict)]
@@ -225,10 +234,7 @@ def smoke(root: Path, codex: Path, batch_size: int) -> int:
                     cwd=root,
                     home=home,
                 )
-            try:
-                prompt = json.loads(_run(codex, ["debug", "prompt-input"], cwd=root, home=home))
-            except json.JSONDecodeError as error:
-                raise SmokeError(f"Codex prompt discovery returned invalid JSON: {error}") from error
+            prompt = _run_json(codex, ["debug", "prompt-input"], cwd=root, home=home)
             prompt_text = _discovered_text(prompt)
             missing = [name for name in batch if f"{name}:" not in prompt_text]
             for name in missing:
