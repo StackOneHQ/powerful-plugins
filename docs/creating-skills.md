@@ -18,33 +18,14 @@ cp -r templates/skill-template plugins/your-category/your-plugin/skills/your-ski
 
 ### 2. Edit SKILL.md
 
-```yaml
----
-name: your-skill-name
-description: Clear description of what this skill does and when it triggers
----
+Fill in the template's sections: a `description` that says what the skill does and when to use
+it, the goal, the inputs, the boundaries (what's safe to do without asking and what needs a yes)
+and the output. Keep a numbered workflow only where the order really matters, and move detail
+into `references/`.
 
-# Your Skill Name
-
-## When to Use
-
-This skill auto-triggers when:
-- [Trigger condition 1]
-- [Trigger condition 2]
-
-## Instructions
-
-[Your instructions here]
-
-## Examples
-
-[Concrete examples]
-
-## Guidelines
-
-- [Guideline 1]
-- [Guideline 2]
-```
+[CLAUDE.md](../CLAUDE.md#writing-instructions-that-work-on-any-model) explains why: the skills
+run on different models, mostly GPT-6 Astra and Claude Opus 5.5, and both do better with a clear
+outcome and boundaries than with a step-by-step recipe or emphatic "MUST" rules.
 
 ### 3. Test Locally
 

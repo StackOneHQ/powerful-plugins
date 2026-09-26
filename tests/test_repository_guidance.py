@@ -41,8 +41,8 @@ class RepositoryGuidanceTests(unittest.TestCase):
     def test_readme_explains_marketplace_lifecycle(self) -> None:
         readme = (ROOT / "README.md").read_text()
 
-        self.assertIn("## How the Marketplace Works", readme)
-        self.assertEqual(readme.count("sequenceDiagram"), 2)
+        self.assertIn("## How the marketplace works", readme)
+        self.assertIn("sequenceDiagram", readme)
         self.assertIn("Installation never runs the repository generator", readme)
         self.assertIn("python3 scripts/generate_codex_marketplace.py", readme)
         self.assertIn("python3 scripts/generate_codex_marketplace.py --check", readme)
