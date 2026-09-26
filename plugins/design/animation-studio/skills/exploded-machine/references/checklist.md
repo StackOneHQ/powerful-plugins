@@ -76,10 +76,11 @@ Expose the state on `window` for the test run, then check:
 - Redraws: draw the same frame several times and compare the pixels; they must match. Read the
   canvas back twice before the first hash: after repeated `getImageData` calls Chrome moves the
   canvas to CPU rendering, which changes the antialiasing, so the first two reads can differ.
-- Loading: in the 2D styles, under reduced motion and with no WebGL, the network log
-  shows no Three.js request (unless Technical needed it for complex geometry). Clay and Realistic
-  request it only once chosen and near the viewport. Test no WebGL in a
-  separate browser session with WebGL disabled.
+- Loading: in the 2D styles and under reduced motion, the network log shows no Three.js request;
+  the one exception is a Technical build drawn with Three.js for complex geometry. Clay and
+  Realistic request it only once chosen and near the viewport. With no WebGL there is no request at
+  all, and a Three.js-drawn Technical build shows its still image. Test no WebGL in a separate
+  browser session with WebGL disabled.
 - Text: the smallest computed `font-size` on the stage is at least the minimum, and so is any text
   painted on the object, measured as font size times the drawing's scale.
 - History: jump straight to the end, then back to the start of the walkthrough; every label is

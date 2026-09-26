@@ -47,7 +47,11 @@ lines.
   nearer piece painted later hides the lines behind it, with no geometry maths. The order matters,
   and depth of centre alone gets it wrong for anything mounted on a part:
   - Draw whole parts in order along the axis, the farthest first. Parts are separated by planes
-    across the axis and the camera looks back along it, so this order is exact.
+    across the axis and the orthographic camera looks back along it, so for two parts on either
+    side of such a plane every ray meets the nearer one first, whatever their cross-sections. That
+    holds only while each part stays inside its own slab along the axis: a piece that reaches into
+    a neighbour's slab (an overhanging collar, a stem leaning over the next part) breaks it, so keep
+    pieces within their part's span or use the Three.js fallback below.
   - Within a part, a piece that lies wholly upstream of another (nearer the camera along the axis)
     is drawn after it.
   - An attachment that overlaps its host along the axis (a nut on a flange, a gauge on a pipe, a
@@ -63,8 +67,8 @@ lines.
   hatching, Graphite's highlights and the 3D styles' key light all take their side from it.
 - **No shading at all**: no gradients, shadows or glows. Volume comes from the ellipses and the
   detail. Knurling is short parallel ticks around a rim, drawn only on its visible half.
-- **Colours.** animejs.com uses a paper of `#dad5d0`, detail ink `#888581` and key ink `#302e2d`;
-  take the subject's own neutrals when it has them. A dark brand gets Graphite rather than an
+- **Colours.** Without the subject's own neutrals, start from a warm pale paper near `#dad5d0`,
+  detail ink near `#888581` and key ink near `#302e2d`. A dark brand gets Graphite rather than an
   inverted Technical.
 - **The current component** takes the accent on its lines and a slightly heavier silhouette, and
   its fill mixes about a tenth of the accent into the paper. It may ease a short way off the axis
@@ -72,7 +76,9 @@ lines.
 - **Too complex to paint in order?** When parts interpenetrate or need curved detail that no
   single depth order can draw, use Three.js for this style instead: unlit paper-coloured fills with
   `polygonOffset`, plus `LineSegments` from `EdgesGeometry` (a threshold near 25 degrees) in the ink
-  colours. It gives exact hidden lines at little cost.
+  colours. It gives exact hidden lines at little cost. Such a build needs WebGL even under reduced
+  motion, so ship a pre-rendered still image of the exploded, labelled object for browsers without
+  WebGL.
 
 ## Blueprint
 
@@ -120,7 +126,7 @@ The wordless look of furniture instructions.
 
 ## Graphite
 
-The animejs.com hero: solid shapes on a dark ground, lit from one side.
+Solid shapes on a dark ground, lit from one side.
 
 - Fills are near-black, a step lighter on faces toward the camera. No outlines. Neighbouring values
   merge easily: a ground near `#0f0f0f`, fills near `#1f1f1f` and camera-facing faces near
@@ -226,7 +232,8 @@ Both work on the current component only, and ease in and out with the walkthroug
   available; the full version offers the toggle back. Keep the choice for the visit
   (`sessionStorage`), and hide the toggle where WebGL is missing.
 - `prefers-reduced-motion`: one labelled still frame of the object apart, with every label shown
-  and the component text as a normal list. It never downloads Three.js: it overrides a stored
-  choice, and the toggle is hidden. The still reuses the normal desktop or phone layout; leave
+  and the component text as a normal list. It never downloads Three.js for Clay or Realistic: it
+  overrides a stored choice, and the toggle is hidden. Only a Technical build that uses Three.js
+  for complex geometry loads it here, since that is how it draws at all. The still reuses the normal desktop or phone layout; leave
   panels it hides out of the fitting, since a hidden element measures as zero and collapses the
   fit.

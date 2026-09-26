@@ -7,7 +7,7 @@ Create web animations, interactive visuals, scroll-driven 3D explainers and shor
 - **Ideates** animation concepts from rough specs or vague descriptions
 - **Decides** which library fits (WAAPI for vanilla scripts, Motion for React, anime.js for SVG and scrubbable timelines, Remotion for video) and what each costs the page in bytes
 - **Generates** production-ready animation code that respects `prefers-reduced-motion`, keeps idle motion quiet and never shifts the page layout
-- **Builds** scroll-driven "exploded machine" explainers that take a system apart component by component, as a CAD-like line drawing by default, or a blueprint, patent, assembly-manual, graphite, hologram, clay or reflective 3D look
+- **Builds** scroll-driven "exploded machine" explainers that take a system apart component by component, as a CAD-like line drawing by default (graphite for a dark brand), or a blueprint, patent, assembly-manual, graphite, hologram, clay or reflective 3D look
 - **Creates** marketing and product videos with Remotion
 
 ## Installation
@@ -27,7 +27,7 @@ codex plugin add animation-studio@powerful-plugins
 | Skill | Purpose |
 |-------|---------|
 | `animation-studio` | Entry point: decision matrix, page cost table, default timing and easing, idle-motion and layout rules, routing to the agents |
-| `exploded-machine` | Explain a system, product or architecture component by component on scroll, as an accurate exploded drawing in the style of the animejs.com homepage. The subject is drawn as a form you pick (an engine, a pipe run, a tube, a rack, a lens...), with each component a part that form really has. Eight styles share one scroll state: Technical (a CAD-like line drawing on a 2D canvas, the default), Blueprint, Patent, Assembly manual, Graphite, Hologram, Clay and Realistic (reflective Three.js 3D); Cutaway and X-ray show what is inside a component. A housing, a definition panel, input and output chips, or a beam carrying an example through are optional layers. Needs only a subject: a URL, a repo path or one sentence |
+| `exploded-machine` | Explain a system, product or architecture component by component on scroll, as an accurate exploded drawing in the style of the animejs.com homepage. The subject is drawn as a form you pick (an engine, a pipe run, a tube, a rack, a lens...), with each component a part that form really has. Eight styles share one scroll state: Technical (a CAD-like line drawing on a 2D canvas, the default, with Graphite for a subject whose site is dark), Blueprint, Patent, Assembly manual, Graphite, Hologram, Clay and Realistic (reflective Three.js 3D); Cutaway and X-ray show what is inside a component. A housing, a definition panel, input and output chips, or a beam carrying an example through are optional layers. Needs only a subject: a URL, a repo path or one sentence |
 
 ## Agents
 

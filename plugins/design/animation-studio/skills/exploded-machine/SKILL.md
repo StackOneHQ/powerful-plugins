@@ -37,9 +37,10 @@ components the reader has already reached. Every style draws that same state.
 | **Clay** | Soft matte 3D: pastel colours, deep ambient occlusion, soft contact shadows, no reflections | Three.js |
 | **Realistic** | Physically based 3D: metal and painted surfaces with reflections, clear coat, soft shadows | Three.js |
 
-Two **treatments** combine with any style, for components whose insides are the point:
-**Cutaway** cuts a wedge out of the current component and hatches the cut faces; **X-ray** turns
-its shell translucent. Use one only when the user asks or the explanation needs the insides.
+Two **treatments** show a component's insides, for components whose insides are the point:
+**Cutaway** cuts a wedge out of the current component and hatches the cut faces, with any style;
+**X-ray** turns its shell translucent, with any style except Hologram, which already shows every
+line. Use one only when the user asks or the explanation needs the insides.
 
 Use the style the user names. When they name none, use Technical, or Graphite when the subject's
 own site is dark, and mention the others in the delivery note. The user's words map to styles:
@@ -50,10 +51,12 @@ Hologram; "clay", "soft 3D" or "matte" mean Clay; "photoreal", "cinematic", "glo
 mean Realistic. Clay and Realistic fall back to Technical on phones, under reduced motion and
 without WebGL.
 
-`references/rendering.md` has the recipe for each style and treatment and the performance rules.
-`references/forms.md` is the catalogue of forms and the parts each one has.
-`references/choreography.md` has the motion, layout and interaction rules, and the optional
-layers. `references/checklist.md` is the check to run before showing anything.
+The references live in `${CLAUDE_PLUGIN_ROOT}/skills/exploded-machine/references/`:
+
+- `rendering.md`: the recipe for each style and treatment, and the performance rules.
+- `forms.md`: the catalogue of forms and the parts each one has.
+- `choreography.md`: the motion, layout and interaction rules, and the optional layers.
+- `checklist.md`: the check to run before showing anything.
 
 ## 1. Find the components
 
@@ -69,8 +72,8 @@ in a caption, not in a part.
 - **Pick the form.** The form is the container the whole subject is drawn as: an engine, a pipe
   run, a plain tube, a rocket, a server rack, a camera lens, a turbine, a watch movement. Use the
   form the user names, even one that is in no list. When they name none, pick one whose parts map
-  naturally onto the subject's components, starting from the catalogue in `references/forms.md`,
-  and say which you picked. When the subject is itself physical, the form is the real thing.
+  naturally onto the subject's components, starting from the catalogue in
+  `${CLAUDE_PLUGIN_ROOT}/skills/exploded-machine/references/forms.md`, and say which you picked. When the subject is itself physical, the form is the real thing.
 - **Give each component a part that form really has.** Every component becomes the part a real
   one of that form would use for the same job, so the drawing makes sense to someone who knows the
   form. In a pipe run, letting data in is an inlet flange, filtering is a strainer housing, pacing is
@@ -122,8 +125,8 @@ The assembled machine, the machine coming apart, then one stop per component in 
 picked out, its label appears, and its explanation takes the caption. End on the whole machine with
 every label shown. The stage is pinned for the whole section and everything fits on one screen.
 
-Add an optional layer from `references/choreography.md` only when the subject has it or the user
-asks: a housing that lifts off first, a definition panel for a config that governs every
+Add an optional layer from `${CLAUDE_PLUGIN_ROOT}/skills/exploded-machine/references/choreography.md` only
+when the subject has it or the user asks: a housing that lifts off first, a definition panel for a config that governs every
 component, chips for real inputs and outputs, or a beam that carries a real example through.
 
 ## 4. Build it
@@ -132,7 +135,8 @@ component, chips for real inputs and outputs, or a beam that carries a real exam
   toward the real position each frame, and compute the pose from it. Which components the reader has
   reached is separate history, worked out from the furthest progress seen, so a fast jump past a
   component still counts and scrolling back never hides text that was already revealed.
-- **Draw it in the chosen style**, following `references/rendering.md`.
+- **Draw it in the chosen style**, following
+  `${CLAUDE_PLUGIN_ROOT}/skills/exploded-machine/references/rendering.md`.
 - **Real text.** Component titles and explanations are HTML, so they stay readable, selectable and
   indexable. Under reduced motion, show one labelled still frame.
 - **Nothing runs unless it must.** Render only while the state is changing, and pause when the tab
@@ -142,7 +146,8 @@ component, chips for real inputs and outputs, or a beam that carries a real exam
 
 ## 5. Check before showing
 
-Run `references/checklist.md` in a browser tab whose `document.visibilityState` is `visible`. Then
+Run `${CLAUDE_PLUGIN_ROOT}/skills/exploded-machine/references/checklist.md` in a browser tab whose
+`document.visibilityState` is `visible`. Then
 deliver the animation, the component list with where each one came from, and a short note on what
 is illustrative.
 

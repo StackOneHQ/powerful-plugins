@@ -81,9 +81,10 @@ Modular platforms, plugins, extensible systems.
 | protects | airlock |
 | each service | a pressurised module with portholes |
 | connects | truss segment |
-| powers | solar array wings |
+| powers | a power module carrying the solar array wings |
 
-Keep arrays and radiators compact, so they don't cross the leader lines.
+The arrays are the power module's own features, not parts of their own. Keep them and any
+radiators compact, so they don't cross the leader lines.
 
 ### Server rack (stacked)
 

@@ -34,7 +34,7 @@ Use this skill when:
 | React enter/exit animations (conditional render) | **Motion** | `AnimatePresence` handles mount/unmount transitions |
 | Canvas/WebGL 3D scenes in video | **Remotion + Three.js** | 3D in rendered video, no cost to a live page |
 | Data-driven 3D on a live page (points, graphs, constellations) | **Canvas 2D projection, no library** | A hand-written projection can place a few hundred points in 3D with a script of a few KB gzip |
-| Scroll-driven exploded view of a system, pipeline or architecture | **`exploded-machine` skill** (a Technical line drawing on a 2D canvas by default; six more 2D styles, and Clay and Realistic in Three.js, on request, all driven by scroll progress) | The default needs no WebGL. Clay and Realistic are the one case where WebGL on a live page earns its weight: the centrepiece of the page, loaded only there, with the Technical drawing as the fallback |
+| Scroll-driven exploded view of a system, pipeline or architecture | **`exploded-machine` skill** (a Technical line drawing on a 2D canvas by default, or Graphite for a dark brand; five more 2D styles, and Clay and Realistic in Three.js, on request, all driven by scroll progress) | The default needs no WebGL. Clay and Realistic are the one case where WebGL on a live page earns its weight: the centrepiece of the page, loaded only there, with the Technical drawing as the fallback |
 
 **Default choice when unclear:** WAAPI for vanilla scripts, Motion for React components, anime.js only for SVG path work or a timeline you need to scrub.
 
