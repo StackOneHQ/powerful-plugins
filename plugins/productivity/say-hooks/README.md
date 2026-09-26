@@ -8,9 +8,9 @@ Speaks up when your coding agent finishes a turn or is blocked waiting for you, 
 - **Notification** (Claude Code only): when Claude is blocked on a permission prompt or an idle timeout, says something like "payments service is blocked".
 - **SessionStart**: boots the `stackvox` daemon if it's installed, so speech starts instantly, and runs a weekly install and update check.
 
-The label is the current directory's name, split on hyphens and underscores, with acronyms the speech engine gets wrong spelled out (MCP becomes "M C P", API becomes "A P I", CLI becomes "C L I"). A shared `/tmp/claude-say.lock` stops concurrent sessions from talking over each other.
+The label is the current directory's name, split on hyphens and underscores, with acronyms the speech engine gets wrong spelled out (MCP becomes "M C P", API becomes "A P I", CLI becomes "C L I"). A shared lock in `~/.cache/say-hooks/` stops concurrent sessions from talking over each other.
 
-Codex has no `Notification` event, so in Codex you get the Stop and SessionStart hooks only.
+Codex has no `Notification` event, so in Codex you get the Stop and SessionStart hooks only. Codex hooks cannot run in the background, so the weekly install and update check runs detached there and its hints are not shown; run the stackvox-install or stackvox-upgrade command yourself when you want the better voices or a newer version.
 
 ## Installation
 
@@ -81,7 +81,7 @@ speed: 1.0
 ---
 ```
 
-Default voice is `af_heart` (American female, warm). Default speed is `1.0`; typical useful range is `0.8`–`1.3`.
+Default voice is `af_heart` (American female, warm). Default speed is `1.0`; the useful range is usually `0.8` to `1.3`.
 
 ### Fallback to macOS `say`
 

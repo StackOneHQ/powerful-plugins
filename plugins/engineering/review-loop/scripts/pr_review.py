@@ -192,7 +192,8 @@ def cmd_reply(repo: str, args: argparse.Namespace, me: str) -> int:
 
 def _one_line(text: str) -> str:
     # A fork's pull request names its own workflow jobs, so a check name with a newline
-    # could print a fake status line into the output the agent reads.
+    # could print a fake status line into the output the agent reads. Applied only when
+    # printing: as a key, a cleaned name could merge two distinct checks.
     return "".join(c if c.isprintable() else " " for c in text)
 
 
@@ -200,10 +201,10 @@ def _check_states(rollup: list[dict[str, Any]]) -> dict[str, str]:
     states: dict[str, str] = {}
     for item in rollup:
         if item.get("__typename") == "StatusContext":
-            name, state = _one_line(item.get("context", "")), item.get("state", "")
+            name, state = item.get("context", ""), item.get("state", "")
             states[name] = "pending" if state in ("PENDING", "EXPECTED") else state.lower()
         else:
-            name = _one_line(item.get("name", ""))
+            name = item.get("name", "")
             done = item.get("status") == "COMPLETED"
             states[name] = (item.get("conclusion") or "").lower() if done else "pending"
     return states
@@ -242,13 +243,13 @@ def cmd_wait(repo: str, args: argparse.Namespace, me: str) -> int:
         waiting += [n for n, s in reviewers.items() if s == "waiting"]
         if not waiting or monotonic() >= deadline:
             for name, state in sorted(checks.items()):
-                print(f"check {name}: {state}")
+                print(f"check {_one_line(name)}: {state}")
             for name, state in reviewers.items():
                 print(f"reviewer {name}: {state}")
             open_ids = [str(t.comment) for t in load_threads(repo, args.pr, me) if not t.answered]
             print(f"unanswered threads: {len(open_ids)} {' '.join(open_ids)}".rstrip())
             if waiting:
-                print(f"timed out waiting for: {', '.join(waiting)}")
+                print(f"timed out waiting for: {', '.join(map(_one_line, waiting))}")
                 return 3
             return 5 if "did-not-review" in reviewers.values() else 0
         sleep(min(args.interval, max(deadline - monotonic(), 0)))

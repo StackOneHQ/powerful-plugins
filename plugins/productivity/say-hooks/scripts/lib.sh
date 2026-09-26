@@ -6,8 +6,9 @@ DEFAULT_VOICE="af_heart"
 DEFAULT_SPEED="1.0"
 CONFIG_FILE="$HOME/.claude/say-hooks.local.md"
 RATE_LIMIT_SECONDS=3
+CACHE_DIR="$HOME/.cache/say-hooks"
 # Shared by every session, so two that finish together take turns instead of talking over each other.
-SPEECH_LOCK=/tmp/claude-say.lock
+SPEECH_LOCK="$CACHE_DIR/speech.lock"
 
 TERMINAL_NAMES_PATTERN='^(iTerm2|Terminal|Alacritty|kitty|Ghostty|Warp|WezTerm|Hyper|Tabby|Code|Cursor|Electron)$'
 
@@ -39,7 +40,8 @@ should_skip() {
 # otherwise records now. Per directory, so another repo's session never silences this one.
 rate_limited() {
   local stamp now
-  stamp="/tmp/claude-say.$(printf '%s' "$PWD" | shasum -a 1 2>/dev/null | cut -c1-12).last"
+  mkdir -p "$CACHE_DIR"
+  stamp="$CACHE_DIR/$(printf '%s' "$PWD" | shasum -a 1 2>/dev/null | cut -c1-12).last"
   now=$(date +%s)
   (( now - $(_file_mtime "$stamp") < RATE_LIMIT_SECONDS )) && return 0
   echo "$now" > "$stamp"
@@ -163,6 +165,7 @@ announce() {
   sentence=$(printf "${templates[RANDOM % ${#templates[@]}]}" "$repo")
 
   if command -v shlock >/dev/null; then
+    mkdir -p "$CACHE_DIR"
     until shlock -f "$SPEECH_LOCK" -p $$ 2>/dev/null; do sleep 0.2; done
     trap 'rm -f "$SPEECH_LOCK"' EXIT
   fi
