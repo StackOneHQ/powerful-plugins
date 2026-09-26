@@ -175,10 +175,10 @@ Wrap every animation in a reduced-motion check:
 const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
 if (!prefersReducedMotion) {
-  animate('.target', { /* ... */ })
+  animate('[data-animate]', { /* ... */ })
 } else {
   // Just show elements without animation
-  document.querySelectorAll('.target').forEach((el) => {
+  document.querySelectorAll('[data-animate]').forEach((el) => {
     el.style.opacity = '1'
   })
 }
@@ -188,12 +188,13 @@ if (!prefersReducedMotion) {
 
 - Select animation targets with `data-*` attributes, not class names, which change with styling
 - Use IntersectionObserver for scroll-triggered animations (don't animate on load)
+- Give every animated target, including timeline targets such as the `data-hero-*` elements, its starting state (usually `opacity: 0`) in CSS or an inline style before the script runs, with a reduced-motion override as in the block below
 - Call the init function directly when the script runs. If the site swaps pages client-side (a SPA router, or a framework's view transitions), also run it on that router's page-change event and guard against double init, for example with a `data-initialized` flag on the root element. The router event is an extra trigger, never the only one: in Astro, `astro:page-load` fires only when View Transitions are enabled
 - Clean up observers and loops through an `AbortController` or a stored reference you control, called from the component's unmount hook where there is one. Don't depend on navigation events for teardown: in Astro, `astro:before-swap` also fires only with View Transitions
 
 ## Initial CSS state
 
-Add to the page or component style:
+Add to the page or component style, listing every animated selector (the reveal selectors here as an example):
 
 ```css
 [data-reveal-card],

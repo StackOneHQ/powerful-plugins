@@ -37,8 +37,6 @@ Skeletons, all banned:
 
 Why it fails: it spends two sentences and a rhetorical swerve to deliver one fact. Say the fact once, with the contrast as a subordinate clause.
 
-**Note for reviewers:** an earlier version of this skill banned only the literal string "it's not X, it's Y". Every example above got through that filter. Match the shape, not the words.
-
 ## S3: Aphorism used to cap a paragraph
 
 A short, symmetrical, quotable general truth placed at the end of a beat.
@@ -77,7 +75,7 @@ One sentence. State the contrast with a conjunction and let the numbers do the w
 
 Two or more consecutive sentence fragments used for percussive effect.
 
-- BAD: `Not a driver. The depot.` / `The reason is boring.` / `Dead before it does anything useful.`
+- BAD: `Not a driver. The depot.` / `A boring reason.` / `Dead before it does anything useful.`
 
 **Budget: at most one fragment per piece of copy, and never two in a row.** A single fragment can carry a point. Three in a row is a drum solo, and it is the rhythm every LLM defaults to.
 
@@ -174,7 +172,7 @@ Skeleton: a flat factual sentence, full stop, then a very short reversal that su
   We borrowed another shop's till software last month. It did nothing.
   A courier moved one parcel. Nobody logged it.
   The prototype works. The rollout doesn't.
-  OpenAI told a model to solve a security test. It stole the answers instead.
+  A research lab told a model to solve a security test. It stole the answers instead.
   ```
 - GOOD: `We borrowed another shop's till software last month and it never took a payment, because it had no card reader driver, no tax rates and no product list.`
 
@@ -213,7 +211,7 @@ Tells: `, highlighting the need for...`, `, ensuring that...`, `, reflecting a b
 - BAD: `The uploader now retries on 429, ensuring reliable delivery for large files.`
 - GOOD: `The uploader now retries on 429 with exponential backoff, up to five attempts over two minutes.`
 - BAD: `Three of our largest customers moved to annual billing this quarter, reflecting a broader shift.`
-- GOOD: `Three of our largest customers moved to annual billing this quarter, in May, June and July, each after a price review.`
+- GOOD: `Three of our largest customers moved to annual billing this quarter, in April, May and June, each after a price review.`
 
 Why it fails: the clause is never a fact. It is the model marking its own homework, either asserting an unfalsifiable benefit or restating the sentence in vaguer words. It also arrives at a predictable position in a predictable rhythm, which is why it survives every word-level filter.
 
@@ -267,8 +265,8 @@ Pick one term and repeat it. In technical writing repetition is a feature: a rea
 
 Skeleton: a list of recognisable names used as evidence, with nothing any of them said or did.
 
-- BAD: `Covered by TechCrunch, The Verge and Forbes, the launch drew broad attention.`
-- BAD: `Companies like Stripe, Ramp and Figma face this problem.`
+- BAD: `Covered by Daily Circuit, Byte Review and Market Ledger, the launch drew broad attention.`
+- BAD: `Companies like Brightpath, Lumen Freight and Tallyworks face this problem.`
 - GOOD: `Gadget Weekly's review said the notes app lost edits made offline, which is also the complaint our support team hears most.`
 
 One name plus what it actually said beats five names plus an adjective. "Companies like X, Y and Z" is the same shape and is usually a guess dressed as research: if you have not verified all three, name the one you have.

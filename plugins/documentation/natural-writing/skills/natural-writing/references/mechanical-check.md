@@ -1,6 +1,6 @@
 # Part 4: Mechanical check
 
-It does not replace reading the copy, but it catches the mechanical rules with no judgement required. Run it as `scripts/check-copy.sh` (usage and exit codes are in step 4 of the working order in SKILL.md). The block below is what the script checks, and what each result means.
+It does not replace reading the copy, but it catches the mechanical rules with no judgement required. Run it as `${CLAUDE_PLUGIN_ROOT}/scripts/check-copy.sh` (usage and exit codes are in step 4 of the working order in SKILL.md). The block below runs the script's checks plus four eyeball-only extras the script leaves out: title case headings, weak adverbs, passive voice candidates and bold density. If the block and the script ever disagree, the script's verdict is the gate.
 
 ```bash
 # Save the draft to a file first, then:
@@ -53,7 +53,7 @@ grep -oP '[\x{2018}\x{2019}\x{201C}\x{201D}]' "$f" | wc -l
 grep -nP '[\x{2018}\x{2019}\x{201C}\x{201D}]' "$f"
 
 echo "--- emoji, prose channel (must be 0) ---"
-grep -nP '[\x{1F300}-\x{1FAFF}\x{2600}-\x{27BF}\x{2B00}-\x{2BFF}\x{FE0F}]' "$f"
+grep -nP '[\x{1F300}-\x{1FAFF}\x{2600}-\x{27BF}\x{2B00}-\x{2BFF}]' "$f"
 
 echo "--- emoji, social channel: decorative placements (must be 0) ---"
 # at line start, after a bullet marker, in a heading, or on a line that is only emoji.
@@ -71,10 +71,10 @@ head -1 "$f" | grep -cP '[\x{1F300}-\x{1FAFF}\x{2600}-\x{27BF}\x{2B00}-\x{2BFF}]
 
 echo "--- house terms, wrong in any context (Rule 6, must be 0; skip if you keep no list) ---"
 # one pattern per line in house-terms.txt; comments and blank lines dropped
-[ -r house-terms.txt ] && grep -nPi "\b(?:$(grep -v '^[[:space:]]*#' house-terms.txt | awk 'NF' | paste -sd'|' -))\b" "$f"
+[ -r house-terms.txt ] && { joined=$(grep -v '^[[:space:]]*#' house-terms.txt | awk 'NF' | paste -sd'|' -); [ -n "$joined" ] && grep -nPi "\b(?:$joined)\b" "$f"; }
 
 echo "--- house terms that are only wrong as a description of your own product (Rule 6, eyeball) ---"
-[ -r house-soft-terms.txt ] && grep -nPi "\b(?:$(grep -v '^[[:space:]]*#' house-soft-terms.txt | awk 'NF' | paste -sd'|' -))\b" "$f"
+[ -r house-soft-terms.txt ] && { joined=$(grep -v '^[[:space:]]*#' house-soft-terms.txt | awk 'NF' | paste -sd'|' -); [ -n "$joined" ] && grep -nPi "\b(?:$joined)\b" "$f"; }
 
 echo "--- reflective hand-holding (Rule 3, must be 0) ---"
 grep -nEi "(keep coming back to|the part that (gets|got|stuck with) me|what struck me|what stuck with me|the interesting thing is|what i find fascinating)" "$f"
@@ -116,6 +116,9 @@ grep -nPi '\b(substrate|wedge|vector|locus|vantage|primitive|scaffolding|modalit
 echo "--- puffery and brochure adjectives ---"
 grep -nPi '\b(nestled|vibrant|breathtaking|stunning|renowned|iconic|must-visit|bustling|picturesque|hidden gem|rich history|deeply rooted|indelible|evolving landscape|pivotal moment|setting the stage)\b' "$f"
 
+echo "--- prescribed vocabulary, cap one per document (Rule 4) ---"
+grep -nPi '\b(boring|underrated|unsexy)\b' "$f"
+
 echo "--- stacked hedges (C5) ---"
 grep -nPi '\b(could|may|might|can) (potentially|possibly|perhaps|arguably|conceivably)\b' "$f"
 
@@ -132,12 +135,12 @@ echo "--- burstiness, sd of sentence length over mean (want above 0.4) ---"
 tr '!?' '..' < "$f" | tr '.' '\n' | awk 'NF>2 {n++; s+=NF; q+=NF*NF} END {if (n>1) {m=s/n; sd=sqrt(q/n-m*m); printf "sentences=%d mean=%.1f sd=%.1f burstiness=%.2f\n", n, m, sd, sd/m}}'
 ```
 
-Eight blocks are hard failures at any count above zero, the same eight that make `check-copy.sh` exit 1: dashes, curly quotes, emoji outside the social channel clause, house terms (when you keep a list), negation openers, the boundary-line metaphor, reflective hand-holding, and assistant tics. Fix and re-run until all eight read zero.
+Eight blocks are hard failures at any count above zero, the same eight that make `${CLAUDE_PLUGIN_ROOT}/scripts/check-copy.sh` exit 1: dashes, curly quotes, emoji outside the social channel clause, house terms (when you keep a list), negation openers, the boundary-line metaphor, reflective hand-holding, and assistant tics. Fix and re-run until all eight read zero.
 
 **Portability.** Every check in this block that uses `\b` or a `\x{...}` code point runs under `grep -P`, because `\b` is only a word boundary in PCRE (under `-E` it is a GNU extension and a literal on BSD grep). macOS system grep has no `-P` at all: install GNU grep from Homebrew and run the block with `ggrep`, use a container, or run `${CLAUDE_PLUGIN_ROOT}/scripts/check-copy.sh`, which finds `ggrep` on its own and exits 2 rather than reporting a pass when no `-P`-capable grep exists.
 
 Four blocks need eyes rather than a verdict, because they match legitimate prose too: title case headings, passive voice candidates, false ranges, and the adverb list. Read each hit and decide.
 
-The burstiness number is the one measurement in this block that tells you about rhythm rather than vocabulary. Below 0.4 means every sentence is roughly the same length, which is a top-three tell (see Part 7). The fix is C2: split the long ones and let a short one stand alone.
+The burstiness number is the one measurement in this block that tells you about rhythm rather than vocabulary. Below 0.4 means every sentence is roughly the same length, which is one of the easiest tells to spot (see Part 7). The fix is C2: split the long ones and let a short one stand alone.
 
 Then read the copy and apply Part 2 and Part 3 by eye, since sentence shapes and dead abstractions do not grep reliably.

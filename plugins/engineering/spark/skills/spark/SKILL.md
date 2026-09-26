@@ -12,7 +12,7 @@ Find the one most innovative, high-value addition to the current context, a PR o
 
 Start from `git branch --show-current`, `git status --short` and `git log --oneline -10`, then pick the mode.
 
-**Branch/PR mode** applies on a non-default branch (anything but `main`/`master`/`develop`/`trunk`), or when staged or uncommitted changes form a coherent unit of work. Read the branch's diff and commits against its base, and `gh pr view` for the title, description and comments when `gh` is available. Resolve the base first; never assume `main`:
+**Branch/PR mode** applies on a non-default branch (anything but `main`/`master`/`develop`/`trunk`), or when staged or uncommitted changes form a coherent unit of work. Read the branch's diff and commits against its base, staged changes (`git diff --cached`), uncommitted work (`git diff`), and `gh pr view` for the title, description and comments when `gh` is available. Resolve the base first; never assume `main`:
 
 ```bash
 default=$(git symbolic-ref --quiet --short refs/remotes/origin/HEAD)   # e.g. origin/main

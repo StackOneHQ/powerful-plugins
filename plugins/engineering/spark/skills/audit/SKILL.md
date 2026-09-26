@@ -10,7 +10,7 @@ Find **materially useful simplifications** in data structures, state representat
 
 This is a coordination job, not a single read-through. You are the coordinator: establish a coverage contract, dispatch bounded reviewers, verify every finding yourself, then check the audit as a whole before reporting.
 
-For the change in front of the user, use `forge` instead; audit is for the codebase behind it.
+To rewrite a diff, branch or plan, use `forge` instead. Audit only reviews, from the subsystems the live work touches (current scope, Step 1) up to whole codebases.
 
 ## The read-only contract
 

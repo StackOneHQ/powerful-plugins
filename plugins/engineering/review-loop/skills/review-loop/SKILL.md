@@ -26,12 +26,12 @@ resolve threads.
 
 Asking for this loop authorises, on the pull request for the branch the user is on or named:
 committing your own fixes, pushing them to that branch, opening the PR when there is none,
-triggering reviewers, replying to review threads and comments, adding `-1` reactions, and
-resolving threads where step 5 says to.
+triggering reviewers, replying to review threads and comments, adding `-1` reactions, resolving
+threads where step 5 says to, and committing the simplify pass in step 6.
 
 Merge only when the user asks you to, and then follow `references/several-prs.md`. Pushing to or
-changing a branch someone else owns, and committing anything other than your own review fixes,
-need the user's explicit yes in this session.
+changing a branch someone else owns, and committing anything other than your own review fixes and
+the step 6 simplify pass, need the user's explicit yes in this session.
 
 Never force-push or otherwise rewrite pushed history, approve a PR, or dismiss a review or a
 code-scanning alert, even when asked mid-loop: those change what reviewers and branch protection

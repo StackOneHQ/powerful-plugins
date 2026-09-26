@@ -2,11 +2,11 @@
 
 When invoked, audit text already written. It does not matter who wrote it or how good it already is.
 
-The rules this review walks live in SKILL.md (Part 1, Rules 1 to 6), [sentence-shapes.md](sentence-shapes.md) (S1 to S23), [line-craft.md](line-craft.md) (C1 to C6) and [generative.md](generative.md) (Part 7). `scripts/check-copy.sh` answers step 1 and flags candidates for step 6.
+The rules this review walks live in SKILL.md (Part 1, Rules 1 to 6), [sentence-shapes.md](sentence-shapes.md) (S1 to S23), [line-craft.md](line-craft.md) (C1 to C6) and [generative.md](generative.md) (Part 7). `${CLAUDE_PLUGIN_ROOT}/scripts/check-copy.sh` answers step 1 and flags candidates for step 6.
 
-1. **Hard character count.** Dashes, curly quotes, decorative emoji (or, for a social post, emoji outside the Rule 5 channel clause) and Rule 6 house terms, if a list is configured. All must be zero. List every location.
+1. **Hard character count.** Dashes, curly quotes, decorative emoji (or, for a social post, emoji outside the Rule 5 channel clause) and Rule 6 hard-banned house terms, if a list is configured. All must be zero; list every location. Soft house terms are reported for judgement, not failed.
 2. **Shape scan.** Walk S1 through S23 in order. For each hit, quote the line and give the rewrite.
-3. **Line-level pass.** Walk C1 through C5. The portability test in C1 applies to every sentence: flag any that would work unchanged in a competitor's docs.
+3. **Line-level pass.** Walk C1 through C6. The portability test in C1 applies to every sentence: flag any that would work unchanged in a competitor's docs.
 4. **Fragment budget.** Count fragments. More than one is a failure.
 5. **Ending check.** Does it close on a rhetorical question or a wrap-up?
 6. **Word and phrase scan.** Rules 2 and 3.
@@ -30,7 +30,7 @@ Output format:
    Original: "..."
    Rewrite:  "..."
 
-### Line-level (C1 to C5)
+### Line-level (C1 to C6)
 1. C1 portability failure (line X)
    Original: "..."
    Rewrite:  "..."

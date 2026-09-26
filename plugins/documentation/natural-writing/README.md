@@ -26,8 +26,8 @@ It returns findings and a proposed rewrite. It edits a file only when requested.
 The command follows the review process in
 [references/copy-review.md](skills/natural-writing/references/copy-review.md),
 including the mechanical check in [scripts/check-copy.sh](scripts/check-copy.sh).
-[SKILL.md](skills/natural-writing/SKILL.md) holds the hard rules and links the
-rest of the rules from the step that needs them.
+[SKILL.md](skills/natural-writing/SKILL.md) holds the hard rules and links each
+reference in the step that needs it.
 
 Plugin commands use a namespace. Use the full command above if another installed
 skill has a similar name. Reload plugins or restart Claude Code after updating.

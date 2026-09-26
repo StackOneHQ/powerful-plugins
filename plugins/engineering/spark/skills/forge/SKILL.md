@@ -20,7 +20,7 @@ Forge turns working code into the version a senior engineer would be proud to ha
 
 Default scope is the current branch against its base. Resolve the base; never assume `main`: `git merge-base HEAD <remote>/<default-branch>`, taking the remote whose URL is the canonical repo.
 
-Forge edits the working tree and runs the meter, lint, typecheck and tests without asking. Committing and pushing stay with the user.
+When rewriting, forge edits the working tree and runs the meter, lint, typecheck and tests without asking; for a question or a plan it changes nothing. Committing and pushing stay with the user.
 
 ## The loop
 

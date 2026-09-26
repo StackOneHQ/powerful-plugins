@@ -2,7 +2,9 @@
 
 Why some rules look the way they do, so an edit does not undo them by accident.
 
-**One script, not pasted copies.** The mechanical check lives in `scripts/check-copy.sh` so workflows and other skills call it rather than paste the grep block. Pasted copies drift: a fix lands in one and never reaches the others. A host without `grep -P` gets exit code 2, never a silent pass.
+**One script, not pasted copies.** The mechanical check lives in `${CLAUDE_PLUGIN_ROOT}/scripts/check-copy.sh` so workflows and other skills call it rather than paste the grep block. Pasted copies drift: a fix lands in one and never reaches the others. A host without `grep -P` gets exit code 2, never a silent pass.
+
+**Match the shape, not the words.** An earlier version of this skill banned only the literal string "it's not X, it's Y". Every S2 example got through that filter, which is why S2 lists skeletons rather than strings.
 
 **Ban the category, not the string.** Word-level bans catch what has already been named. Treat every newly flagged phrase as one instance of an unnamed category and ban the category. `serves as` was missing from earlier word lists because nobody had flagged it, not because it was safe; the copula-avoidance rule now covers the whole family.
 

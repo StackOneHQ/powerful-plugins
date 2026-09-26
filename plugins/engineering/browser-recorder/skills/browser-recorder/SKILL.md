@@ -331,7 +331,9 @@ for (const scene of sl.scenes) {
 "
 ```
 
-Recapture any missing or zero-byte file before calling the capture done.
+Recapture any missing or zero-byte file before calling the capture done, except scenes you
+skipped with the person's agreement: leave those out of `events.json` and list them in the
+report.
 
 ## Report
 

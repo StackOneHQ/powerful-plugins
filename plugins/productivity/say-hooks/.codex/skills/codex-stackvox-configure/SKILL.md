@@ -55,7 +55,7 @@ Help the user choose a voice for the Stop and Notification hooks. The voice sets
    ```
    If `${PLUGIN_ROOT}` is not set, use the absolute plugin path. Without an explicit speed, the preview uses the configured speed (or `1.0` if none is set). Ask whether they like it, want another voice or want a different speed.
 
-5. **When they're happy, write the config.** This replaces the whole file, which holds only these two settings:
+5. **When they're happy, write the config.** This replaces the whole file, which holds only these two settings. Put the speed you last previewed into `speed:`: the one the user chose, or else the configured speed (`1.0` if none is set), so a voice-only change keeps the existing speed:
    ```
    mkdir -p "$HOME/.claude"
    cat > "$HOME/.claude/say-hooks.local.md" <<EOF
