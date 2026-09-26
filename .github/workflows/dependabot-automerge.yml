@@ -1,0 +1,29 @@
+name: Dependabot auto-merge
+
+# Approves Dependabot's own bump pull requests and turns on auto-merge, so they land once the
+# required checks pass. It acts only when both the pull request's author and the actor that
+# pushed the latest commit are Dependabot, so a person pushing onto a Dependabot branch gets no
+# approval, and stale approvals are dismissed on every push.
+on: pull_request
+
+permissions: {}
+
+jobs:
+  automerge:
+    if: >-
+      github.event.pull_request.user.login == 'dependabot[bot]' &&
+      github.actor == 'dependabot[bot]' &&
+      github.repository == 'StackOneHQ/powerful-plugins'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Approve and enable auto-merge
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+        run: |
+          gh pr review --approve "$PR_URL"
+          gh pr merge --auto --squash "$PR_URL"

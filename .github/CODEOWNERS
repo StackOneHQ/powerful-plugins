@@ -2,3 +2,4 @@
 # checks and resolved review threads are. The last matching line wins.
 *                                   @glebedel
 /plugins/productivity/say-hooks/    @StuBehan @glebedel
+/.github/                           @glebedel @jrebocho @elgordomac

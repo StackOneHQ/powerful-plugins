@@ -1,0 +1,25 @@
+# Keeps the pinned GitHub Actions and the hash-locked Python requirements current. Bumps that
+# pass the required checks merge on their own (.github/workflows/dependabot-automerge.yml).
+# The npm manifest under plugins/engineering/spark/evals is left out: a bump there changes a
+# plugin without bumping its version, which the version check rejects.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      actions:
+        patterns: ["*"]
+    commit-message:
+      prefix: "ci"
+
+  - package-ecosystem: pip
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      python:
+        patterns: ["*"]
+    commit-message:
+      prefix: "deps"

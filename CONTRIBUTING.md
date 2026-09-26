@@ -200,6 +200,20 @@ codex plugin marketplace add /path/to/powerful-plugins
 codex plugin add my-plugin@powerful-plugins
 ```
 
+### Dependencies
+
+`requirements.txt` and `requirements-dev.txt` pin every package, including indirect ones, with
+hashes, and CI installs them with `--require-hashes`. Dependabot proposes weekly bumps and merges
+them once the required checks pass. To change a pin by hand, edit it and regenerate the hashes:
+
+```bash
+uv pip compile requirements.txt --universal --python-version 3.12 --generate-hashes \
+  --no-header --no-annotate -o requirements.txt
+```
+
+For `requirements-dev.txt`, compile the development tools together with `requirements.txt` and
+keep only the packages that are not already in `requirements.txt`, under its `-r` line.
+
 ### Automated Checks
 
 ```bash
