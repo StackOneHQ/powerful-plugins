@@ -1,6 +1,6 @@
 {
   "name": "say-hooks",
-  "version": "1.0.1",
+  "version": "1.1.1",
   "description": "Spoken announcements when Claude Code or Codex finishes a turn or is blocked. Uses stackvox (offline Kokoro-82M) when installed and falls back to macOS `say`.",
   "author": {
     "name": "StackOne",

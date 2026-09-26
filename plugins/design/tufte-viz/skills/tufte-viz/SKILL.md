@@ -11,91 +11,81 @@ description: |
   Applies principles: data-ink ratio, chartjunk elimination, graphical integrity, lie factor, small multiples, and data density.
 ---
 
-# Tufte Visualization Ideation
+# Tufte visualization ideation
 
 Apply Edward Tufte's principles to design clear, honest, high-density data visualizations.
 
-## Workflow
+## Designing a new visualization
 
-### For new visualizations:
+Start from the data story: which comparisons matter, what the key insight is, and who reads it.
+Then choose the form:
 
-1. **Clarify the data story**
-   - What comparisons matter?
-   - What's the key insight to communicate?
-   - Who's the audience?
+- High comparison need: small multiples
+- Dense data: a data table or sparklines
+- Time series: line charts with a minimal grid
+- Part-to-whole: a bar chart or table rather than a pie chart
 
-2. **Select approach** using Tufte principles:
-   - High comparison need → Small multiples
-   - Dense data → Consider data tables, sparklines
-   - Time-series → Line charts with minimal grid
-   - Part-to-whole → Avoid pie charts; prefer bar/table
+Design with data-ink in mind: start minimal and add only what earns its ink. Default to
+grayscale and use colour to encode or emphasise, never to decorate. Before presenting the design,
+run it through the Tufte test in `references/tufte-principles.md`.
 
-3. **Design with data-ink in mind**
-   - Start minimal, add only what's necessary
-   - Every element must earn its ink
-   - Default to grayscale; use color purposefully
+## Critiquing a visualization
 
-4. **Apply the Tufte test** (see references/tufte-principles.md)
+- **Graphical integrity**: compute the lie factor when proportions look off, and check baselines,
+  scales and 3D distortion.
+- **Chartjunk**: decorative elements, heavy grids, unneeded 3D effects, moire patterns.
+- **Data-ink ratio**: what can be erased, and what is redundant.
 
-### For critiquing visualizations:
+Give the critique as the few changes that matter most, ordered by impact, each with a specific
+before and after. Skip principles the chart already meets rather than listing them as passes.
 
-1. **Check graphical integrity**
-   - Calculate lie factor if proportions seem off
-   - Verify baselines and scales
-   - Look for 3D distortion
+## Rendered charts: check the render before calling it done
 
-2. **Identify chartjunk**
-   - Decorative elements
-   - Heavy grids
-   - Unnecessary 3D effects
-   - Moiré patterns
-
-3. **Evaluate data-ink ratio**
-   - What can be erased?
-   - What's redundant?
-
-4. **Suggest improvements** with specific before/after recommendations
-
-### Before reporting any rendered chart as done (mandatory)
-
-If you produced an actual file (SVG, HTML card, PNG) rather than a design
-recommendation, you must render it and check it before you call it finished:
+When you produced a file (SVG, HTML card, PNG) rather than a design recommendation, render it and
+look at it before reporting it finished. Running the bundled script and writing to its output
+folder needs no confirmation:
 
 ```bash
 node ${CLAUDE_PLUGIN_ROOT}/skills/tufte-viz/scripts/verify-asset-text.mjs \
   --out /tmp/asset-verify path/to/chart.svg
 ```
 
-Takes `.svg` and `.html` assets. `--out` must be absolute. The script fails on text that
-overlaps, is clipped by its container, is hidden behind a later-painted shape, or is
-invisible. Then **open the screenshots it prints and look at them** — clean geometry does
-not mean the chart reads well.
+It takes `.svg` and `.html` assets, and `--out` must be absolute. It fails on text that
+overlaps, is clipped by its container, is hidden behind a later-painted shape, or is invisible.
+Then open the screenshots it prints and look at them, because clean geometry does not mean the
+chart reads well.
 
-Exit `0` = clean, `1` = defect, `2` = could not check (usually `agent-browser` missing).
-A `2` is not a pass: report the asset as unverified.
+Exit `0` is clean, `1` is a defect, `2` could not check (usually `agent-browser` missing). A `2`
+is not a pass: report the asset as unverified.
 
-Hand-placed SVG text has no automatic layout, so a label whose width you guessed wrong
-silently renders over its neighbour or off the edge while the markup looks fine. Do not
-commit or report a chart while the verifier reports a defect. See
-`references/render-verification.md` for the failure modes and how to fix each one.
+Hand-placed SVG text has no automatic layout, so a label whose width you guessed wrong renders
+over its neighbour or off the edge while the markup looks fine. Fix every reported defect before
+calling the chart done; if the user wants it as is, say which defects remain.
+`references/render-verification.md` covers the failure modes and how to fix each one.
 
-## Key Principles Reference
+## References
 
-- `references/tufte-principles.md` — core principles from *Visual Display of Quantitative Information*: lie factor, data-ink, chartjunk, small multiples, integrity.
-- `references/analytical-design.md` — extensions from *Envisioning Information*, *Visual Explanations*, and *Beautiful Evidence*: the 6 principles of analytical design, sparklines, layering & separation, micro/macro, range-frames, causality, confections. Load when designing dashboards, dense displays, sparklines, or explanatory graphics.
-- `references/render-verification.md` — the render/screenshot gate for generated assets: overlap, clipping, occlusion and visibility checks, plus text-width budgeting when placing labels by hand.
+- `references/tufte-principles.md`: core principles from *The Visual Display of Quantitative
+  Information*: lie factor, data-ink, chartjunk, small multiples, integrity.
+- `references/analytical-design.md`: extensions from *Envisioning Information*, *Visual
+  Explanations* and *Beautiful Evidence*: the six principles of analytical design, sparklines,
+  layering and separation, micro/macro, range-frames, causality, confections. Load it for
+  dashboards, dense displays, sparklines or explanatory graphics.
+- `references/render-verification.md`: the render and screenshot gate for generated assets, plus
+  text-width budgeting when placing labels by hand.
 
-**Quick checklist:**
+## Quick checklist
+
 - [ ] Rendered and verified (no overlapping, clipped, covered or invisible text)
-- [ ] Screenshots reviewed by eye, not just by checker
-- [ ] Lie Factor ≈ 1.0 (no visual distortion)
+- [ ] Screenshots reviewed by eye, not just by the checker
+- [ ] Lie factor close to 1.0 (no visual distortion)
 - [ ] Maximum data-ink ratio
 - [ ] Zero chartjunk
 - [ ] Clear labeling
 - [ ] Answers "compared to what?"
 - [ ] Shows causality or mechanism where relevant
 - [ ] Multivariate (not over-reduced)
-- [ ] Words, numbers, images integrated — not segregated
-- [ ] Reveals multiple levels of detail (micro + macro)
+- [ ] Words, numbers and images integrated, not segregated
+- [ ] Reveals multiple levels of detail (micro and macro)
 - [ ] Layering: primary data dominates, secondary recedes
 - [ ] Appropriate data density

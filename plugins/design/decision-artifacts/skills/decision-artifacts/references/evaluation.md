@@ -37,7 +37,9 @@ Score each from 0 to 2: missing, partial, strong.
 
 Do not ship with a zero in evidence, completeness, action, interaction, or responsive behavior when that dimension applies.
 
-## Regression prompts
+## Release regression prompts
+
+This section is for maintainers releasing the plugin. It is not part of building an artifact.
 
 Dry-run the skill against at least two structurally different cases before a major release:
 

@@ -37,6 +37,41 @@
         "TM1"
       ],
       "rationale": "Generated Codex adapter for the stackvox-uninstall command: it deletes only the stackvox model cache, after asking the user, and the plugin's own check stamp, as reviewed for the command itself."
+    },
+    {
+      "skill": "plugins/engineering/browser-automation/skills/browser-automation",
+      "rules": [
+        "EA2"
+      ],
+      "rationale": "EA2 flags the line that lists what this skill may do without asking, which the repository's instructions require every skill to state. Here it covers opening tabs, navigating, reading and screenshots; submitting, sending, paying and deleting still need a yes."
+    },
+    {
+      "skill": "plugins/engineering/browser-recorder/skills/browser-recorder",
+      "rules": [
+        "EA2"
+      ],
+      "rationale": "EA2 flags the line that lists what this skill may do without asking, which the repository's instructions require every skill to state. Here it covers running the capture commands and writing under the output folder; outward actions in a scene still need a yes."
+    },
+    {
+      "skill": "plugins/engineering/reflect/skills/reflect",
+      "rules": [
+        "EA2"
+      ],
+      "rationale": "EA2 flags the line that lists what this skill may do without asking, which the repository's instructions require every skill to state. Here it covers reading the workspace's own history and running read-only reviewers; editing skills or filing tracker items needs a yes."
+    },
+    {
+      "skill": "plugins/engineering/spark/skills/audit",
+      "rules": [
+        "EA2"
+      ],
+      "rationale": "EA2 flags the line that lists what this skill may do without asking, which the repository's instructions require every skill to state. Here it covers picking the audit mode and publishing a private report only the user can see; audit never edits the repository."
+    },
+    {
+      "skill": "plugins/engineering/spark/skills/forge",
+      "rules": [
+        "EA2"
+      ],
+      "rationale": "EA2 flags the line that lists what this skill may do without asking, which the repository's instructions require every skill to state. Here it covers editing the working tree and running tests in rewrite mode; committing and pushing stay with the user."
     }
   ]
 }
