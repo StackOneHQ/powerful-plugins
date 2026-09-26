@@ -95,8 +95,11 @@ generated files; change the source and rerun the generator.
    fallback: "ask the user (with `AskUserQuestion` in Claude Code)". Claude agent `tools` and
    `model` fields have no exact Codex equivalent; the adapters disclose that rather than
    pretending to enforce it.
-4. Reference bundled files through the plugin root: `${CLAUDE_PLUGIN_ROOT}` in Claude sources.
-   Codex sets `PLUGIN_ROOT` and a `CLAUDE_PLUGIN_ROOT` alias. Never invent `CODEX_PLUGIN_ROOT`.
+4. Reference a file inside the skill's own folder relative to `SKILL.md` (`references/x.md`,
+   `scripts/y.sh`); that works in every tool that loads the skill. Reference a file elsewhere in
+   the plugin through `${CLAUDE_PLUGIN_ROOT}`. Codex sets `PLUGIN_ROOT` and a
+   `CLAUDE_PLUGIN_ROOT` alias; other hosts may not expand it in skill text, so prefer keeping a
+   skill's scripts in its own folder. Never invent `CODEX_PLUGIN_ROOT`.
 5. Update the plugin's README so it lists the skills, commands, agents and hooks that exist.
 
 Categories are `design`, `documentation`, `engineering` and `productivity`. Add a new one only
