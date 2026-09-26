@@ -365,12 +365,23 @@ EOF_TARGETS
 
 # GitHub code scanning accepts one SARIF run per category. SkillSpector emits
 # one run per skill, so consolidate their results into a single upload file.
+# Results the allowlist marks as reviewed (same folder, same rule) stay in the
+# per-skill reports but are left out of the upload, so code scanning does not
+# reopen a decision that is already recorded with its rationale.
 if [ "${#SARIF_REPORTS[@]}" -gt 0 ]; then
   combined="$REPORT_DIR/skillspector.sarif"
   combined_tmp="$combined.tmp"
-  if ! jq -s '
+  reviewed='[]'
+  if [ -f "$SKILLSPECTOR_ALLOWLIST" ]; then
+    reviewed="$(jq -c '.reviewed_high_risk' "$SKILLSPECTOR_ALLOWLIST")"
+  fi
+  if ! jq -s --argjson reviewed "$reviewed" '
+    def is_reviewed:
+      . as $result
+      | ($result.locations[0]?.physicalLocation.artifactLocation.uri // "") as $uri
+      | any($reviewed[]; . as $entry | ($uri | startswith($entry.skill + "/")) and ($entry.rules | index($result.ruleId) != null));
     . as $documents
-    | [$documents[] | .runs[]?] as $runs
+    | [$documents[] | .runs[]? | .results = [.results[]? | select(is_reviewed | not)]] as $runs
     | if ($runs | length) == 0 then
         error("SkillSpector reports contained no SARIF runs")
       else
