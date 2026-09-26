@@ -1,6 +1,6 @@
 {
   "name": "animation-studio",
-  "version": "1.1.8",
+  "version": "1.2.1",
   "description": "Create web animations, scroll-driven 3D explainers and short videos with the Web Animations API, Motion, anime.js, Three.js and Remotion. Picks the lightest library for the job, follows your design tokens, and routes to specialist agents that ideate and build.",
   "author": {
     "name": "StackOne",
