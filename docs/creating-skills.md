@@ -18,33 +18,14 @@ cp -r templates/skill-template plugins/your-category/your-plugin/skills/your-ski
 
 ### 2. Edit SKILL.md
 
-```yaml
----
-name: your-skill-name
-description: Clear description of what this skill does and when it triggers
----
+Fill in the template's sections: a `description` that says what the skill does and when to use
+it, the goal, the inputs, the boundaries (what's safe to do without asking and what needs a yes)
+and the output. Keep a numbered workflow only where the order really matters, and move detail
+into `references/`.
 
-# Your Skill Name
-
-## When to Use
-
-This skill auto-triggers when:
-- [Trigger condition 1]
-- [Trigger condition 2]
-
-## Instructions
-
-[Your instructions here]
-
-## Examples
-
-[Concrete examples]
-
-## Guidelines
-
-- [Guideline 1]
-- [Guideline 2]
-```
+[CLAUDE.md](../CLAUDE.md#writing-instructions-that-work-on-any-model) explains why: the skills
+run on different models, mostly GPT-6 Astra and Claude Opus 5.5, and both do better with a clear
+outcome and boundaries than with a step-by-step recipe or emphatic "MUST" rules.
 
 ### 3. Test Locally
 
@@ -72,58 +53,46 @@ description: Description that tells Claude when to use this skill
 ---
 ```
 
-### Recommended Sections
+### Recommended sections
+
+These match `templates/skill-template/SKILL.md`. Drop any that don't apply.
 
 | Section | Purpose |
 |---------|---------|
-| When to Use | Trigger conditions for auto-activation |
-| Instructions | Step-by-step guidance for Claude |
-| Examples | Concrete input/output examples |
-| Guidelines | Do's and don'ts |
-| Resources | Links to reference material |
+| Goal | What good output looks like, so the agent can judge its own work |
+| Inputs | What the agent works from, which source wins, and what to do when one is missing |
+| Boundaries | User instructions win; what's safe to do without asking; what needs a yes; what's out of scope |
+| Workflow | Numbered steps, only where the order matters |
+| Output | Format and length of the deliverable |
+| References | Files in `references/`, each with when to read it |
 
-## Writing Good Instructions
+## Writing good instructions
 
-### Be Specific
+The rules and the evidence behind them are in
+[CLAUDE.md](../CLAUDE.md#writing-instructions-that-work-on-any-model). In practice:
+
+### Be specific about facts, not about steps
+
+Give the agent the facts it can't guess, and let it plan the work.
 
 ```markdown
-# Bad
+# Vague
 Handle API errors appropriately.
 
-# Good
-When an API call fails:
-1. Check if it's a rate limit (429) - implement exponential backoff
-2. Check if it's auth (401/403) - prompt user to re-authenticate
-3. Check if it's server error (5xx) - retry up to 3 times
-4. For all others, return the error message to the user
+# Specific
+The API returns 429 when rate limited, with a Retry-After header in seconds. A 401 means the
+token expired: tell the user to run `example login`. Retrying a 5xx is safe because every
+endpoint is idempotent.
 ```
 
-### Use Tables for Reference
+### Use tables for reference data
 
-```markdown
-| Status Code | Action |
-|-------------|--------|
-| 200 | Return data |
-| 429 | Backoff and retry |
-| 401 | Re-authenticate |
-| 5xx | Retry 3 times |
-```
+Lookups such as status codes, file types or option names read better as a table than as prose.
 
-### Include Examples
+### Show the output when the format is easy to get wrong
 
-```markdown
-## Examples
-
-### Example 1: Basic Usage
-
-**User Request**: "List all users"
-
-**Agent Action**:
-1. Call GET /api/users
-2. Return the paginated list
-
-**Output**: [Show expected format]
-```
+One short example of the finished deliverable is worth more than a paragraph describing it.
+Don't script the agent's actions step by step in the example.
 
 ## Choosing a Category
 
@@ -146,7 +115,7 @@ When an API call fails:
 - [ ] YAML frontmatter is valid
 - [ ] Name is lowercase with hyphens
 - [ ] Description clearly states when to use
-- [ ] Instructions are specific and actionable
+- [ ] Instructions state the goal, boundaries and output, with numbered steps only where order matters
 - [ ] Examples demonstrate expected behavior
 - [ ] No sensitive information included
 
