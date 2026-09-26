@@ -15,7 +15,7 @@ Use this skill when:
 - Someone says "make it move", "animate this", "add motion", "floating", "parallax"
 - Building interactive visual effects (hover states, scroll-triggered, layout animations)
 - Working with SVG animations, path drawing, or morphing
-- Turning a system, pipeline or architecture into a scroll-driven 3D explainer (route to `exploded-machine`)
+- Explaining a system, pipeline or architecture component by component on scroll, as an exploded drawing (route to `exploded-machine`)
 
 > **Design tokens**: use the project's own design tokens or brand guidelines for colour, spacing,
 > radius and motion curves. If the project has none, ask before inventing a palette. The values
@@ -34,7 +34,7 @@ Use this skill when:
 | React enter/exit animations (conditional render) | **Motion** | `AnimatePresence` handles mount/unmount transitions |
 | Canvas/WebGL 3D scenes in video | **Remotion + Three.js** | 3D in rendered video, no cost to a live page |
 | Data-driven 3D on a live page (points, graphs, constellations) | **Canvas 2D projection, no library** | A hand-written projection can place a few hundred points in 3D with a script of a few KB gzip |
-| Scroll-driven 3D explainer of a system, pipeline or architecture | **`exploded-machine` skill** (a Cinematic Three.js mode and a Light 2D canvas mode, both driven by scroll progress) | The one case where WebGL on a live page earns its weight: it is the centrepiece of the page, loads only there, and ships a Light 2D mode |
+| Scroll-driven exploded view of a system, pipeline or architecture | **`exploded-machine` skill** (a Technical line drawing on a 2D canvas by default, or Graphite for a dark brand; five more 2D styles, and Clay and Realistic in Three.js, on request, all driven by scroll progress) | The default needs no WebGL. Clay and Realistic are the one case where WebGL on a live page earns its weight: the centrepiece of the page, loaded only there, with the Technical drawing as the fallback |
 
 **Default choice when unclear:** WAAPI for vanilla scripts, Motion for React components, anime.js only for SVG path work or a timeline you need to scrub.
 
@@ -61,7 +61,7 @@ Check your own build rather than trusting this table: run the production build, 
    - Motion component → `motion-creator`
    - anime.js or vanilla animation → `animejs-creator`
    - Video → `video-creator`
-   - Scroll-driven 3D system explainer → `exploded-machine` skill
+   - Scroll-driven exploded view of a system → `exploded-machine` skill
 5. **Verify**: check that `prefers-reduced-motion` is respected, on the production build as well as the dev server. Dev servers can differ from production in script loading and hydration timing, so build, then serve the output with a static server or the framework's preview command. When you replace or refactor an existing animation, prove parity frame by frame: capture the old and new versions at the same timestamps and compare them. The `browser-recorder` plugin in the powerful-plugins marketplace can record both runs
 
 ## Default Animation Language
@@ -269,6 +269,6 @@ it needs an explicit height or it collapses to zero.
 - **Don't hydrate an animated island on load**: in a partial-hydration framework, hydrate it when it becomes visible (in Astro, `client:visible` rather than `client:load`)
 - **Don't fight an existing CSS reveal system**: if CSS handles it, stop
 - **Don't use anime.js inside React components**: use Motion for React
-- **Don't add Three.js or a WebGL layer to a live page by default**: use Remotion for 3D in videos and a Canvas 2D projection for data on the page. The exception is a scroll-driven system explainer built with the `exploded-machine` skill, which loads WebGL only on its own page and ships a Light 2D mode
+- **Don't add Three.js or a WebGL layer to a live page by default**: use Remotion for 3D in videos and a Canvas 2D projection for data on the page. The exception is the Clay and Realistic styles of the `exploded-machine` skill, which load WebGL only on their own page and fall back to its 2D Technical drawing
 - **Don't import Motion or anime.js into a vanilla `<script>` for fades and staggers**: that is a Web Animations API job, and the library ships on every page that renders the component
 - **Don't stagger more than 6 items**: after 6 it feels slow, not smooth
