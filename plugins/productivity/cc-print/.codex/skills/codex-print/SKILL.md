@@ -69,7 +69,7 @@ Pass these directly after `$cc-print:codex-print`. Each maps to a script option:
 - `until "topic"` - Stop before message containing "topic": `--until "topic"`
 - `light` - Use light theme: `--light-theme`
 - `png` / `svg` / `pdf` / `html` - Output format (default: png): `--format <type>`
-- `full` - Export the whole conversation without asking for a range: no range option
+- `full` - Export the whole conversation and skip the range question: no range option
 
 Examples:
 - `$cc-print:codex-print` - Interactive mode
