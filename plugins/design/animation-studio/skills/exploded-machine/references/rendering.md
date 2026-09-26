@@ -81,9 +81,12 @@ Technical in drafting colours. Everything in the Technical recipe applies; only 
 - Paper is Prussian blue (about `#1d477f`), key lines near-white, detail lines a pale blue. Fills
   stay the paper colour, so hidden lines are still removed.
 - A faint grid (a line every 14 px or so, about 8% white) sits on the paper, behind the object.
-- The current component gets dimension lines: extension lines off two of its edges, a line between
-  them with arrowheads, and the measurement written along it. Use a real number from the subject
-  (a limit, a size, a latency) or mark it illustrative. Its lines take a pale yellow accent.
+- The current component gets a dimension: extension lines off its two end planes, on the side away
+  from its leader line, a line between them with arrowheads, and the measurement written along it.
+  Write only a number and its unit, and make it fit between the arrowheads. Use a real number from
+  the subject (a limit, a size, a latency) or mark it illustrative.
+- Blueprint replaces the brand accent with a pale yellow, for the current component's lines and
+  its dimension.
 
 ## Patent
 
@@ -91,11 +94,14 @@ Black ink on white, the look of a patent drawing's figures.
 
 - White paper, black ink, no colour. Fills stay white, so hidden lines are removed.
 - Shade with hatching, not tone: parallel lines at about 45 degrees on the side away from the light,
-  clipped to each shape, spaced about 3 px at the drawing's reference scale.
-- Reference numerals (10, 12, 14...) sit on thin curved leaders drawn by hand on the drawing, in
-  place of text labels. The HTML labels become the legend, each one pairing a numeral with its
-  name, so the text stays readable and indexable.
-- The current component takes a heavier outline; the accent, if any, goes only on its numeral.
+  clipped to each shape, spaced about 3 px at the drawing's reference scale. Skip it on pieces under
+  about 15 px across, or nuts and bolts turn black.
+- Reference numerals (10, 12, 14...) replace the elbow leaders and text labels on the drawing. Each
+  numeral appears when its component is first reached, 30 to 50 px off the silhouette, on a thin
+  curved leader that touches down on the part. The HTML labels become the legend, one column in a
+  free corner, each entry pairing a numeral with its name, so the text stays readable and
+  indexable. On a phone the numerals replace the part numbers.
+- No colour: the current component is picked out by a heavier outline alone.
 
 ## Assembly manual
 
@@ -103,16 +109,23 @@ The wordless look of furniture instructions.
 
 - White paper and bold, even outlines of about 2 px at the reference scale, with almost no detail
   lines. No shading.
-- Arrows show the current component moving into place along the axis. Draw them from the
-  component's real motion in the pose, so an arrow never points the wrong way.
-- A numbered step bubble matches the walkthrough stop. Every other part drops to about 40% ink, so
-  the part that moves stands out.
+- An arrow points from where the current component sits in the exploded pose toward its assembled
+  place, which is the way it really moves when the reader scrolls back. A component that doesn't
+  move along the axis (the middle one, when parts spread from the centre) gets an arrow for the
+  motion it does have, such as its lift off the axis, or none.
+- A numbered step bubble matching the walkthrough stop sits at the arrow's tail, on the side away
+  from the leader line.
+- While a component is current, every other part drops to about 40% ink, so the part that moves
+  stands out. With no component current (the opening and the end), every part is at full ink.
 
 ## Graphite
 
 The animejs.com hero: solid shapes on a dark ground, lit from one side.
 
-- Fills are near-black, a step lighter on faces toward the camera. No outlines.
+- Fills are near-black, a step lighter on faces toward the camera. No outlines. Neighbouring values
+  merge easily: a ground near `#0f0f0f`, fills near `#1f1f1f` and camera-facing faces near
+  `#2d2d2d` read apart. Holes, bores and recesses are darker fills, not lines, and the logo is its
+  light version.
 - One warm highlight, about 1.5 px, runs along each silhouette edge that faces the light: stroke the
   edges of each outline whose outward normal points toward the upper left.
 - The current component's highlight takes the accent and its fill lifts one step. Every silhouette
@@ -123,22 +136,28 @@ The animejs.com hero: solid shapes on a dark ground, lit from one side.
 A glowing wireframe on near-black. It is the one style that shows hidden lines on purpose.
 
 - No fills. Draw every edge, front and back: both end rings of each frustum, and lines along its
-  length every 30 degrees or so.
-- Lines are thin (about 0.8 px) in a cyan or the accent, with a small glow (a canvas shadow blur
-  of about 6 px). Keep the blur small and redraw only on change: blur is the costly part.
-- Showing every line tangles quickly, so the current component is drawn at full brightness and
-  every other part at about 35%. Faint scanlines are optional.
+  length every 30 degrees or so on pieces near the rim size. Small pieces (tubes, nuts) get 4 to 6
+  lines, or they fill in solid.
+- Lines are thin (about 0.8 px) in a cyan or the accent. Showing every line tangles quickly, so the
+  current component is drawn at full brightness and every other part at about 35%. Faint scanlines
+  are optional.
+- The glow is the costly part. Blur only the current component (`shadowBlur` of about 6 times the
+  device pixel ratio, since it counts device pixels); give the dimmed parts a wide, faint stroke
+  under their line instead, and stroke one path per part. A blur on every part dropped frames even
+  on a fast machine.
 
 ## Clay
 
 Soft matte 3D in Three.js: friendlier and cheaper than Realistic.
 
 - `MeshStandardMaterial` with a roughness near 0.9 and no metalness. Colours are the brand palette
-  mixed about 60% toward white; the current component takes the accent at full strength.
+  mixed 35 to 60% toward white, on a background a step darker than the lightest part, or pale parts
+  vanish into a pale ground. The current component takes the accent at full strength.
 - A hemisphere light plus one soft key from the upper left. No environment reflections, no bloom.
 - Strong ambient occlusion (GTAO) does most of the work: it is what makes clay read as clay.
-- A light background with a soft contact shadow under the object. Unlike Realistic on a dark stage,
-  a floor shadow suits Clay.
+- A soft contact shadow on a floor under the object suits Clay, unlike Realistic on a dark stage.
+  Tilt the floor with the object so the shadow stays under its high end, and hide the floor while
+  the AO pass renders, or it speckles every silhouette.
 - Loading, fallback and performance follow Realistic below.
 
 ## Realistic
@@ -177,15 +196,26 @@ Physically based 3D in Three.js, for when the user asks for a lit, reflective re
 
 Both work on the current component only, and ease in and out with the walkthrough's spring.
 
+- **Design for it.** Give every shell a wall thickness, and model it as a tube (outer wall, inner
+  wall, end rings) with the component's insides inside it. A cut through a solid cylinder shows
+  nothing sensible.
 - **Cutaway.** Remove a wedge of about 100 degrees from the component's shell, centred on the side
   facing the camera. Draw the component's insides within the wedge, then fill the two cut planes
   and hatch them at 45 degrees. In a 2D style, clip to the wedge's projected outline to draw the
   insides, and fill and hatch the cut planes as flat polygons. In Three.js, put two clipping planes
-  on the shell's material (`material.clippingPlanes`, with `renderer.localClippingEnabled`) and add
-  flat caps on the cut planes.
+  through the axis at the wedge's edges on the shell's material (`material.clippingPlanes`,
+  `clipIntersection: true`, with `renderer.localClippingEnabled`) and add flat caps on the cut
+  planes. The AO pass renders with an override material that ignores clipping planes, so it shades
+  the shell as if uncut; check the cut for dark smudges.
 - **X-ray.** The shell turns translucent (about 30% fill) and keeps its outline; the insides are
-  drawn solid inside it, with their far edges dashed. It reads best in Clay and Realistic, where the
-  shell can use `transmission`; in the line styles it is lower in contrast than Cutaway.
+  drawn solid inside it, and the insides' own hidden edges are dashed (in Three.js, a second pass
+  with `depthFunc: THREE.GreaterDepth`). It reads best in Clay and Realistic; in the line styles it
+  is lower in contrast than Cutaway, and it adds nothing to Hologram, which shows every line anyway.
+- **Fittings in the way.** Pieces mounted on the shell inside the wedge (ports, pads, nuts) fade to
+  about 15% with the treatment, in X-ray too; in Three.js move them into their own mesh so they can
+  fade apart from the merged part. Parts on stems that reach beyond the rim (a gauge, a meter head)
+  stay, since fading them leaves them floating.
+- **Hover** picks a part out but never treats it; the treatment follows the walkthrough only.
 - Hidden lines are part of the point here, so the "no line shows through" check skips the treated
   component.
 

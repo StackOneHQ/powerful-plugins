@@ -22,12 +22,15 @@ reachable from a script.
 - [ ] Technical: no shading, gradients or glow; no line of a far part shows through a nearer one;
       line weights are consistent. Check the hidden lines on 2 to 3 times zoomed crops of every
       part, assembled and apart: at full size a nut drawn over its flange looks fine.
-- [ ] Blueprint: every dimension is a real number from the subject or marked illustrative.
+- [ ] Blueprint: every dimension is a real number from the subject or marked illustrative, and its
+      text fits between the arrowheads.
 - [ ] Patent: every numeral on the drawing has its entry in the legend, and hatching sits on the
       side away from the light.
-- [ ] Assembly manual: the arrows point the way the part really moves in the pose.
+- [ ] Assembly manual: the arrows point the way the part really moves (measure the cosine between
+      each arrow and the part's travel on a real scroll back; it should be close to 1).
 - [ ] Graphite: every silhouette has its highlight, and no two neighbouring parts merge.
-- [ ] Hologram: the current part reads clearly over the dimmed back lines of the others.
+- [ ] Hologram: the current part reads clearly over the dimmed back lines of the others, and
+      its glow passes the smoothness check on a phone.
 - [ ] Clay: the ambient occlusion reads as soft clay, with no black blocks in the cavities.
 - [ ] Realistic: reflections read as metal and paint, with no white-out, hard square reflections or
       bloomed hot spots.
@@ -68,6 +71,8 @@ Expose the state on `window` for the test run, then check:
   renders, and read `renderer.info.render.calls`, which then counts every pass.
 - Lines: a segment-intersection test of the leader lines against each other, the parts, the chips
   and the labels finds zero, not counting where each line meets its own part and its own label.
+  Include each style's own marks in it: Blueprint dimensions, Patent numerals and their leaders,
+  Assembly arrows and step bubbles.
 - Redraws: draw the same frame several times and compare the pixels; they must match. Read the
   canvas back twice before the first hash: after repeated `getImageData` calls Chrome moves the
   canvas to CPU rendering, which changes the antialiasing, so the first two reads can differ.

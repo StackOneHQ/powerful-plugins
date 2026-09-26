@@ -30,7 +30,9 @@ out as abrupt, misaligned, half-visible or inconsistent.
 - Text painted on the object (a name on a housing) counts toward the minimum size too, measured as
   its font size times the drawing's scale. When it would land below the minimum, leave it out.
 - On a phone the two columns and their leader lines do not fit. Put a small number on each part,
-  list the labels in a two-column grid under the object, and keep chips off the parts. Centre the
+  list the labels in a two-column grid under the object, and keep chips off the parts. A style's
+  own marks (Blueprint dimensions, Assembly arrows and bubbles) go below the object, and their space
+  is reserved before the label grid is placed. Centre the
   object and the grid together in the height the tallest caption leaves, so no band of the screen
   sits empty.
 
@@ -52,7 +54,9 @@ out as abrupt, misaligned, half-visible or inconsistent.
 - Hovering or clicking a part or its label picks it out and opens a small card. A hover is a
   pointer that moved onto a part: ignore enter events caused by the page scrolling under a still
   pointer, and close hover cards on scroll, or a resting mouse picks parts out ahead of the
-  walkthrough. Cards appear only
+  walkthrough. Record pointer movement in the capture phase (`pointerover` and `pointermove` on the
+  window, with `capture: true`), so the first move onto a part is known before the part's own
+  enter handler runs. Cards appear only
   on hover or click, and never cover the part they describe. Try above, below, beside and the four
   diagonals, and take the place that covers the fewest labels, chips and panels.
 - Keyboard and screen-reader users get the same: each part has a focusable HTML button placed over
