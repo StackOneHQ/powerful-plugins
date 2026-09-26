@@ -58,9 +58,12 @@ reviews:
       description: |
         Skill, command and agent instructions must run in both tools. Flag a step that relies
         on a tool only one agent has (such as AskUserQuestion, TodoWrite or a Claude-only MCP
-        server) without naming the fallback for the other. Bundled files must be referenced
-        through ${CLAUDE_PLUGIN_ROOT}, never a relative path from the user's working directory
-        and never an invented variable such as CODEX_PLUGIN_ROOT.
+        server) without naming the fallback for the other. A file inside the skill's own folder
+        is referenced relative to SKILL.md (references/x.md, scripts/y.sh), which the Agent
+        Skills format defines and every host supports; do not flag those. A file elsewhere in
+        the plugin, such as a plugin-level scripts/ folder, goes through ${CLAUDE_PLUGIN_ROOT}.
+        Flag a path that would resolve against the user's working directory (plugins/..., ../)
+        and any invented variable such as CODEX_PLUGIN_ROOT.
       include:
         - plugins/**/skills/**
         - plugins/**/commands/**
