@@ -135,7 +135,7 @@ echo "--- burstiness, sd of sentence length over mean (want above 0.4) ---"
 tr '!?' '..' < "$f" | tr '.' '\n' | awk 'NF>2 {n++; s+=NF; q+=NF*NF} END {if (n>1) {m=s/n; sd=sqrt(q/n-m*m); printf "sentences=%d mean=%.1f sd=%.1f burstiness=%.2f\n", n, m, sd, sd/m}}'
 ```
 
-Eight blocks are hard failures at any count above zero, the same eight that make `${CLAUDE_PLUGIN_ROOT}/scripts/check-copy.sh` exit 1: dashes, curly quotes, emoji outside the social channel clause, house terms (when you keep a list), negation openers, the boundary-line metaphor, reflective hand-holding, and assistant tics. Fix and re-run until all eight read zero.
+Eight blocks are hard failures at any count above zero, the same eight that make `${CLAUDE_PLUGIN_ROOT}/scripts/check-copy.sh` exit 1: dashes, curly quotes, emoji outside the social channel clause, house terms (when you keep a list), negation openers, the boundary-line metaphor, reflective hand-holding, and assistant tics. Fix and re-run until all eight read zero, unless a match is one the user asked for; then follow the exception in step 4 of SKILL.md.
 
 **Portability.** Every check in this block that uses `\b` or a `\x{...}` code point runs under `grep -P`, because `\b` is only a word boundary in PCRE (under `-E` it is a GNU extension and a literal on BSD grep). macOS system grep has no `-P` at all: install GNU grep from Homebrew and run the block with `ggrep`, use a container, or run `${CLAUDE_PLUGIN_ROOT}/scripts/check-copy.sh`, which finds `ggrep` on its own and exits 2 rather than reporting a pass when no `-P`-capable grep exists.
 
