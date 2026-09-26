@@ -1,31 +1,8 @@
 #!/usr/bin/env node
-/**
- * verify-asset-text.mjs — render each generated asset in a real browser and fail
- * on text that overlaps, is clipped by its container, is hidden behind a shape
- * painted after it, or is invisible.
- *
- * A chart that looks right in source can still render wrong: SVG text has no
- * automatic layout, so a label whose width you guessed will silently run over its
- * neighbour, off the canvas, or under a card drawn after it. Eyeballing the markup
- * does not catch this. Rendering does.
- *
- * Usage:
- *   node verify-asset-text.mjs <file.svg|file.html> [more files ...]
- *   node verify-asset-text.mjs --out /abs/path/for/screenshots <files ...>
- *   node verify-asset-text.mjs --self-test
- *
- * Exit codes: 0 = all assets clean, 1 = at least one defect, 2 = could not check:
- * bad invocation, a missing input file, the browser tooling unavailable, or an
- * asset the browser could not open or measure (never conflate "could not check"
- * with "checked and clean", or with a defect).
- *
- * Requires the `agent-browser` CLI on PATH. Runs in its own agent-browser session
- * (tufte-verify-<pid>) and closes only that one, so the user's other sessions are
- * left alone.
- *
- * ALWAYS look at the emitted screenshots too. This script catches geometric
- * defects; it does not judge whether the asset reads well.
- */
+// Renders each .svg/.html asset in agent-browser and fails on text that overlaps, is clipped by its
+// container, is covered by a shape painted after it, or is invisible. Exit 0 all clean, 1 a defect,
+// 2 could not check: bad invocation, a missing file, no agent-browser, or an asset the browser could
+// not open or measure. Uses a session of its own and closes only that one.
 import { execFileSync } from "node:child_process";
 import { basename, resolve, dirname, join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
@@ -46,7 +23,7 @@ function usage(msg) {
 }
 
 const argv = process.argv.slice(2);
-let OUT = null;
+let out = "asset-verify";
 let selfTest = false;
 const files = [];
 for (let i = 0; i < argv.length; i++) {
@@ -54,7 +31,7 @@ for (let i = 0; i < argv.length; i++) {
   if (a === "--out") {
     const v = argv[++i];
     if (v === undefined || v.startsWith("--")) usage("--out requires a directory path");
-    OUT = v;
+    out = v;
   } else if (a === "--self-test") {
     selfTest = true;
   } else if (a === "-h" || a === "--help") {
@@ -66,9 +43,8 @@ for (let i = 0; i < argv.length; i++) {
   }
 }
 
-// Each fixture asserts a defect class the verifier must catch. This exists because
-// the first version of this gate was validated only against flat-coordinate SVG —
-// the one shape that hides its worst bug — and reported PASS on a broken carousel.
+// The defect classes each fixture must produce. A fixture listed with none must produce none;
+// the others may produce more than they list.
 const SELF_TEST = {
   "clean.svg": [],
   "clean-slide.html": [],
@@ -90,45 +66,30 @@ const SELF_TEST = {
 if (selfTest) {
   const dir = join(HERE, "fixtures");
   if (!existsSync(dir)) usage(`self-test fixtures missing at ${dir}`);
-  files.length = 0;
-  for (const f of Object.keys(SELF_TEST)) files.push(join(dir, f));
+  files.splice(0, files.length, ...Object.keys(SELF_TEST).map((f) => join(dir, f)));
 }
 
 if (!files.length) usage("no input files");
 
 // agent-browser resolves relative paths against its own daemon working directory,
 // not ours, so a relative --out silently writes somewhere else (or fails). Anchor it.
-OUT = OUT ? resolve(OUT) : resolve(process.cwd(), "asset-verify");
+const outDir = resolve(out);
 try {
-  mkdirSync(OUT, { recursive: true });
+  mkdirSync(outDir, { recursive: true });
 } catch (e) {
-  console.error(`error: cannot create --out directory ${OUT}: ${e.message}`);
+  console.error(`error: cannot create --out directory ${outDir}: ${e.message}`);
   process.exit(2);
 }
 
-// Runs in the page. Measures every text-bearing node and reports defects.
-//
-// Two things this has to get right, both of which are easy to get silently wrong:
-//
-//  1. SVG geometry must be resolved to ROOT (viewBox) space. `getBBox()` returns
-//     the box in the element's own user space, so a <text> inside
-//     <g transform="translate(400,80)"> reports x=0 — which makes every comparison
-//     against the canvas and against other groups meaningless. We measure with
-//     getBoundingClientRect() (real, post-transform screen geometry) and map back
-//     through the root's screen CTM so reported numbers are in the viewBox units
-//     the author actually edits.
-//
-//  2. "Is this an SVG asset?" must be decided from the document element, not from
-//     `querySelector('svg')`. An HTML carousel with one inline <svg> logo would
-//     otherwise be verified as a 40x40 icon and reported PASS.
+// Runs in the page and returns a JSON string: what it measured and every defect it found.
 const PROBE = String.raw`(() => {
+  // From the document element, not querySelector('svg'): an HTML slide with an inline <svg> logo
+  // is still an HTML asset.
   const isSvgDoc = document.documentElement.tagName.toLowerCase() === 'svg';
   const svgRoot = isSvgDoc ? document.documentElement : null;
 
-  // ---- geometry helpers -------------------------------------------------
-  // Everything is first measured in viewport pixels via getBoundingClientRect,
-  // which already accounts for every ancestor transform, then converted into the
-  // reporting space: viewBox units for an SVG document, page pixels for HTML.
+  // Measure with getBoundingClientRect, which applies every ancestor transform (getBBox does not),
+  // then report in the space the author edits: viewBox units for SVG, page pixels for HTML.
   let toSpace = (r) => ({ x: r.left + scrollX, y: r.top + scrollY, w: r.width, h: r.height });
   let spaceUnit = 'px';
 
@@ -136,8 +97,7 @@ const PROBE = String.raw`(() => {
     const ctm = svgRoot.getScreenCTM();
     if (ctm) {
       const inv = ctm.inverse();
-      const pt = svgRoot.createSVGPoint();
-      const map = (x, y) => { pt.x = x; pt.y = y; const p = pt.matrixTransform(inv); return p; };
+      const map = (x, y) => new DOMPoint(x, y).matrixTransform(inv);
       toSpace = (r) => {
         const cs = [map(r.left, r.top), map(r.right, r.top), map(r.left, r.bottom), map(r.right, r.bottom)];
         const xs = cs.map(p => p.x), ys = cs.map(p => p.y);
@@ -156,25 +116,13 @@ const PROBE = String.raw`(() => {
     if (n.nodeType === Node.TEXT_NODE) rng.selectNode(n); else rng.selectNodeContents(n);
     return rng;
   };
-  const rectOf = (n) => {
-    const r = n.nodeType === Node.TEXT_NODE ? rangeOver(n).getBoundingClientRect() : n.getBoundingClientRect();
-    return { client: r, box: toSpace(r) };
-  };
-  // One viewport rect per line fragment of the node's glyphs. Measure the TEXT,
-  // not the element: an element's box includes padding and, for text-align:center,
-  // space its glyphs never occupy. And never the union: getBoundingClientRect on
-  // text that WRAPS spans the full column and every line it touches, so two
-  // <span>s in one flowing <p> would "overlap" without a single glyph touching.
+  // One viewport rect per line of the node's glyphs. The element's box includes padding and
+  // centring space, and the union box of wrapped text spans every line it touches.
   const fragsOf = (n) => {
-    let rs;
-    try {
-      rs = [...rangeOver(n).getClientRects()].filter((r) => r.width > 0 && r.height > 0);
-    } catch { rs = []; }
-    if (!rs.length && n.nodeType !== Node.TEXT_NODE) rs = [...n.getClientRects()];
-    return rs;
+    const rs = [...rangeOver(n).getClientRects()].filter((r) => r.width > 0 && r.height > 0);
+    return rs.length || n.nodeType === Node.TEXT_NODE ? rs : [...n.getClientRects()];
   };
 
-  // ---- canvas / clip bounds --------------------------------------------
   let canvas;
   if (isSvgDoc) {
     const vb = svgRoot.viewBox.baseVal;
@@ -185,16 +133,13 @@ const PROBE = String.raw`(() => {
     canvas = { x: 0, y: 0, w: document.documentElement.scrollWidth, h: document.documentElement.scrollHeight };
   }
 
-  // For HTML, the document is rarely the real boundary. A carousel slide is a
-  // fixed-size box with overflow:hidden — text can run past the slide edge and be
-  // cut off without the document ever growing. Clip against the nearest ancestor
-  // that actually clips, and fall back to the document.
+  // HTML text is cut off by its nearest clipping ancestor, such as an overflow:hidden slide,
+  // without the document ever growing.
   const clipBoundsFor = (n) => {
     if (isSvgDoc) return canvas;
     for (let el = n.parentElement; el; el = el.parentElement) {
       const cs = getComputedStyle(el);
-      const clips = cs.overflow !== 'visible' || cs.overflowX !== 'visible' || cs.overflowY !== 'visible';
-      if (clips) {
+      if (cs.overflowX !== 'visible' || cs.overflowY !== 'visible') {
         const b = toSpace(el.getBoundingClientRect());
         return { x: b.x, y: b.y, w: b.w, h: b.h, via: el.tagName.toLowerCase() +
           (el.className && typeof el.className === 'string' && el.className.trim()
@@ -204,13 +149,8 @@ const PROBE = String.raw`(() => {
     return canvas;
   };
 
-  // ---- collect text nodes ----------------------------------------------
-  // In HTML mode this deliberately includes <text> inside inline SVGs: a
-  // hand-placed chart label inside a slide is exactly the thing that breaks.
-  //
-  // HTML text is collected as text nodes, not leaf elements, so text beside a <br>,
-  // <b> or <span> is measured too. script, style, template, noscript, title and
-  // head never render as text and are skipped.
+  // HTML text is collected as text nodes, not leaf elements, so text beside a <br> or <span> is
+  // measured too; <text> in inline SVGs is collected as elements.
   const NOT_CONTENT = 'script, style, template, noscript, title, head';
   let nodes;
   if (isSvgDoc) {
@@ -220,11 +160,8 @@ const PROBE = String.raw`(() => {
     const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, {
       acceptNode: (t) => {
         const p = t.parentElement;
-        if (!p || !(t.nodeValue || '').trim()) return NodeFilter.FILTER_REJECT;
-        if (p.closest(NOT_CONTENT)) return NodeFilter.FILTER_REJECT;
-        // SVG text is measured as its <text> element below.
-        if (p instanceof SVGElement) return NodeFilter.FILTER_REJECT;
-        return NodeFilter.FILTER_ACCEPT;
+        const skip = !t.nodeValue.trim() || p.closest(NOT_CONTENT) || p instanceof SVGElement;
+        return skip ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT;
       },
     });
     for (let t = walker.nextNode(); t; t = walker.nextNode()) runs.push(t);
@@ -236,28 +173,27 @@ const PROBE = String.raw`(() => {
   for (let i = 0; i < nodes.length; i++) {
     const n = nodes[i];
     const cs = getComputedStyle(elOf(n));
-    // An ancestor with display:none (an inactive slide, a collapsed panel) makes
-    // every descendant zero-area. That is not a defect in the text — flagging it
-    // would bury real findings under an avalanche. Count it and say so.
-    const rendered = n.nodeType === Node.TEXT_NODE
-      ? rangeOver(n).getClientRects().length > 0
-      : n.getClientRects().length > 0;
+    const words = n.textContent.replace(/\s+/g, ' ').trim();
+    const isText = n.nodeType === Node.TEXT_NODE;
+    // Unrendered text whose own style is visible sits under a display:none ancestor, such as an
+    // inactive slide. That is counted and reported, not flagged as invisible.
+    const rendered = (isText ? rangeOver(n) : n).getClientRects().length > 0;
     if (!rendered && cs.display !== 'none' && cs.visibility !== 'hidden') {
-      hiddenSubtree.push((n.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 40));
+      hiddenSubtree.push(words.slice(0, 40));
       continue;
     }
-    // The union box is for display and cheap rejects; every check compares fragments.
-    const { client, box } = rectOf(n);
+    // The union box is for cheap rejects and the invisible check; every other check compares lines.
+    const client = (isText ? rangeOver(n) : n).getBoundingClientRect();
+    const box = toSpace(client);
     const rawFrags = fragsOf(n);
-    const frags = rawFrags.map((r) => toSpace(r));
+    const frags = rawFrags.map(toSpace);
     items.push({
       i,
       node: n,
-      text: (n.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 60),
+      text: words.slice(0, 60),
       box: { x: +box.x.toFixed(1), y: +box.y.toFixed(1), w: +box.w.toFixed(1), h: +box.h.toFixed(1) },
       frags: frags.length ? frags : [box],
       clientFrags: rawFrags.length ? rawFrags : [client],
-      client,
       fontSize: parseFloat(cs.fontSize),
       opacity: parseFloat(cs.opacity),
       visibility: cs.visibility,
@@ -267,11 +203,10 @@ const PROBE = String.raw`(() => {
 
 
   const problems = [];
-  const EPS = 0.5; // tolerate hairline touching
+  const EPS = 0.5; // boxes that only touch do not count
   const fmt = (b) => 'x[' + b.x.toFixed(1) + '..' + (b.x + b.w).toFixed(1) +
                      '] y[' + b.y.toFixed(1) + '..' + (b.y + b.h).toFixed(1) + ']';
 
-  // Do two boxes share more than a hairline?
   const intersect = (A, B) => {
     const ox = Math.min(A.x + A.w, B.x + B.w) - Math.max(A.x, B.x);
     const oy = Math.min(A.y + A.h, B.y + B.h) - Math.max(A.y, B.y);
@@ -280,7 +215,6 @@ const PROBE = String.raw`(() => {
   const escapes = (b, c) => b.x < c.x - EPS || b.y < c.y - EPS ||
                             b.x + b.w > c.x + c.w + EPS || b.y + b.h > c.y + c.h + EPS;
 
-  // ---- invisible + clipped ---------------------------------------------
   for (const it of items) {
     if (it.fontSize === 0 || it.opacity === 0 || it.visibility === 'hidden' ||
         it.display === 'none' || it.box.w === 0 || it.box.h === 0) {
@@ -290,8 +224,6 @@ const PROBE = String.raw`(() => {
       continue;
     }
     const c = clipBoundsFor(it.node);
-    // Per line fragment: a wrapped paragraph's union box can exceed a narrow
-    // container while every actual line sits comfortably inside it.
     const out = it.frags.find((f) => escapes(f, c));
     if (out) {
       problems.push({ kind: 'clipped', a: it.text, i: it.i,
@@ -303,18 +235,14 @@ const PROBE = String.raw`(() => {
 
   const live = items.filter(t => !t.dead);
 
-  // ---- covered ----------------------------------------------------------
-  // An SVG shape is opaque when its computed fill is a solid, near-opaque colour.
-  // Used in both modes: an inline <svg> in a slide can bury a label as surely as
-  // a <div> can.
   const SHAPES = ['rect', 'circle', 'ellipse', 'path', 'polygon'];
-  // opacity is not inherited: a shape inside <g opacity="0.3"> computes opacity 1
-  // yet paints at 30%. What reaches the screen is the product up the ancestor chain.
+  // opacity is not inherited: a shape inside <g opacity="0.3"> computes 1 yet paints at 30%.
   const effectiveOpacity = (el) => {
     let o = 1;
     for (let a = el; a; a = a.parentElement) o *= parseFloat(getComputedStyle(a).opacity);
     return o;
   };
+  // In both modes: an inline <svg> shape in a slide covers a label as surely as a <div> does.
   const solidShape = (n) => {
     if (!(n instanceof SVGGeometryElement) || !SHAPES.includes(n.tagName.toLowerCase())) return false;
     if (n.closest('defs, pattern, marker, clipPath, mask, symbol')) return false;
@@ -337,9 +265,8 @@ const PROBE = String.raw`(() => {
   };
 
   if (isSvgDoc) {
-    // SVG paints in document order, so only a later shape can cover the text. A
-    // bounding box is not a footprint (a circle's corners are empty), so each sample
-    // point is tested with isPointInFill in the shape's user space.
+    // SVG paints in document order, so only a later shape can cover the text. A bounding box is
+    // not a footprint (a circle's corners are empty), so sample points are tested against the fill.
     const all = [...svgRoot.querySelectorAll('*')];
     const order = new Map(all.map((n, idx) => [n, idx]));
     const opaque = all.filter(solidShape).map(n => ({ n, box: toSpace(n.getBoundingClientRect()) }));
@@ -352,14 +279,11 @@ const PROBE = String.raw`(() => {
         const ctm = sh.n.getScreenCTM();
         if (!ctm) continue;
         const inv = ctm.inverse();
-        const pt = svgRoot.createSVGPoint();
         let hits = 0, sampled = 0;
         for (const r of it.clientFrags) {
           for (const p of samplePoints(r)) {
-            pt.x = p.x; pt.y = p.y;
-            const u = pt.matrixTransform(inv);
             sampled++;
-            if (sh.n.isPointInFill(new DOMPoint(u.x, u.y))) hits++;
+            if (sh.n.isPointInFill(new DOMPoint(p.x, p.y).matrixTransform(inv))) hits++;
           }
         }
         if (hits) {
@@ -371,9 +295,8 @@ const PROBE = String.raw`(() => {
       }
     }
   } else {
-    // HTML stacking (z-index, stacking contexts, positioning) is too subtle to
-    // re-derive. Ask the browser: elementsFromPoint returns front-to-back, so
-    // anything listed before our node is painted on top of it.
+    // HTML stacking is left to the browser: elementsFromPoint lists front to back, so anything
+    // before the node is painted over it.
     const opaqueBg = (el) => {
       if (el instanceof SVGElement) return solidShape(el);
       const cs = getComputedStyle(el);
@@ -386,17 +309,12 @@ const PROBE = String.raw`(() => {
     };
     for (const it of live) {
       const el = elOf(it.node);
-      // elementsFromPoint only hit-tests inside the viewport, and slides are
-      // routinely taller than it. Bring the node into view and re-read its rect;
-      // the page-space boxes above were all measured before this, so they stay
-      // mutually consistent.
+      // elementsFromPoint hit-tests only the viewport, so scroll the node into view and re-measure
+      // its lines. The page-space boxes above were all taken before any scroll.
       el.scrollIntoView({ block: 'center', inline: 'center' });
-      // Hit-test each line fragment, re-measured after the scroll. The centre of a
-      // wrapped node's union box can land on a line a card misses, or between lines.
       const lines = fragsOf(it.node);
-      // An SVG <text> is not always in the hit-test stack (points between glyphs
-      // miss it). Inside one <svg>, document order is paint order, so a shape
-      // from the same drawing is above the text only if it comes later.
+      // Points between an SVG <text>'s glyphs miss it in the hit-test stack. Inside one <svg>,
+      // document order is paint order, so a shape there is above the text only if it comes later.
       const svgOwner = it.node instanceof SVGElement ? it.node.ownerSVGElement : null;
       const isAbove = (other, stack, self) => {
         if (self !== -1) return stack.indexOf(other) < self;
@@ -427,10 +345,6 @@ const PROBE = String.raw`(() => {
     }
   }
 
-  // ---- text-on-text collisions ------------------------------------------
-  // Fragment against fragment. Comparing union boxes reports every pair of
-  // wrapped <span>s in the same paragraph as a collision — the boxes overlap
-  // while the glyphs never touch.
   for (let a = 0; a < live.length; a++) {
     for (let b = a + 1; b < live.length; b++) {
       // Nested text (a <span> inside a <p>) legitimately shares space.
@@ -450,13 +364,12 @@ const PROBE = String.raw`(() => {
 
   // Visible text that produced no measurement means the collector missed it, and
   // "0 text nodes measured" must never read as a pass.
-  if (!isSvgDoc && !items.length && !hiddenSubtree.length && (document.body.innerText || '').trim()) {
+  if (!isSvgDoc && !items.length && !hiddenSubtree.length && document.body.innerText.trim()) {
     problems.push({ kind: 'unmeasured', a: document.body.innerText.trim().slice(0, 60),
       detail: 'the page shows text but no text node was measured, so nothing on it was checked' });
   }
 
-  // How big the asset renders, in CSS px, against the viewport the screenshot
-  // will capture. The caller uses this to say when the screenshot is cropped.
+  // The rendered size in CSS px against the viewport, so the caller can say when the screenshot crops.
   const rr = isSvgDoc ? svgRoot.getBoundingClientRect() : null;
   const frame = {
     w: Math.round(isSvgDoc ? rr.width : document.documentElement.scrollWidth),
@@ -497,10 +410,11 @@ const SIZE_PROBE = String.raw`JSON.stringify((() => {
   return { w: d.scrollWidth, h: d.scrollHeight };
 })())`;
 
-// Every call runs in a session of our own. agent-browser's default session is
-// shared with whatever else the user is driving, so opening a file there
-// navigates their page away, and closing it (or `close --all`) kills their work.
+// agent-browser's default session is whatever the user is driving: opening a file there navigates
+// their page away, and closing it kills their work.
 const SESSION = `tufte-verify-${process.pid}`;
+
+class BrowserError extends Error {}
 
 function ab(...args) {
   try {
@@ -518,12 +432,14 @@ function ab(...args) {
       );
       process.exit(2);
     }
-    const err = new Error(
-      `agent-browser ${args[0]} failed: ${(e.stderr || e.message || "").toString().trim()}`,
-    );
-    err.abFailed = true;
-    throw err;
+    throw new BrowserError(`agent-browser ${args[0]} failed: ${(e.stderr || e.message || "").toString().trim()}`);
   }
+}
+
+// agent-browser JSON-encodes an eval result, and both probes return a JSON string.
+function parseEval(raw) {
+  const once = JSON.parse(raw.trim());
+  return typeof once === "string" ? JSON.parse(once) : once;
 }
 
 let failed = 0;
@@ -542,19 +458,15 @@ try {
     }
 
     let raw;
-    let shot = `${OUT}/${name}.png`;
+    const shot = `${outDir}/${name}.png`;
     let capped = null;
     try {
-      // pathToFileURL percent-encodes spaces and other URL-significant characters,
-      // which a bare "file://" + path does not.
+      // pathToFileURL percent-encodes spaces and other URL-significant characters.
       ab("open", pathToFileURL(p).href);
-      // Grow the viewport to the asset so the whole thing is in the screenshot the
-      // caller is told to inspect, and so hit-testing has somewhere to work. Capped,
-      // because an 8-slide carousel is 12000px tall and the browser has to hold it.
+      // Grow the viewport to the asset so the screenshot shows all of it, capped because the
+      // browser has to hold the whole page.
       try {
-        const dims = JSON.parse(
-          ab("eval", SIZE_PROBE).trim().replace(/^"|"$/g, "").replace(/\\"/g, '"'),
-        );
+        const dims = parseEval(ab("eval", SIZE_PROBE));
         const want = { w: Math.round(dims.w), h: Math.round(dims.h) };
         const got = {
           w: Math.min(Math.max(want.w, 400), MAX_VIEWPORT.w),
@@ -563,38 +475,33 @@ try {
         ab("set", "viewport", String(got.w), String(got.h));
         if (got.w < want.w || got.h < want.h) capped = { want, got };
       } catch {
-        // Non-fatal: the probe scrolls each node into view before hit-testing anyway.
+        // Not fatal: the probe scrolls each node into view before hit-testing anyway.
       }
       raw = ab("eval", PROBE);
       ab("screenshot", shot);
       shots.push(shot);
     } catch (e) {
-      if (!e.abFailed) throw e;
+      if (!(e instanceof BrowserError)) throw e;
       console.log(`\n### ${name} — NOT CHECKED\n  [browser] ${e.message}`);
       unchecked++;
       continue;
     }
 
-    // agent-browser JSON-encodes the eval result, and our probe returns a JSON
-    // string, so the payload arrives double-encoded.
     let res;
     try {
-      const once = JSON.parse(raw.trim());
-      res = typeof once === "string" ? JSON.parse(once) : once;
+      res = parseEval(raw);
     } catch {
       console.log(`\n### ${name} — NOT CHECKED\n  [probe] could not parse probe output:\n${raw.slice(0, 500)}`);
       unchecked++;
       continue;
     }
 
-    // The screenshot is only the viewport. If the asset renders larger and we did
-    // not already say so (capped), the caller would be inspecting a silent crop.
+    // The screenshot is only the viewport; a capped one is already reported as partial.
     const cropped = !capped && res.frame && (res.frame.w > res.frame.vw + 1 || res.frame.h > res.frame.vh + 1);
     const ok = res.problems.length === 0;
     if (selfTest) {
-      const want = SELF_TEST[basename(p)] || [];
-      // An SVG drawn smaller than its viewBox leaves the screenshot at a reduced
-      // scale: the percentage-size fixtures pin the viewport sizing with this.
+      const want = SELF_TEST[basename(p)];
+      // An SVG drawn smaller than its viewBox is screenshotted at reduced scale; clean-percent.svg pins this.
       const shrunk = res.mode === "svg" && res.frame.w + 1 < res.canvas.w;
       const got = [...new Set([
         ...res.problems.map((x) => x.kind),
@@ -618,8 +525,6 @@ try {
       `${res.mode} asset, canvas ${res.canvas.w}x${res.canvas.h} ${res.unit}, ${res.textCount} text nodes measured`,
     );
     console.log(`screenshot: ${shot}`);
-    // Never let a capped viewport pass for a full-page screenshot: the caller is told
-    // to look at every one, so say when part of the asset is not in the frame.
     if (capped) {
       console.log(
         `note: the screenshot covers ${capped.got.w}x${capped.got.h}px of a ${capped.want.w}x${capped.want.h}px asset — ` +
@@ -646,7 +551,6 @@ try {
     }
   }
 } finally {
-  // Close only the session this run opened.
   try {
     ab("close");
   } catch {}

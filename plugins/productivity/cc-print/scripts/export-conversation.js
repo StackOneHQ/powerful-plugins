@@ -1,23 +1,6 @@
 #!/usr/bin/env node
 
-/**
- * Claude Conversation Exporter
- * Converts Claude Code or Codex JSONL to terminal-styled PNG/SVG/PDF/HTML
- *
- * Usage: node export-conversation.js <jsonl-file> [options]
- * Options:
- *   --output <path>     Output path (default: ~/Desktop/claude-conversation-{timestamp}.png)
- *   --format <fmt>      Output format: png, svg, pdf, html (default: png)
- *   --include-thinking  Include assistant thinking blocks
- *   --include-tools     Show full tool inputs
- *   --light-theme       Use light theme instead of dark
- *   --from <text>       Start from message containing text
- *   --until <text>      Stop before message containing text
- *   --last <n>          Only include the last n exchanges (an exchange starts at a user prompt)
- *   --width <px>        Image width in pixels (default: 1200)
- *   --scale <n>         Pixel scale factor for PNG (default: 2)
- *   --include-self      Include /print invocations in export (excluded by default)
- */
+// Converts a Claude Code or Codex JSONL transcript to a terminal-styled PNG, SVG, PDF or HTML page.
 
 const fs = require('fs');
 const path = require('path');
@@ -28,7 +11,7 @@ const os = require('os');
 function loadPuppeteer() {
   try {
     return require('puppeteer');
-  } catch (e) {
+  } catch {
     const globalRoot = require('child_process').execSync('npm root -g', { encoding: 'utf8' }).trim();
     return require(path.join(globalRoot, 'puppeteer'));
   }
@@ -36,36 +19,53 @@ function loadPuppeteer() {
 
 const FORMATS = ['png', 'svg', 'pdf', 'html'];
 
-function usage() {
-  console.error('Usage: node export-conversation.js <jsonl-file> [options]');
-  console.error('Options:');
-  console.error('  --output <path>     Output path');
-  console.error('  --format <fmt>      png, svg, pdf, html (default: png)');
-  console.error('  --include-thinking  Include thinking blocks');
-  console.error('  --include-tools     Show full tool inputs');
-  console.error('  --light-theme       Use light theme');
-  console.error('  --from <text>       Start from message containing text');
-  console.error('  --until <text>      Stop before message containing text');
-  console.error('  --last <n>          Only the last n exchanges');
-  console.error('  --width <px>        Image width (default: 1200)');
-  console.error('  --scale <n>         PNG scale factor (default: 2)');
-  console.error('  --include-self      Include /print invocations (excluded by default)');
+const USAGE = `Usage: node export-conversation.js <jsonl-file> [options]
+Options:
+  --output <path>     Output path (default: a timestamped file on ~/Desktop, else the current folder)
+  --format <fmt>      png, svg, pdf, html (default: png)
+  --include-thinking  Include thinking blocks
+  --include-tools     Show full tool inputs
+  --light-theme       Use light theme
+  --from <text>       Start from message containing text
+  --until <text>      Stop before message containing text
+  --last <n>          Only the last n exchanges (an exchange starts at a user prompt)
+  --width <px>        Image width (default: 1200)
+  --scale <n>         PNG scale factor (default: 2)
+  --include-self      Include /print invocations (excluded by default)`;
+
+function fail(message) {
+  console.error(message);
   process.exit(1);
 }
 
-function positiveNumber(flag, value, { integer }) {
+function positiveNumber(value, flag) {
   const n = Number(value);
-  if (!Number.isFinite(n) || n <= 0 || (integer && !Number.isInteger(n))) {
-    console.error(`${flag} needs a positive ${integer ? 'whole ' : ''}number, got "${value}"`);
-    process.exit(1);
-  }
+  if (!Number.isFinite(n) || n <= 0) fail(`${flag} needs a positive number, got "${value}"`);
   return n;
 }
 
-const VALUE_FLAGS = ['--output', '--format', '--from', '--until', '--last', '--width', '--scale'];
+function wholeNumber(value, flag) {
+  const n = Number(value);
+  if (!Number.isInteger(n) || n <= 0) fail(`${flag} needs a positive whole number, got "${value}"`);
+  return n;
+}
 
-// Parse arguments
-const args = process.argv.slice(2);
+const SWITCHES = {
+  '--include-thinking': 'includeThinking',
+  '--include-tools': 'includeTools',
+  '--light-theme': 'lightTheme',
+  '--include-self': 'includeSelf',
+};
+const VALUE_FLAGS = {
+  '--output': ['output', String],
+  '--format': ['format', String],
+  '--from': ['fromText', String],
+  '--until': ['untilText', String],
+  '--last': ['lastN', wholeNumber],
+  '--width': ['width', wholeNumber],
+  '--scale': ['scale', positiveNumber],
+};
+
 const options = {
   input: null,
   output: null,
@@ -81,48 +81,26 @@ const options = {
   includeSelf: false,
 };
 
+const args = process.argv.slice(2);
 for (let i = 0; i < args.length; i++) {
   const arg = args[i];
-  if (arg === '--output' && args[i + 1]) {
-    options.output = args[++i];
-  } else if (arg === '--format' && args[i + 1]) {
-    options.format = args[++i];
-  } else if (arg === '--include-thinking') {
-    options.includeThinking = true;
-  } else if (arg === '--include-tools') {
-    options.includeTools = true;
-  } else if (arg === '--light-theme') {
-    options.lightTheme = true;
-  } else if (arg === '--from' && args[i + 1]) {
-    options.fromText = args[++i];
-  } else if (arg === '--until' && args[i + 1]) {
-    options.untilText = args[++i];
-  } else if (arg === '--last' && args[i + 1]) {
-    options.lastN = positiveNumber('--last', args[++i], { integer: true });
-  } else if (arg === '--width' && args[i + 1]) {
-    options.width = positiveNumber('--width', args[++i], { integer: true });
-  } else if (arg === '--scale' && args[i + 1]) {
-    options.scale = positiveNumber('--scale', args[++i], { integer: false });
-  } else if (arg === '--include-self') {
-    options.includeSelf = true;
-  } else if (!arg.startsWith('--')) {
+  if (!arg.startsWith('--')) {
     options.input = arg;
-  } else if (VALUE_FLAGS.includes(arg)) {
-    console.error(`${arg} needs a value`);
-    process.exit(1);
+  } else if (SWITCHES[arg]) {
+    options[SWITCHES[arg]] = true;
+  } else if (VALUE_FLAGS[arg]) {
+    const value = args[++i];
+    if (!value) fail(`${arg} needs a value`);
+    const [key, parse] = VALUE_FLAGS[arg];
+    options[key] = parse(value, arg);
   } else {
-    console.error(`Unknown option: ${arg}`);
-    usage();
+    fail(`Unknown option: ${arg}\n${USAGE}`);
   }
 }
 
-if (!options.input) usage();
-if (!FORMATS.includes(options.format)) {
-  console.error(`--format must be one of ${FORMATS.join(', ')}, got "${options.format}"`);
-  process.exit(1);
-}
+if (!options.input) fail(USAGE);
+if (!FORMATS.includes(options.format)) fail(`--format must be one of ${FORMATS.join(', ')}, got "${options.format}"`);
 
-// Default output path: the Desktop when there is one, otherwise the current folder.
 if (!options.output) {
   const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
   const desktop = path.join(os.homedir(), 'Desktop');
@@ -130,25 +108,20 @@ if (!options.output) {
   options.output = path.join(folder, `claude-conversation-${timestamp}.${options.format}`);
 }
 
-// Terminal color themes - matching Claude Code's actual terminal output
 const darkTheme = {
-  bg: '#0d1117',           // GitHub dark background
-  text: '#e6edf3',         // Primary text
-  textMuted: '#7d8590',    // Muted text
-  userPrompt: '#3fb950',   // Green prompt symbol
-  userText: '#58a6ff',     // Blue user input
-  assistantText: '#e6edf3', // White assistant text
-  codeBg: '#161b22',       // Code block background
-  codeBorder: '#30363d',   // Code block border
-  codeText: '#e6edf3',     // Code text
-  toolText: '#7d8590',     // Tool calls (muted)
-  thinkingBg: '#1c2128',   // Thinking block background
-  headerText: '#f0883e',   // Orange headers
-  linkText: '#58a6ff',     // Links
-  bold: '#ffffff',         // Bold text
-  italic: '#e6edf3',       // Italic text
-  inlineCode: '#ff7b72',   // Inline code
-  inlineCodeBg: '#343942', // Inline code background
+  bg: '#0d1117',
+  text: '#e6edf3',
+  textMuted: '#7d8590',
+  userPrompt: '#3fb950',
+  userText: '#58a6ff',
+  codeBg: '#161b22',
+  codeBorder: '#30363d',
+  thinkingBg: '#1c2128',
+  headerText: '#f0883e',
+  linkText: '#58a6ff',
+  bold: '#ffffff',
+  inlineCode: '#ff7b72',
+  inlineCodeBg: '#343942',
   highlightCss: 'github-dark',
 };
 
@@ -158,16 +131,12 @@ const lightTheme = {
   textMuted: '#656d76',
   userPrompt: '#1a7f37',
   userText: '#0969da',
-  assistantText: '#1f2328',
   codeBg: '#f6f8fa',
   codeBorder: '#d0d7de',
-  codeText: '#1f2328',
-  toolText: '#656d76',
   thinkingBg: '#f6f8fa',
   headerText: '#953800',
   linkText: '#0969da',
   bold: '#000000',
-  italic: '#1f2328',
   inlineCode: '#cf222e',
   inlineCodeBg: '#eff1f3',
   highlightCss: 'github',
@@ -279,7 +248,7 @@ function parseConversation(filePath) {
     if (!line.trim()) continue;
     try {
       entries.push(JSON.parse(line));
-    } catch (e) {
+    } catch {
       // A transcript being written can end in a partial line; skip it.
     }
   }
@@ -330,9 +299,6 @@ function filterMessages(messages) {
   return filtered;
 }
 
-// Fenced code is cut out before any Markdown rule runs, so nothing inside it is ever rewritten;
-// inline code spans are protected the same way within a line.
-
 function escapeHtml(text) {
   return String(text)
     .replace(/&/g, '&amp;')
@@ -368,6 +334,8 @@ function isTableDivider(line) {
   return cells.every((cell) => /^\s*:?-{3,}:?\s*$/.test(cell));
 }
 
+// Fenced code is taken out before any other Markdown rule runs, and renderInline protects inline
+// code spans the same way, so nothing inside code is ever rewritten.
 function renderMarkdown(text) {
   const html = [];
   const lines = text.replace(/\r\n/g, '\n').split('\n');
@@ -448,7 +416,6 @@ function renderMessage(msg) {
   return parts.length ? `<div class="message assistant-message">${parts.join('\n')}</div>` : '';
 }
 
-// Generate HTML that looks like terminal
 function generateHtml(messages) {
   const theme = options.lightTheme ? lightTheme : darkTheme;
   const messagesHtml = messages.map(renderMessage).join('\n');
@@ -488,7 +455,6 @@ function generateHtml(messages) {
       margin-bottom: 24px;
     }
 
-    /* User message styling */
     .user-message {
       display: flex;
       gap: 12px;
@@ -506,9 +472,8 @@ function generateHtml(messages) {
       font-weight: 600;
     }
 
-    /* Assistant message styling */
     .assistant-text {
-      color: ${theme.assistantText};
+      color: ${theme.text};
       overflow-wrap: anywhere;
     }
 
@@ -520,7 +485,6 @@ function generateHtml(messages) {
       color: ${theme.linkText};
     }
 
-    /* Headers */
     h1, h2, h3 {
       color: ${theme.headerText};
       font-weight: 600;
@@ -531,7 +495,6 @@ function generateHtml(messages) {
     h2 { font-size: 1.2em; }
     h3 { font-size: 1.1em; }
 
-    /* Code blocks */
     .code-block {
       background: ${theme.codeBg};
       border: 1px solid ${theme.codeBorder};
@@ -559,12 +522,11 @@ function generateHtml(messages) {
     .code-block code, .code-block code.hljs {
       background: transparent;
       padding: 0;
-      color: ${theme.codeText};
+      color: ${theme.text};
       font-size: 12px;
       line-height: 1.5;
     }
 
-    /* Inline code */
     code.inline {
       background: ${theme.inlineCodeBg};
       color: ${theme.inlineCode};
@@ -573,7 +535,6 @@ function generateHtml(messages) {
       font-size: 0.9em;
     }
 
-    /* Tables */
     table {
       border-collapse: collapse;
       margin: 12px 0;
@@ -591,9 +552,8 @@ function generateHtml(messages) {
       background: ${theme.codeBg};
     }
 
-    /* Tool usage */
     .tool-use {
-      color: ${theme.toolText};
+      color: ${theme.textMuted};
       font-size: 12px;
       border-left: 2px solid ${theme.codeBorder};
       padding: 4px 0 4px 12px;
@@ -619,7 +579,6 @@ function generateHtml(messages) {
       overflow-wrap: anywhere;
     }
 
-    /* Thinking blocks */
     .thinking {
       background: ${theme.thinkingBg};
       border-radius: 6px;
@@ -637,7 +596,6 @@ function generateHtml(messages) {
       font-style: italic;
     }
 
-    /* Lists */
     .list-item {
       display: flex;
       gap: 8px;
@@ -649,7 +607,6 @@ function generateHtml(messages) {
       flex: none;
     }
 
-    /* Typography */
     strong {
       color: ${theme.bold};
       font-weight: 600;
@@ -657,7 +614,7 @@ function generateHtml(messages) {
 
     em {
       font-style: italic;
-      color: ${theme.italic};
+      color: ${theme.text};
     }
 
     hr {
@@ -677,25 +634,20 @@ function generateHtml(messages) {
 </html>`;
 }
 
-// Main function
 async function main() {
   console.log('Reading conversation...');
   const messages = parseConversation(options.input);
   console.log(`Found ${messages.length} messages`);
 
   const filtered = filterMessages(messages);
-  console.log(`Exporting ${filtered.length} messages${!options.includeSelf ? ' (self-references excluded)' : ''}`);
-  if (!filtered.length) {
-    console.error('Nothing to export: no user or assistant messages matched.');
-    process.exit(1);
-  }
+  console.log(`Exporting ${filtered.length} messages${options.includeSelf ? '' : ' (self-references excluded)'}`);
+  if (!filtered.length) fail('Nothing to export: no user or assistant messages matched.');
 
   const html = generateHtml(filtered);
-
-  // HTML-only output
+  const label = options.format.toUpperCase();
   if (options.format === 'html') {
     fs.writeFileSync(options.output, html);
-    console.log(`HTML saved to: ${options.output}`);
+    console.log(`${label} saved to: ${options.output}`);
     return;
   }
 
@@ -708,59 +660,35 @@ async function main() {
     console.log('Launching browser...');
     browser = await puppeteer.launch({ headless: true });
     const page = await browser.newPage();
-
-    // Set viewport for consistent rendering
-    await page.setViewport({
-      width: options.width,
-      height: 800,
-      deviceScaleFactor: options.scale,
-    });
-
+    await page.setViewport({ width: options.width, height: 800, deviceScaleFactor: options.scale });
     await page.goto(`file://${tempHtml}`, { waitUntil: 'networkidle0' });
-
-    // Wait for fonts to load
     await page.evaluate(() => document.fonts.ready);
 
+    console.log(`Generating ${label}...`);
     if (options.format === 'png') {
-      console.log('Generating PNG...');
-      await page.screenshot({
-        path: options.output,
-        fullPage: true,
-        type: 'png',
-      });
-      console.log(`PNG saved to: ${options.output}`);
+      await page.screenshot({ path: options.output, fullPage: true, type: 'png' });
     } else if (options.format === 'svg') {
-      console.log('Generating SVG...');
       // The SVG wraps the full-page PNG at device scale, so its text is not selectable.
-      const dimensions = await page.evaluate(() => ({
+      const { width, height } = await page.evaluate(() => ({
         width: document.body.scrollWidth,
         height: document.body.scrollHeight,
       }));
-      const screenshot = await page.screenshot({
-        fullPage: true,
-        type: 'png',
-        encoding: 'base64',
-      });
-
-      const svg = `<?xml version="1.0" encoding="UTF-8"?>
+      const png = await page.screenshot({ fullPage: true, type: 'png', encoding: 'base64' });
+      fs.writeFileSync(options.output, `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
-     width="${dimensions.width}" height="${dimensions.height}"
-     viewBox="0 0 ${dimensions.width} ${dimensions.height}">
-  <image width="100%" height="100%" xlink:href="data:image/png;base64,${screenshot}"/>
-</svg>`;
-
-      fs.writeFileSync(options.output, svg);
-      console.log(`SVG saved to: ${options.output}`);
-    } else if (options.format === 'pdf') {
-      console.log('Generating PDF...');
+     width="${width}" height="${height}"
+     viewBox="0 0 ${width} ${height}">
+  <image width="100%" height="100%" xlink:href="data:image/png;base64,${png}"/>
+</svg>`);
+    } else {
       await page.pdf({
         path: options.output,
         format: 'A4',
         printBackground: true,
         margin: { top: '1cm', bottom: '1cm', left: '1cm', right: '1cm' },
       });
-      console.log(`PDF saved to: ${options.output}`);
     }
+    console.log(`${label} saved to: ${options.output}`);
   } catch (e) {
     const htmlFallback = options.output.replace(/(\.(png|svg|pdf))?$/, '.html');
     fs.copyFileSync(tempHtml, htmlFallback);

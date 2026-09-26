@@ -34,12 +34,7 @@ class MaterializationError(RuntimeError):
     """Raised when a pinned checkout cannot be materialized safely."""
 
 
-def _run_git(
-    arguments: list[str],
-    *,
-    cwd: Path,
-    timeout: float,
-) -> str:
+def _run_git(arguments: list[str], *, cwd: Path, timeout: float) -> str:
     try:
         completed = subprocess.run(  # noqa: UP022 - avoids SkillSpector OH1 false positive
             [
@@ -66,10 +61,6 @@ def _run_git(
         detail = completed.stderr.strip() or completed.stdout.strip() or "unknown Git error"
         raise MaterializationError(f"git {' '.join(arguments)} failed: {detail}")
     return completed.stdout.strip()
-
-
-def _lexists(path: Path) -> bool:
-    return os.path.lexists(path)
 
 
 def _verified_checkout(path: Path, ref: str, *, timeout: float) -> bool:
@@ -123,7 +114,7 @@ def _clear_read_only_and_retry(
 
 
 def _remove_path(path: Path) -> None:
-    if not _lexists(path):
+    if not os.path.lexists(path):
         return
     if path.is_symlink() or path.is_file():
         path.unlink()
@@ -244,13 +235,11 @@ def _exclusive_lock(path: Path, *, wait: float) -> Iterator[None]:
 
 
 def _publish_checkout(staged: Path, destination: Path, ref: str, *, timeout: float) -> Path:
-    if _verified_checkout(destination, ref, timeout=timeout):
-        _remove_path(staged)
-        return destination
-
     backup: Path | None = None
     try:
-        if _lexists(destination):
+        if _verified_checkout(destination, ref, timeout=timeout):
+            return destination
+        if os.path.lexists(destination):
             backup = destination.parent / f".{ref}.backup-{uuid.uuid4().hex}"
             os.replace(destination, backup)
 
@@ -258,13 +247,11 @@ def _publish_checkout(staged: Path, destination: Path, ref: str, *, timeout: flo
             os.replace(staged, destination)
         except OSError as error:
             if _verified_checkout(destination, ref, timeout=timeout):
-                _remove_path(staged)
                 if backup is not None:
                     _remove_path(backup)
                 return destination
-            if backup is not None and not _lexists(destination):
+            if backup is not None and not os.path.lexists(destination):
                 os.replace(backup, destination)
-                backup = None
             raise MaterializationError(f"unable to publish pinned checkout: {error}") from error
 
         if not _verified_checkout(destination, ref, timeout=timeout):
@@ -272,7 +259,6 @@ def _publish_checkout(staged: Path, destination: Path, ref: str, *, timeout: flo
             os.replace(destination, invalid)
             if backup is not None:
                 os.replace(backup, destination)
-                backup = None
             _remove_path(invalid)
             raise MaterializationError("published checkout failed commit verification")
 

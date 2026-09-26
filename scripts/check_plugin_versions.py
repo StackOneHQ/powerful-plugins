@@ -1,16 +1,8 @@
 #!/usr/bin/env python3
 """Fail when a plugin's files changed without its version changing.
 
-The plugin cache is keyed by version: it installs to
-``~/.claude/plugins/cache/<marketplace>/<plugin>/<version>/``. A user who already holds
-``1.0.0`` keeps the copy they have, so a change merged without a version bump reaches nobody.
-A plugin that collects many commits at one version leaves installed copies silently missing
-whole scripts and reference files.
-
-Only plugins touched by the current change are checked, so the existing drift across the repo
-does not block unrelated work.
-
-    python scripts/check_plugin_versions.py --base origin/main
+Installs are cached per version, so a change merged without a bump never reaches a user who
+already has that version. Only plugins the current change touches are checked.
 """
 
 from __future__ import annotations
@@ -34,23 +26,26 @@ def git(*args: str) -> str:
     return done.stdout.strip()
 
 
-def version_at(ref: str, manifest: str) -> str | None:
-    done = subprocess.run(["git", "show", f"{ref}:{manifest}"], capture_output=True, text=True)
+def json_at(ref: str, path: str) -> object:
+    """The parsed file at ``ref``, or None when ``ref`` has no such file."""
+    done = subprocess.run(["git", "show", f"{ref}:{path}"], capture_output=True, text=True)
     if done.returncode:
-        return None  # the plugin is new on this branch
+        return None
     try:
-        data = json.loads(done.stdout)
+        return json.loads(done.stdout)
     except json.JSONDecodeError:
-        sys.exit(f"check-plugin-versions: {manifest} at {ref} is not valid JSON")
+        sys.exit(f"check-plugin-versions: {path} at {ref} is not valid JSON")
+
+
+def version_at(ref: str, manifest: str) -> str | None:
+    data = json_at(ref, manifest)
     value = data.get("version") if isinstance(data, dict) else None
     return value if isinstance(value, str) else None
 
 
 def previous_version(ref: str, plugin: str) -> str | None:
-    """Return the plugin's version at ``ref``, following a move between category folders.
-
-    A plugin moved to another category reads as new at its new path, so look it up by name
-    in the marketplace catalog at ``ref`` and read the manifest from its old location.
+    """The plugin's version at ``ref``. A plugin moved to another category folder is found
+    by name in the catalog at ``ref``, since its new path does not exist there.
     """
     manifest = f"{plugin}/{MANIFEST}"
     before = version_at(ref, manifest)
@@ -61,15 +56,9 @@ def previous_version(ref: str, plugin: str) -> str | None:
     except (OSError, UnicodeError, json.JSONDecodeError):
         return None
     name = current.get("name") if isinstance(current, dict) else None
-    done = subprocess.run(
-        ["git", "show", f"{ref}:.claude-plugin/marketplace.json"], capture_output=True, text=True
-    )
-    if done.returncode or not isinstance(name, str):
+    if not isinstance(name, str):
         return None
-    try:
-        catalog = json.loads(done.stdout)
-    except json.JSONDecodeError:
-        sys.exit(f"check-plugin-versions: .claude-plugin/marketplace.json at {ref} is not valid JSON")
+    catalog = json_at(ref, ".claude-plugin/marketplace.json")
     for entry in catalog.get("plugins", []) if isinstance(catalog, dict) else []:
         if not isinstance(entry, dict) or entry.get("name") != name:
             continue
@@ -106,7 +95,7 @@ def main() -> int:
     for plugin, files in sorted(touched.items()):
         manifest = f"{plugin}/{MANIFEST}"
         if not Path(manifest).exists():
-            continue  # not a plugin root
+            continue
         before, after = previous_version(merge_base, plugin), version_at("HEAD", manifest)
         if before is None:
             continue  # new plugin; its first version is whatever it declares

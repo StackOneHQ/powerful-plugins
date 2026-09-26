@@ -2,7 +2,6 @@
 // Measure the slop a diff adds, relative to what the touched files and the repo at base already contain.
 // usage: node slop-meter.mjs --repo <path> --base <ref> [--head <ref>] [--exclude <glob>]... [--json]
 // Without --head it measures the working tree, untracked files included, so it can run mid-rewrite.
-// Either way it measures from the merge base of --base and the head, so a base that moved on adds nothing.
 // Files marked `linguist-generated` in .gitattributes, or matched by --exclude, are not measured and
 // are never named as the original that a copy or a reuse candidate repeats.
 import { spawnSync } from 'node:child_process';
@@ -36,9 +35,8 @@ const git = (a, okStatus = [0], input = undefined) => {
 // Measure from where the branch left the base, not from the base's tip: a base that moved on would
 // otherwise show its own new commits as removed by this change, and baselines would read files the
 // branch never saw.
-const mergeBase = spawnSync('git', ['-C', repo, 'merge-base', args.base, args.head ?? 'HEAD'], { encoding: 'utf8' }).stdout?.trim();
-if (!mergeBase) { console.error(`no merge base between ${args.base} and ${args.head ?? 'HEAD'}`); process.exit(2); }
-const base = mergeBase;
+const base = spawnSync('git', ['-C', repo, 'merge-base', args.base, args.head ?? 'HEAD'], { encoding: 'utf8' }).stdout?.trim();
+if (!base) { console.error(`no merge base between ${args.base} and ${args.head ?? 'HEAD'}`); process.exit(2); }
 const range = args.head ? [base, args.head] : [base];
 const CODE = /\.(ts|tsx|js|jsx|mjs|cjs|py|go|rs|java|kt|rb|swift|cs|sh)$/;
 const GENERATED = /(-lock\.json|\.lock|\.snap|\.min\.js)$|(^|\/)(dist|build|vendor|__generated__)\//;
@@ -215,7 +213,7 @@ const patchOf = (file) => {
 // Comment blocks are counted within one hunk, over new lines only.
 const additionsOf = (hunks, isProseAt) => {
   const pool = new Map();
-  for (const { sign, text } of hunks.flat()) if (sign === '-') pool.set(squash(text), (pool.get(squash(text)) ?? 0) + 1);
+  for (const { sign, text } of hunks.flat()) if (sign === '-') { const key = squash(text); pool.set(key, (pool.get(key) ?? 0) + 1); }
   const added = [];
   let longestCommentBlock = 0;
   for (const hunk of hunks) {
@@ -278,11 +276,11 @@ const cachedCodeLines = (load) => {
   };
 };
 const baseCodeLines = cachedCodeLines((path) => git(['show', `${base}:${path}`]));
-const baseLexed = new Map();
+const baseScans = new Map();
 // A grep hit's line with comments and string contents blanked, so a call written in prose is no call.
 const baseCodeAt = ({ path, ln }) => {
-  if (!baseLexed.has(path)) baseLexed.set(path, scan(path, git(['show', `${base}:${path}`])));
-  return baseLexed.get(path)[ln - 1]?.code ?? '';
+  if (!baseScans.has(path)) baseScans.set(path, scan(path, git(['show', `${base}:${path}`])));
+  return baseScans.get(path)[ln - 1]?.code ?? '';
 };
 const headCodeLines = cachedCodeLines(headText);
 
@@ -290,20 +288,18 @@ const OWN_REPEAT = 'a block this change already wrote';
 // Copies: three consecutive added lines that already sit, in order, somewhere else in the repo at base.
 const copiesOf = (file, added) => {
   const code = codeLines(added), ext = file.slice(file.lastIndexOf('.'));
-  const windows = [];
-  for (let i = 0; i + 2 < code.length; i++) {
-    const win = code.slice(i, i + 3), anchor = [...win].sort((x, y) => y.length - x.length)[0];
-    if (anchor.length >= 25) windows.push({ win, anchor });
-  }
+  const wins = [];
+  for (let i = 0; i + 2 < code.length; i++) wins.push(code.slice(i, i + 3));
+  const windows = wins.map((win) => ({ win, anchor: [...win].sort((x, y) => y.length - x.length)[0] }))
+    .filter(({ anchor }) => anchor.length >= 25);
   const lookup = grepAll(ext, windows.map((w) => w.anchor));
   const found = new Set();
   // The change repeating its own lines is a copy too, except in tests, which stay readable by repeating.
   if (!IS_TEST(file)) {
     const firstAt = new Map();
     let inRun = false;
-    code.forEach((_, i) => {
-      if (i + 2 >= code.length) return;
-      const win = code.slice(i, i + 3), key = win.join('\n'), first = firstAt.get(key);
+    wins.forEach((win, i) => {
+      const key = win.join('\n'), first = firstAt.get(key);
       const repeats = first !== undefined && i - first >= 3 && win.some((l) => l.length >= 25);
       if (repeats && !inRun) found.add(`${OWN_REPEAT} (${found.size + 1})`);
       inRun = repeats;
@@ -346,8 +342,9 @@ const reuseOf = (file, added, lexed) => {
     if (fn.length >= 4 && named && tail.replace(/[\s,)]/g, '').length >= 4) calls.set(`${fn}${squash(tail)}`, { fn, tail: squash(tail) });
   }
   const fns = [...new Set([...calls.values()].map((c) => c.fn))];
-  const lookup = grepAll(ext, fns.flatMap((fn) => [`${fn}(`, `${fn} =`, `${fn}:`]));
-  const defined = new Set(fns.filter((fn) => [`${fn}(`, `${fn} =`, `${fn}:`].some((p) => lookup(p).some((h) => definesFn(fn, h.text) && definesFn(fn, baseCodeAt(h))))));
+  const probes = (fn) => [`${fn}(`, `${fn} =`, `${fn}:`];
+  const lookup = grepAll(ext, fns.flatMap(probes));
+  const defined = new Set(fns.filter((fn) => probes(fn).some((p) => lookup(p).some((h) => definesFn(fn, h.text) && definesFn(fn, baseCodeAt(h))))));
   const out = [];
   for (const { fn, tail } of calls.values()) {
     if (!defined.has(fn)) continue;
@@ -370,26 +367,22 @@ const rows = files.map((file) => {
   // uses its own path's syntax, since a rename can change the extension.
   const headLexed = scan(file, headText(file)), baseLexed = scan(basePathOf(file), baseText);
   const headProse = proseOf(headLexed);
-  const proseAt = (ln) => headProse[ln - 1] ?? false;
   const lines = hunks.flat();
   // Pattern counts read only code: `as any` in a comment is prose about code, and one in a string or a
   // regex is data. `@ts-ignore` is the exception: it is a directive only where it opens a comment.
-  const removed = lines.filter((l) => l.sign === '-').map((l) => l.text);
   const sideOf = (sign, key) => lines.filter((l) => l.sign === sign).map((l) => (sign === '+' ? headLexed : baseLexed)[l.ln - 1]?.[key] ?? '');
-  const { added: addedLines, longestCommentBlock } = additionsOf(hunks, proseAt);
+  const netCount = (re, key = 'code') => Math.max(0, count(sideOf('+', key), re) - count(sideOf('-', key), re));
+  const { added: addedLines, longestCommentBlock } = additionsOf(hunks, (ln) => headProse[ln - 1] ?? false);
 
   const addedNonBlank = addedLines.filter((l) => l.text.trim());
-  const addedCode = addedNonBlank.map((l) => l.text);
-  const added = addedLines.map((l) => l.text);
   const addedComments = addedNonBlank.filter((l) => l.prose).map((l) => l.text);
-  const netCount = (re, key = 'code') => Math.max(0, count(sideOf('+', key), re) - count(sideOf('-', key), re));
-  const density = addedCode.length ? addedComments.length / addedCode.length : 0;
+  const density = addedNonBlank.length ? addedComments.length / addedNonBlank.length : 0;
   const baseDensity = baseText ? densityOf(basePathOf(file), baseText) : siblingBaseline(file);
 
   return {
     file,
-    added: addedCode.length,
-    removed: removed.filter((l) => l.trim()).length,
+    added: addedNonBlank.length,
+    removed: lines.filter((l) => l.sign === '-' && l.text.trim()).length,
     addedComments: addedComments.length,
     commentDensity: +density.toFixed(2),
     baseCommentDensity: baseDensity === null ? null : +baseDensity.toFixed(2),
@@ -401,7 +394,7 @@ const rows = files.map((file) => {
     optionalChains: netCount(/\?\./g),
     nullishDefaults: netCount(/\?\?/g),
     riskyRegexes: addedNonBlank.filter((l) => !l.prose && regexBodies(l.text).some(isRisky)).length,
-    copies: copiesOf(file, added),
+    copies: copiesOf(file, addedLines.map((l) => l.text)),
     reuseCandidates: reuseOf(file, addedLines, headLexed),
   };
 });

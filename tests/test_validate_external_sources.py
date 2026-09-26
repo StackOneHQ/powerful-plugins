@@ -6,7 +6,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
 
-from scripts.validate_external_sources import ValidationError, _external_plugins
+from scripts.validate_external_sources import GenerationError, _external_plugins
 
 SHA = "a" * 40
 
@@ -57,7 +57,7 @@ class ExternalSourceValidatorTests(unittest.TestCase):
             )
 
             with self.assertRaisesRegex(
-                ValidationError, r"^external: .*use git-subdir with url, path and sha"
+                GenerationError, r"^external: .*use git-subdir with url, path and sha"
             ):
                 _external_plugins(root)
 
@@ -66,7 +66,7 @@ class ExternalSourceValidatorTests(unittest.TestCase):
             root = Path(directory)
             _write_catalog(root, {"source": "github", "repo": "example/repository"})
 
-            with self.assertRaisesRegex(ValidationError, "sha"):
+            with self.assertRaisesRegex(GenerationError, "sha"):
                 _external_plugins(root)
 
 

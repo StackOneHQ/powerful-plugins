@@ -1,6 +1,6 @@
 {
   "name": "skill-creator",
-  "version": "0.1.0+ad30d62cd52a.ea3016f329f2",
+  "version": "0.1.0+ad30d62cd52a.e346bdd2e4c1",
   "description": "Create, test and improve agent skills, with an eval loop and description tuning",
   "author": {
     "name": "Anthropic"
