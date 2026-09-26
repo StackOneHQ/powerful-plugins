@@ -147,7 +147,8 @@ const QUANTIFIED_GROUP = /\(((?:[^()\\]|\\.)*)\)[+*{]/g;
 const LEADING_SEPARATOR = /^(\?:)?(\\[-./:,_ ]|[-/:,_ ])/;
 const isRisky = (body) => [...body.matchAll(QUANTIFIED_GROUP)].some(([, g]) => /[+*]/.test(g) && !LEADING_SEPARATOR.test(g));
 // Regex literals start where an expression can, never after a value, so `a / b / c` is not one.
-const REGEX_LITERAL = /(?:^|[=(,:!&|?{};]|\breturn)\s*\/((?:\\.|\[(?:\\.|[^\]])*\]|[^/\\\n])+)\/[dgimsuy]*/g;
+// Each branch starts on a different character, so a long line cannot backtrack exponentially.
+const REGEX_LITERAL = /(?:^|[=(,:!&|?{};]|\breturn)\s*\/((?:\\.|\[(?:\\.|[^\]\\\n])*\]|[^/\\\n[])+)\/[dgimsuy]*/g;
 const REGEXP_CALL = /RegExp\(\s*(['"`])((?:\\.|(?!\1).)*)\1/g;
 const regexBodies = (l) => [...l.matchAll(REGEX_LITERAL)].map((m) => m[1]).concat([...l.matchAll(REGEXP_CALL)].map((m) => m[2]));
 const count = (lines, re) => lines.reduce((n, l) => n + (l.match(re)?.length ?? 0), 0);
@@ -324,7 +325,7 @@ const copiesOf = (file, added) => {
 const LITERALS = new Set(['null', 'undefined', 'true', 'false', 'this', 'None', 'True', 'False']);
 const NOT_A_DEFINITION = /^\s*(if|elif|else|while|for|switch|return|match|await|new|catch|do)\b/;
 const definesFn = (fn, line) => {
-  const f = fn.replace(/\$/g, '\\$');
+  const f = fn.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   return new RegExp(`\\b(def|function\\*?|func|fn|fun)\\s+${f}\\b|\\bfunc\\s*\\([^)]*\\)\\s*${f}\\b`).test(line) ||
     new RegExp(`(^|[^\\w$.])${f}\\s*[:=]\\s*(async\\s+)?(function\\b|\\([^)]*\\)\\s*(:[^=]+)?=>|[\\w$]+\\s*=>)`).test(line) ||
     (!NOT_A_DEFINITION.test(line) && new RegExp(`^[\\s\\w$<>,.?\\[\\]]*(?<![\\w$])${f}\\s*(<[^>]*>)?\\([^;]*\\)\\s*(:[^;={]+|throws[^;={]+)?\\{\\s*$`).test(line));
