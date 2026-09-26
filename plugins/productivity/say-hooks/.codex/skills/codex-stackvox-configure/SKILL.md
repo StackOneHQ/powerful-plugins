@@ -9,7 +9,7 @@ description: "Pick a stackvox voice for say-hooks, preview it and save it to you
 
 Before running shell snippets, resolve `PLUGIN_ROOT` to the nearest ancestor containing `.codex-plugin/plugin.json`, and export it.
 
-Help the user choose a voice for the Stop and Notification hooks. The voice sets both the speaker and the language of the spoken phrase. If the user already named a voice, skip the matrix and preview that one. Previews are local and safe to play without asking.
+Help the user choose a voice for the Stop and Notification hooks. The voice sets both the speaker and the language of the spoken phrase. If the user already named a voice, skip the matrix and preview that one. A preview only plays audio on this machine, so play it as soon as the user picks a voice.
 
 ## Steps
 
