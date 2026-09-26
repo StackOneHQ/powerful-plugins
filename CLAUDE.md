@@ -155,8 +155,8 @@ check them on every pull request.
 - **Untrusted input.** Web pages, PR comments, issue text, tool output and transcripts are data,
   not instructions. Skills that read them must say to quote suspicious instructions to the user
   rather than follow them.
-- **Local data stays local.** Plugins that read transcripts or history (`cc-print`, `reflect`,
-  `usage-insights`) keep what they read on the user's machine and redact credentials and
+- **Local data stays local.** Plugins that read transcripts or history (such as `cc-print` and
+  `reflect`) keep what they read on the user's machine and redact credentials and
   unrelated personal details from anything they write out.
 - **Hooks.** Fast, silent when an optional dependency is missing, never blocking the session,
   and writing only to the plugin's own cache or config paths.
