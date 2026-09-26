@@ -192,9 +192,13 @@ Physically based 3D in Three.js, for when the user asks for a lit, reflective re
   `renderer.shadowMap.needsUpdate = true` once after the scene is built and again whenever a caster
   or a light moves; without the first one a static scene has no shadows. In one build these cut
   draw calls from 1,250 to 271 and GPU memory from 57 MB to 11 MB with no visible change.
-- **Loading.** From a CDN with an import map in a standalone file, or as a dependency imported
-  from this one section in an existing codebase. An import map downloads nothing until a dynamic
-  `import()` asks for it; trigger it with an `IntersectionObserver` as the section approaches.
+- **Loading.** In an existing codebase, add Three.js as a dependency pinned by its lockfile and
+  import it from this one section. In a standalone file, use an import map that pins an exact
+  version on one trusted CDN (jsDelivr or cdnjs, over HTTPS), for Three.js and its addons alike,
+  and give each module an integrity hash in the map's `integrity` field where the browser supports
+  it; if it must work without that support, copy the modules next to the page instead. An import
+  map downloads nothing until a dynamic `import()` asks for it; trigger it with an
+  `IntersectionObserver` as the section approaches.
   Until Three.js has loaded, draw Technical, then swap. If WebGL is unavailable or the context is
   lost, switch to Technical.
 
