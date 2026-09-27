@@ -30,6 +30,7 @@ jobs:
         with:
           # check_plugin_versions.py diffs against the merge base, which a shallow clone lacks.
           fetch-depth: 0
+          persist-credentials: false
 
       - name: Check out the pull request merge ref
         # Sync Codex Plugins dispatches this workflow after pushing a regenerated commit. A
@@ -144,6 +145,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Check out the pull request merge ref
         # Sync Codex Plugins dispatches this workflow after pushing a regenerated commit. A
