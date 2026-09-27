@@ -40,8 +40,13 @@ jobs:
           case "$ACTOR" in
             dependabot\[bot\]|cubic-dev-ai\[bot\]) ;;
             *)
-              gh pr merge --disable-auto "$PR_URL" || true
+              # The label goes on first: it stops cubic's approval even if the rest fails.
               gh pr edit "$PR_URL" --add-label do-not-auto-approve
+              gh pr merge --disable-auto "$PR_URL" || true  # fails when auto-merge was never on
+              if [ "$(gh pr view "$PR_URL" --json autoMergeRequest --jq '.autoMergeRequest != null')" = "true" ]; then
+                echo "::error::Auto-merge is still on for $PR_URL; turn it off by hand."
+                exit 1
+              fi
               gh pr comment "$PR_URL" --body "$ACTOR pushed to this Dependabot PR, so auto-merge is off and it needs a person's review."
               exit 0
               ;;
