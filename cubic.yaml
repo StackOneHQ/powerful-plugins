@@ -14,8 +14,20 @@ reviews:
   external_contributors_require_manual_review: true
   resolve_threads_when_addressed: true
   merge_confidence_summary: true
-  auto_approve_behavior: disabled
-  auto_approve: disabled
+  # Approves Dependabot's bump PRs targeting main once its review is clean, which satisfies
+  # the one-approval rule; .github/workflows/dependabot-automerge.yml turns on auto-merge, so
+  # a bump lands after that approval and the required checks. Every other PR still needs a
+  # person's approval. The workflow adds do-not-auto-approve when someone else pushes.
+  auto_approve_behavior: live
+  auto_approve: always
+  auto_approve_rules:
+    allow_open_issues: none
+    only_authors:
+      - dependabot[bot]
+    only_base_branches:
+      - main
+    exclude_labels:
+      - do-not-auto-approve
   ultrareview: manual
   auto_ultrareview: disabled
 
