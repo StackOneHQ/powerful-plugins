@@ -1,7 +1,7 @@
 {
   "name": "cc-print",
   "version": "1.2.2",
-  "description": "Export Claude Code or Codex conversations to terminal-styled PNG, SVG, PDF or HTML, with syntax highlighting, dark and light themes, and range selection (last N exchanges, from or until a topic).",
+  "description": "Export Claude Code or Codex conversations to terminal-styled PNG, SVG, PDF or HTML, with syntax highlighting, dark and light themes, and range selection (last N exchanges, from or until a topic). (push test)",
   "author": {
     "name": "StackOne",
     "url": "https://github.com/StackOneHQ"
@@ -11,7 +11,7 @@
   "interface": {
     "displayName": "CC Print",
     "shortDescription": "Export Claude Code or Codex conversations to terminal-styled PNG, SVG, PDF or HTML, with syntax highlighting, dark…",
-    "longDescription": "Export Claude Code or Codex conversations to terminal-styled PNG, SVG, PDF or HTML, with syntax highlighting, dark and light themes, and range selection (last N exchanges, from or until a topic).",
+    "longDescription": "Export Claude Code or Codex conversations to terminal-styled PNG, SVG, PDF or HTML, with syntax highlighting, dark and light themes, and range selection (last N exchanges, from or until a topic). (push test)",
     "developerName": "StackOne",
     "category": "Productivity",
     "capabilities": [
