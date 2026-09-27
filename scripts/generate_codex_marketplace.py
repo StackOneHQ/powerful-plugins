@@ -282,7 +282,8 @@ def _parse_frontmatter_yaml(
     except yaml.YAMLError as error:
         raise GenerationError(f"{source}: invalid YAML frontmatter: {error}") from error
     finally:
-        loader.dispose()  # type: ignore[no-untyped-call]  # PyYAML stubs omit this method's types.
+        # Older PyYAML stubs leave dispose() untyped and newer ones type it; this line passes both.
+        loader.dispose()  # type: ignore[no-untyped-call, unused-ignore]
     if parsed is None:
         return {}
     if isinstance(parsed, dict) and all(isinstance(key, str) for key in parsed):

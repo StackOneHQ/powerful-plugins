@@ -48,30 +48,75 @@
     {
       "skill": "plugins/engineering/browser-recorder/skills/browser-recorder",
       "rules": [
-        "EA2"
+        "EA2",
+        "RA2"
       ],
-      "rationale": "EA2 flags the line that lists what this skill may do without asking, which the repository's instructions require every skill to state. Here it covers running the capture commands and writing under the output folder; outward actions in a scene still need a yes."
+      "rationale": "EA2 flags the line that lists what this skill may do without asking, which the repository's instructions require every skill to state. Here it covers running the capture commands and writing under the output folder; outward actions in a scene still need a yes. RA2 flags the capture example that loads the user's own saved browser state so a recording starts signed in; the state stays in the user's project, and outward actions in a scene still need a yes."
     },
     {
       "skill": "plugins/engineering/reflect/skills/reflect",
       "rules": [
-        "EA2"
+        "EA2",
+        "MP1",
+        "RA2"
       ],
-      "rationale": "EA2 flags the line that lists what this skill may do without asking, which the repository's instructions require every skill to state. Here it covers reading the workspace's own history and running read-only reviewers; editing skills or filing tracker items needs a yes."
+      "rationale": "EA2 flags the line that lists what this skill may do without asking, which the repository's instructions require every skill to state. Here it covers reading the workspace's own history and running read-only reviewers; editing skills or filing tracker items needs a yes. RA2 and MP1 flag the sentences that limit what reflect persists: SKILL.md says it does not rewrite CLAUDE.md on its own, and history-review.md says commit SHAs are recorded as citations, not as permanent rules. Changes to instruction files still need the user's yes."
     },
     {
       "skill": "plugins/engineering/spark/skills/audit",
       "rules": [
-        "EA2"
+        "EA2",
+        "EA3"
       ],
-      "rationale": "EA2 flags the line that lists what this skill may do without asking, which the repository's instructions require every skill to state. Here it covers picking the audit mode and publishing a private report only the user can see; audit never edits the repository."
+      "rationale": "EA2 flags the line that lists what this skill may do without asking, which the repository's instructions require every skill to state. Here it covers picking the audit mode and publishing a private report only the user can see; audit never edits the repository. EA3 flags the subagent brief that tells each reviewer to stay inside its assigned boundary and not expand scope, which is the opposite of scope creep."
     },
     {
       "skill": "plugins/engineering/spark/skills/forge",
       "rules": [
-        "EA2"
+        "EA2",
+        "MP3"
       ],
-      "rationale": "EA2 flags the line that lists what this skill may do without asking, which the repository's instructions require every skill to state. Here it covers editing the working tree and running tests in rewrite mode; committing and pushing stay with the user."
+      "rationale": "EA2 flags the line that lists what this skill may do without asking, which the repository's instructions require every skill to state. Here it covers editing the working tree and running tests in rewrite mode; committing and pushing stay with the user. MP3 flags a code-review question in references/lenses.md about catch blocks that continue with corrupt state; it describes code to review, not the agent's memory."
+    },
+    {
+      "skill": "plugins/engineering/review-loop/scripts",
+      "rules": [
+        "AST4",
+        "OH1"
+      ],
+      "rationale": "AST4 and OH1 flag pr_review.py's call to gh: a fixed binary, an argument list, no shell, and reply bodies passed as plain string arguments, so neither PR content nor model output can become a command."
+    },
+    {
+      "skill": "codex-compat/pr-review-toolkit/skills/pr-review-toolkit",
+      "rules": [
+        "AST4",
+        "LP3"
+      ],
+      "rationale": "Generated runtime adapter for the pinned external pr-review-toolkit plugin. Its only code is materialize_pinned_upstream.py, which runs git with an argument list, no shell and no credential helper to fetch the upstream at a fixed 40-character commit into a local cache; LP3 counts that as undeclared env, file-write and shell use."
+    },
+    {
+      "skill": "codex-compat/remotion-best-practices/skills/remotion-best-practices",
+      "rules": [
+        "AST4",
+        "LP3"
+      ],
+      "rationale": "Generated runtime adapter for the pinned external remotion-best-practices plugin. Its only code is materialize_pinned_upstream.py, which runs git with an argument list, no shell and no credential helper to fetch the upstream at a fixed 40-character commit into a local cache; LP3 counts that as undeclared env, file-write and shell use."
+    },
+    {
+      "skill": "codex-compat/skill-creator/skills/skill-creator",
+      "rules": [
+        "AST4",
+        "LP3"
+      ],
+      "rationale": "Generated runtime adapter for the pinned external skill-creator plugin. Its only code is materialize_pinned_upstream.py, which runs git with an argument list, no shell and no credential helper to fetch the upstream at a fixed 40-character commit into a local cache; LP3 counts that as undeclared env, file-write and shell use."
+    },
+    {
+      "skill": "codex-compat/vercel-web-design-guidelines/skills/vercel-web-design-guidelines",
+      "rules": [
+        "AST4",
+        "LP3"
+      ],
+      "rationale": "Generated runtime adapter for the pinned external vercel-web-design-guidelines plugin. Its only code is materialize_pinned_upstream.py, which runs git with an argument list, no shell and no credential helper to fetch the upstream at a fixed 40-character commit into a local cache; LP3 counts that as undeclared env, file-write and shell use."
     }
   ]
 }

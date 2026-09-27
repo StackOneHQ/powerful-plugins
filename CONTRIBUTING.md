@@ -203,8 +203,9 @@ codex plugin add my-plugin@powerful-plugins
 ### Dependencies
 
 `requirements.txt` and `requirements-dev.txt` pin every package, including indirect ones, with
-hashes, and CI installs them with `--require-hashes`. Dependabot proposes weekly bumps and merges
-them once the required checks pass. To change a pin by hand, edit it and regenerate the hashes:
+hashes, and CI installs them with `--require-hashes`. Dependabot proposes weekly bumps. cubic
+reviews each one and approves it when the review is clean, and it merges once the required checks
+pass; a bump with open cubic findings, or one someone else pushed to, waits for a person. To change a pin by hand, edit it and regenerate the hashes:
 
 ```bash
 uv pip compile requirements.txt --universal --python-version 3.12 --generate-hashes \
