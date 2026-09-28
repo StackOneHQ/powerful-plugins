@@ -8,9 +8,7 @@ on:
   pull_request:
     branches: [main]
 
-permissions:
-  contents: write
-  actions: write # to re-run the required checks on the regenerated commit
+permissions: {}
 
 concurrency:
   group: codex-sync-${{ github.event.pull_request.number }}
@@ -20,6 +18,9 @@ jobs:
   codex-sync:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    permissions:
+      contents: write # to push the regenerated commit
+      actions: write # to re-run the required checks on the regenerated commit
 
     steps:
       - name: Checkout the pull request branch
@@ -27,6 +28,9 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.head.sha }}
           repository: ${{ github.event.pull_request.head.repo.full_name }}
+          # The generator runs code from the pull request, so keep the write token out of
+          # .git/config while it does; the push step below passes the token itself.
+          persist-credentials: false
 
       - name: Setup Python
         uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
@@ -55,7 +59,10 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A
           git commit -m "chore: regenerate Codex metadata"
-          git push origin "HEAD:refs/heads/${HEAD_REF}"
+          auth="$(printf 'x-access-token:%s' "$GH_TOKEN" | base64 -w0)"
+          echo "::add-mask::${auth}"
+          git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic ${auth}" \
+            push origin "HEAD:refs/heads/${HEAD_REF}"
           # A push made with the workflow token starts no new runs, so start the required
           # checks on the new commit explicitly (workflow_dispatch is the allowed exception).
           # Passing the pull request makes them test its merge ref, not the branch head alone.
