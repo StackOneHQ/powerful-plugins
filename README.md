@@ -234,7 +234,8 @@ We scan skills and each plugin's `agents`, `commands`, `hooks` and `scripts` fol
 data exfiltration and other risky patterns. The script needs Python 3.12+ and `jq`:
 
 ```bash
-pip install "git+https://github.com/NVIDIA/skillspector.git@2eb844780ab163f01468ecf142c40a2ec0fcaec0"
+pip install --require-hashes -r .github/skillspector/build-requirements.txt
+pip install --require-hashes --no-build-isolation -r .github/skillspector/requirements.txt
 scripts/scan-skills.sh all                # every skill and plugin component folder
 scripts/scan-skills.sh changed            # only what changed against origin/main
 SKILL_ROOT=plugins/engineering/spark scripts/scan-skills.sh all

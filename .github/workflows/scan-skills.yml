@@ -76,9 +76,13 @@ jobs:
           python-version: '3.12'
 
       - name: Install SkillSpector
-        # Pinned to a commit SHA (no PyPI release / tags upstream) for
-        # reproducible, supply-chain-safe installs. Bump deliberately.
-        run: pip install --upgrade "git+https://github.com/NVIDIA/skillspector.git@2eb844780ab163f01468ecf142c40a2ec0fcaec0"
+        # SkillSpector and everything it installs are pinned with hashes in
+        # .github/skillspector/, which says how to bump them. Its build backend goes in first,
+        # so building it needs nothing pip would otherwise fetch unpinned.
+        run: |
+          python -m pip install --require-hashes -r .github/skillspector/build-requirements.txt
+          python -m pip install --require-hashes --no-build-isolation \
+            -r .github/skillspector/requirements.txt
 
       - name: Determine scan mode
         id: mode

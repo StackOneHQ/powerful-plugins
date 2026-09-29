@@ -66,9 +66,10 @@ fi
 
 if ! command -v skillspector >/dev/null 2>&1; then
   echo "ERROR: 'skillspector' not found on PATH." >&2
-  echo "Install it (requires Python 3.12+) with the commit CI pins, so local" >&2
-  echo "scans match CI (no PyPI release / tags upstream; bump deliberately):" >&2
-  echo '  pip install "git+https://github.com/NVIDIA/skillspector.git@2eb844780ab163f01468ecf142c40a2ec0fcaec0"' >&2
+  echo "Install it (requires Python 3.12+) from the hashed files CI uses, so local" >&2
+  echo "scans match CI:" >&2
+  echo '  pip install --require-hashes -r .github/skillspector/build-requirements.txt' >&2
+  echo '  pip install --require-hashes --no-build-isolation -r .github/skillspector/requirements.txt' >&2
   exit 127
 fi
 
