@@ -1,0 +1,53 @@
+name: OpenSSF Scorecard
+
+# Grades this repository's supply-chain hygiene (branch protection, pinned actions, token
+# permissions, dangerous workflow patterns, code review, security policy) with OpenSSF
+# Scorecard. People install these plugins straight from the repository, so its hygiene is
+# what they are trusting. Results go to code scanning and to the public badge in the README.
+#
+# Scorecard only publishes results from a workflow it can verify: no top-level env or
+# defaults, no containers or services, and only checkout, scorecard, upload-artifact and
+# upload-sarif as steps. Keep it that way, or publishing fails.
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: '17 6 * * 1' # weekly, Monday 06:17 UTC, so the score reflects settings changes
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  analysis:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      actions: read
+      security-events: write # to upload the SARIF to code scanning
+      id-token: write # to publish results and the badge to scorecard.dev
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Run Scorecard
+        uses: ossf/scorecard-action@2d1146689b8cda280b9bc96326124645441f03bc # v2.4.4
+        with:
+          results_file: results.sarif
+          results_format: sarif
+          publish_results: true
+
+      - name: Keep the raw results
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: scorecard-results
+          path: results.sarif
+          retention-days: 5
+
+      - name: Upload to code scanning
+        uses: github/codeql-action/upload-sarif@1c5b675653bb5c22dbe9b12b556ec555138e09fd # v4.38.1
+        with:
+          sarif_file: results.sarif

@@ -9,6 +9,8 @@
 
 # powerful-plugins
 
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/StackOneHQ/powerful-plugins/badge)](https://scorecard.dev/viewer/?uri=github.com/StackOneHQ/powerful-plugins)
+
 Plugins for Claude Code and OpenAI Codex that we built at StackOne for our own day-to-day work:
 design and data visualization, writing, getting pull requests through AI review, browser
 automation, learning from past sessions, spoken notifications and conversation export.
