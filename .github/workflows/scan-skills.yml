@@ -19,10 +19,7 @@ on:
         required: false
         type: string
 
-permissions:
-  actions: read # required by upload-sarif in private repositories
-  contents: read
-  security-events: write # required to upload SARIF to code scanning
+permissions: {}
 
 concurrency:
   group: scan-skills-${{ github.ref }}
@@ -31,6 +28,10 @@ concurrency:
 jobs:
   scan-skills:
     runs-on: ubuntu-latest
+    permissions:
+      actions: read # required by upload-sarif in private repositories
+      contents: read
+      security-events: write # required to upload SARIF to code scanning
 
     steps:
       - name: Checkout repository
