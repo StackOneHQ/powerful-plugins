@@ -69,7 +69,7 @@ if ! command -v skillspector >/dev/null 2>&1; then
   echo "Install it (requires Python 3.12+) from the hashed files CI uses, so local" >&2
   echo "scans match CI:" >&2
   echo '  pip install --require-hashes -r .github/skillspector/build-requirements.txt' >&2
-  echo '  pip install --require-hashes --no-build-isolation -r .github/skillspector/requirements.txt' >&2
+  echo '  pip install --require-hashes --no-deps --no-build-isolation -r .github/skillspector/requirements.txt' >&2
   exit 127
 fi
 
