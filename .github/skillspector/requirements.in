@@ -1,0 +1,19 @@
+# SkillSpector's runtime dependencies, copied from its pyproject.toml at the pinned commit,
+# minus langgraph-cli[inmem]. That one only serves SkillSpector's own `make langgraph-dev`
+# (LangGraph Studio): the scanner never imports it, and it brings in ~40 packages, among
+# them a web server, grpcio and jsonschema-rs, that the scan never loads. With it removed,
+# a full scan of this repository gives the same findings.
+#
+# To bump SkillSpector: update this list from its pyproject.toml (still leaving out
+# langgraph-cli), then regenerate requirements.txt as its header says.
+typer>=0.23.0,<0.24
+rich>=14.3.0
+httpx>=0.28.0
+pyyaml>=6.0.1
+pydantic>=2.12.0
+openai>=2.25.0
+langgraph>=1.0.10
+langchain-core>=1.2.17
+langchain-openai>=1.1.10
+langsmith>=0.7.30
+yara-python>=4.5.0
