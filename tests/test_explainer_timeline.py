@@ -86,6 +86,15 @@ class TimelineTests(unittest.TestCase):
         self.assertGreater(reads.call_count, 1)
         self.assertTrue(all(call.args[1] * 2 <= 65536 for call in reads.call_args_list))
 
+    def test_oversized_frame_is_rejected_before_reading_samples(self):
+        path = self.root / "audio.wav"
+        content = bytearray(path.read_bytes())
+        content[22:24] = (40000).to_bytes(2, "little")
+        path.write_bytes(content)
+        with mock.patch.object(wave.Wave_read, "readframes", side_effect=AssertionError("unbounded read")):
+            with self.assertRaisesRegex(ValueError, "frame exceeds"):
+                timeline.check(self.plan, self.root)
+
     def test_silent_scene_cannot_claim_narration(self):
         self.plan["scenes"][0]["audio"] = None
         self.assertIn("one: silent scene has narration or captions", timeline.check(self.plan, self.root))

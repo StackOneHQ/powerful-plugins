@@ -57,10 +57,12 @@ def check(plan: dict[str, Any], root: Path) -> list[str]:
             if rate <= 0:
                 raise ValueError(f"{scene_id}: WAV sample rate must be positive")
             frame_bytes = handle.getsampwidth() * handle.getnchannels()
+            if frame_bytes > 65536:
+                raise ValueError(f"{scene_id}: WAV frame exceeds 64 KiB")
             remaining = samples
             # Bound memory while checking actual bytes against the declared frame count.
             while remaining:
-                count = min(remaining, max(1, 65536 // frame_bytes))
+                count = min(remaining, 65536 // frame_bytes)
                 if len(handle.readframes(count)) != count * frame_bytes:
                     raise ValueError(f"{scene_id}: truncated WAV")
                 remaining -= count

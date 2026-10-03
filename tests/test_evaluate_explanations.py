@@ -167,6 +167,25 @@ class ExplanationEvalTests(unittest.TestCase):
         self.assertEqual({case["split"] for case in cases.values()}, {"dev", "holdout"})
         self.assertTrue(all(case["expected_facts"] and case["questions"] for case in cases.values()))
 
+    def test_invalid_split_and_review_keys_rejected(self):
+        for update, error in (({"split": "holduot"}, "split must"),
+                              ({"expected_facts": []}, "required"),
+                              ({"expected_facts": [""]}, "nonempty text"),
+                              ({"questions": [{"question": "What remains?"}]}, "answer text")):
+            with self.subTest(update=update), tempfile.TemporaryDirectory() as directory:
+                path = Path(directory) / "cases.jsonl"
+                path.write_text(json.dumps(self.cases["case"] | update) + "\n")
+                with self.assertRaisesRegex(ValueError, error):
+                    evaluation.load_cases(path)
+
+    def test_benchmark_references_can_supply_the_review_key(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "cases.jsonl"
+            row = self.cases["case"] | {"expected_facts": [], "questions": [],
+                                        "references": ["Keep 40 and delay_ms."]}
+            path.write_text(json.dumps(row) + "\n")
+            self.assertEqual(evaluation.load_cases(path)["case"]["references"], row["references"])
+
 
 if __name__ == "__main__":
     unittest.main()

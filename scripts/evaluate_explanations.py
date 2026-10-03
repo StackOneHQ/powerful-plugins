@@ -44,6 +44,16 @@ def load_cases(path: Path) -> dict[str, dict[str, Any]]:
         for field in ("source", "request", "provenance", "split"):
             if not isinstance(case.get(field), str) or not case[field].strip():
                 raise ValueError(f"{case['id']}: missing {field}")
+        if case["split"] not in ("dev", "holdout"):
+            raise ValueError(f"{case['id']}: split must be dev or holdout")
+        for field in ("expected_facts", "references"):
+            values = case.get(field, [])
+            if not isinstance(values, list) or any(
+                not isinstance(value, str) or not value.strip() for value in values
+            ):
+                raise ValueError(f"{case['id']}: {field} must contain nonempty text")
+        if not case.get("expected_facts") and not case.get("references"):
+            raise ValueError(f"{case['id']}: expected_facts or benchmark references are required")
         protected = case.get("protected", [])
         if not isinstance(protected, list) or any(
             not isinstance(term, str) or not term or term not in case["source"]
@@ -52,10 +62,12 @@ def load_cases(path: Path) -> dict[str, dict[str, Any]]:
             raise ValueError(f"{case['id']}: protected strings must occur in the source")
         questions = case.get("questions", [])
         if not isinstance(questions, list) or any(
-            not isinstance(question, dict) or not isinstance(question.get("question"), str)
-            or not question["question"].strip() for question in questions
+            not isinstance(question, dict) or any(
+                not isinstance(question.get(field), str) or not question[field].strip()
+                for field in ("question", "answer")
+            ) for question in questions
         ):
-            raise ValueError(f"{case['id']}: questions must contain nonempty question text")
+            raise ValueError(f"{case['id']}: questions need nonempty question and answer text")
     return cases
 
 
