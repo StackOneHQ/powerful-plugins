@@ -66,6 +66,26 @@
       }
     },
     {
+      "name": "diagram-explainer",
+      "source": "./plugins/design/diagram-explainer",
+      "description": "Create editable, source-grounded diagrams of systems, sequences, states and causal mechanisms, with rendered previews and evidence.",
+      "category": "design",
+      "tags": [
+        "diagrams",
+        "architecture",
+        "sequence",
+        "explanation",
+        "mermaid",
+        "svg",
+        "excalidraw"
+      ],
+      "version": "1.0.0",
+      "author": {
+        "name": "StackOne",
+        "url": "https://github.com/StackOneHQ"
+      }
+    },
+    {
       "name": "natural-writing",
       "source": "./plugins/documentation/natural-writing",
       "description": "Write and edit like a person, not a language model: bans the words, sentence patterns and formatting that give AI text away, with a mechanical checker and a review command.",

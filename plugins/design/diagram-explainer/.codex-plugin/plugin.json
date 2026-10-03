@@ -1,0 +1,36 @@
+{
+  "name": "diagram-explainer",
+  "version": "1.0.0",
+  "description": "Create editable, source-grounded diagrams of systems, sequences, states and causal mechanisms, with rendered previews and evidence.",
+  "author": {
+    "name": "StackOne",
+    "url": "https://github.com/StackOneHQ"
+  },
+  "homepage": "https://github.com/StackOneHQ/powerful-plugins",
+  "repository": "https://github.com/StackOneHQ/powerful-plugins",
+  "interface": {
+    "displayName": "Diagram Explainer",
+    "shortDescription": "Create editable, source-grounded diagrams of systems, sequences, states and causal mechanisms, with rendered previews…",
+    "longDescription": "Create editable, source-grounded diagrams of systems, sequences, states and causal mechanisms, with rendered previews and evidence.",
+    "developerName": "StackOne",
+    "category": "Design",
+    "capabilities": [
+      "Interactive"
+    ],
+    "websiteURL": "https://github.com/StackOneHQ/powerful-plugins",
+    "defaultPrompt": [
+      "Use Diagram Explainer to run this workflow."
+    ]
+  },
+  "license": "MIT",
+  "keywords": [
+    "diagrams",
+    "architecture",
+    "sequence",
+    "explanation",
+    "mermaid",
+    "svg",
+    "excalidraw"
+  ],
+  "skills": "./.codex/skills/"
+}
