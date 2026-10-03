@@ -40,6 +40,10 @@ Users may specify these in natural language or as prompt conventions such as `mo
 
 Read [references/modes.md](references/modes.md) for the selected mode and [references/tastes.md](references/tastes.md) for the selected taste. If the user names another writing, brand, or design skill, use it as the authority for that concern.
 
+For a guided walkthrough that traces one example through a mechanism, read
+[references/guided-walkthroughs.md](references/guided-walkthroughs.md). It combines
+`explain` with `explore` only when changing an input teaches something material.
+
 ## Compose with adjacent skills
 
 Read an available adjacent skill before using it. Apply only the responsibilities it currently documents.
@@ -49,7 +53,7 @@ Read an available adjacent skill before using it. Apply only the responsibilitie
 | Response structure and stance | Any installed response-style or house-style skill | It owns lead-with-the-point, scannability, plain language, and honest uncertainty. This skill still owns the artifact's visible, working, and opt-in layers. |
 | Sentence-level language | `natural-writing` | It removes generic model phrasing and runs its copy gate. |
 | Quantitative visualization | `tufte-viz` | It selects and critiques the chart. This skill decides where the chart fits in the decision flow and what detail selection reveals. |
-| Diagrams and visual explanations | Any installed diagramming skill | It owns the diagram or focused explainer. This skill supplies the claim, evidence, and interaction context. |
+| Diagrams and visual explanations | `diagram-explainer`, or another installed diagramming skill | It owns the diagram or focused explainer. This skill supplies the claim, evidence, and interaction context. |
 | Motion and transitions | `animation-studio` | It owns motion design and implementation. This skill decides which state change the motion explains. |
 | Visual identity | The project's brand or design-system skill, or its design tokens | Use the source that matches the output surface. Its tokens and components replace the fallback taste. If there is none, use the fallback taste and ask before inventing brand values. |
 | Standalone HTML | Any installed HTML or Markdown-to-HTML rendering skill | These own rendering. This skill supplies information architecture, evidence, and interaction requirements. |
