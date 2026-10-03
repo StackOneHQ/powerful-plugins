@@ -1,17 +1,10 @@
 # Narration and timing
 
 Prefer an available local speech engine when the user has no provider preference.
-The optional [stackvox](https://github.com/StackOneHQ/stackvox) CLI can synthesize
-to WAV without a hosted API:
-
-```bash
-stackvox speak --file scene.txt --out scene.wav
-```
-
-Check the installed CLI's help before using optional arguments. Stackvox downloads
-its model on first use; use it offline once its model is cached. Installing it is
-optional, not a hook or a prerequisite for other plugin features. If it is absent,
-use an available system speech engine or ask which speech option the user wants
+Check its installed help for text-file input and WAV output. Some engines download
+models on first use; promise offline synthesis only after the model is cached.
+Installing a speech engine is optional, not a hook or a prerequisite for other
+plugin features. If none is available, ask which speech option the user wants
 when narration is essential. Do not silently return a silent video as narrated.
 
 A user-authorized hosted provider is also acceptable. Read credentials from the

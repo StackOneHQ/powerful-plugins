@@ -9,6 +9,7 @@ import json
 import random
 import re
 import sys
+import tempfile
 from pathlib import Path
 from typing import Any
 
@@ -49,6 +50,12 @@ def load_cases(path: Path) -> dict[str, dict[str, Any]]:
             for term in protected
         ):
             raise ValueError(f"{case['id']}: protected strings must occur in the source")
+        questions = case.get("questions", [])
+        if not isinstance(questions, list) or any(
+            not isinstance(question, dict) or not isinstance(question.get("question"), str)
+            or not question["question"].strip() for question in questions
+        ):
+            raise ValueError(f"{case['id']}: questions must contain nonempty question text")
     return cases
 
 
@@ -78,7 +85,12 @@ def prepare(cases: dict[str, dict[str, Any]], output: Path, split: str) -> int:
 
 
 def contains_literal(text: str, term: str) -> bool:
-    # A required 40 must not match 140; punctuation inside identifiers remains literal.
+    # Compare whole numeric tokens, including signs, decimals, grouping and exponents.
+    number = r"[+-]?(?:\d+(?:[.,]\d+)*|\.\d+)(?:[eE][+-]?\d+)?"
+    if re.fullmatch(number, term):
+        return any(match.group() == term for match in re.finditer(
+            r"(?<![\w.])" + number + r"(?!\w)", text,
+        ))
     left = r"(?<!\w)" if term[0].isalnum() else ""
     right = r"(?!\w)" if term[-1].isalnum() else ""
     return re.search(left + re.escape(term) + right, text) is not None
@@ -150,11 +162,11 @@ def score(
 
 def blind_pairs(
     cases: dict[str, dict[str, Any]], baseline: dict[str, dict[str, Any]],
-    candidate: dict[str, dict[str, Any]], seed: int,
+    candidate: dict[str, dict[str, Any]], seed: int | None = None,
 ) -> tuple[list[dict[str, Any]], dict[str, Any]]:
     if set(baseline) != set(cases) or set(candidate) != set(cases):
         raise ValueError("blind comparison requires both outputs for every selected case")
-    rng = random.Random(seed)
+    rng = random.SystemRandom() if seed is None else random.Random(seed)
     pairs, key = [], {}
     for case_id, case in cases.items():
         arms = ["baseline", "candidate"]
@@ -166,9 +178,23 @@ def blind_pairs(
             if not isinstance(value, str) or not value.strip():
                 raise ValueError(f"{case_id}: empty or invalid {arm} output")
             values[label] = value
-        pairs.append({"id": case_id, "source": case["source"], "request": case["request"], **values})
+        pairs.append({"id": case_id, "source": case["source"], "request": case["request"],
+                      "questions": [item["question"] for item in case.get("questions", [])],
+                      **values})
         key[case_id] = dict(zip(("A", "B"), arms, strict=True))
     return pairs, key
+
+
+def write_comparison(output: Path, pairs: list[dict[str, Any]], key: dict[str, Any]) -> None:
+    if output.exists():
+        raise FileExistsError(f"comparison directory already exists: {output}")
+    output.parent.mkdir(parents=True, exist_ok=True)
+    # Publish both files together; a failed write must not expose partial evidence.
+    with tempfile.TemporaryDirectory(prefix=".comparison-", dir=output.parent) as staging:
+        directory = Path(staging)
+        write_new(directory / "pairs.json", json.dumps(pairs, indent=2) + "\n")
+        write_new(directory / "private-key.json", json.dumps(key, indent=2) + "\n")
+        directory.rename(output)
 
 
 def main() -> int:
@@ -180,7 +206,7 @@ def main() -> int:
     parser.add_argument("--baseline", type=Path)
     parser.add_argument("--reviews", type=Path)
     parser.add_argument("--split", choices=["dev", "holdout", "all"], default="all")
-    parser.add_argument("--seed", type=int, default=407)
+    parser.add_argument("--seed", type=int, help="Optional reproducibility seed; keep private during review")
     args = parser.parse_args()
     try:
         cases = load_cases(args.cases)
@@ -199,14 +225,13 @@ def main() -> int:
                 raise ValueError("--baseline is required")
             baseline = index_records(read_jsonl(args.baseline), "baseline")
             pairs, key = blind_pairs(cases, baseline, outputs, args.seed)
-            write_new(args.out / "pairs.json", json.dumps(pairs, indent=2) + "\n")
-            write_new(args.out / "private-key.json", json.dumps(key, indent=2) + "\n")
+            write_comparison(args.out, pairs, key)
             return 0
         reviews = index_records(read_jsonl(args.reviews), "reviews") if args.reviews else None
         report = score(cases, outputs, reviews)
         write_new(args.out, json.dumps(report, indent=2) + "\n")
         print(report["status"])
-        return 1 if report["status"] in ("mechanical_failed", "review_failed") else 0
+        return 0 if report["status"] == "reviewed" else 1
     except (OSError, ValueError) as error:
         print(f"explanation-eval: {error}", file=sys.stderr)
         return 2

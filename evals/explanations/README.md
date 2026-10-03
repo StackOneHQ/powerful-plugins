@@ -51,23 +51,31 @@ python3 scripts/evaluate_explanations.py prepare \
   --cases evals/explanations/writing.jsonl --split dev --out /tmp/writing-prompts
 python3 scripts/evaluate_explanations.py score \
   --cases evals/explanations/writing.jsonl --outputs /tmp/candidate.jsonl \
-  --out /tmp/candidate-report.json
+  --split dev --out /tmp/candidate-report.json
 python3 scripts/evaluate_explanations.py blind \
   --cases evals/explanations/writing.jsonl --baseline /tmp/baseline.jsonl \
-  --outputs /tmp/candidate.jsonl --out /tmp/writing-comparison
+  --outputs /tmp/candidate.jsonl --split dev --out /tmp/writing-comparison
 ```
 
 An output JSONL row is `{"id":"case-id","output":"the finished explanation"}`.
 Use the same `--split` when preparing and scoring a partial suite. The CLI refuses
 to overwrite evidence. It never calls a model or sends data over the network.
+The `blind` output directory must be new. Both comparison files are published
+together. Assignment uses system randomness by default; an explicit `--seed`
+is a reproducibility override that must stay private until review is complete.
+For `score`, exit 0 requires `reviewed`; failed or pending reviews exit 1, and
+invalid inputs or unavailable checks exit 2. `prepare` and `blind` exit 0 when
+their artifacts were written successfully.
 
 Literal checks catch omissions and changes to protected strings. Word count is
 diagnostic only. A mechanically clean result is `awaiting_reviews`, not a pass
 on meaning. Review outputs against the full source and expected facts, including
 negation, threshold boundaries and uncertainty.
 
-For blind comparison, give the reviewer `pairs.json`; keep `private-key.json`
-away from the reviewer. Rate meaning, simplicity and fluency separately from
+For blind comparison, `pairs.json` includes question text without answer keys.
+For the comprehension pass, give a reader only one output and those questions,
+withholding the source and the other output. Then give a separate factual reviewer
+`pairs.json`; keep `private-key.json` away from both readers. Rate meaning, simplicity and fluency separately from
 1 (poor) to 5 (excellent), with a reason tied to the output. Answer the case's
 comprehension questions from the explanation. A case passes review only with
 meaning 5, simplicity and fluency at least 4, no wrong comprehension answer and

@@ -52,11 +52,15 @@ Offer a diagram only when relationships or timing are hard to follow in prose.
 Compare the rewrite with the source facts, including failure cases. A smoother
 sentence that changes the condition fails even when every style check passes.
 
-Run the existing `check-copy.sh` gate on authored prose. For mixed documents, save
-a temporary prose-only copy that excludes only the exact protected spans identified
-above. Check each excluded span against the source before delivery. Do not exclude
-authored labels, captions or explanation to make the checker pass. If the checker
-cannot run, report that limitation; an unavailable check is not a pass.
+Check that every protected span identified before rewriting is present unchanged
+in the output. Checking only surviving spans would miss a deletion. Then run
+`${CLAUDE_PLUGIN_ROOT}/scripts/check-copy.sh` on all authored text, including labels
+and captions. When `CLAUDE_PLUGIN_ROOT` is unset, use the fallback in SKILL.md step 4.
+For mixed documents, save a temporary copy excluding only those exact protected
+spans. Apply the Final gate's punctuation and emoji counts to this same checked
+copy. A hard check failure still blocks delivery, except for a direct user-requested
+exception as described in Scope and boundaries. If the checker cannot run, report
+that limitation; an unavailable check is not a pass.
 
 The separate comparison lets a literal such as `"queue\u2014paused"` remain unchanged
 without allowing punctuation outside that literal. Deliver the finished explanation,

@@ -52,9 +52,9 @@ In Codex, use `$animation-studio:animation-studio` and `$animation-studio:explod
 four agents are available there through the `$animation-studio:animation-studio-specialists` skill.
 Use `$animation-studio:educational-explainer` in Codex for a narrated lesson.
 
-Educational narration can use an installed local speech engine, including optional
-[stackvox](https://github.com/StackOneHQ/stackvox), which downloads model files on
-first use and then runs locally. The plugin installs no speech engine automatically.
+Educational narration can use an installed local speech engine. Check whether it
+needs a model download before promising offline use. The plugin installs no speech
+engine automatically.
 Hosted speech providers are optional and receive narration only when you authorize
 that service. The bundled timeline checker uses Python's standard library and no network.
 

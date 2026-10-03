@@ -5,7 +5,6 @@ from __future__ import annotations
 
 import argparse
 import json
-import math
 import sys
 import wave
 from pathlib import Path
@@ -55,13 +54,15 @@ def check(plan: dict[str, Any], root: Path) -> list[str]:
             raise ValueError(f"{scene_id}: audio must stay inside the plan directory")
         with wave.open(str(audio_path), "rb") as handle:
             samples, rate = handle.getnframes(), handle.getframerate()
+            if rate <= 0:
+                raise ValueError(f"{scene_id}: WAV sample rate must be positive")
             # Detect a truncated WAV rather than trusting its declared frame count.
             raw = handle.readframes(samples)
             if len(raw) != samples * handle.getsampwidth() * handle.getnchannels():
                 raise ValueError(f"{scene_id}: truncated WAV")
         if samples == 0:
             errors.append(f"{scene_id}: empty narration audio")
-        if math.ceil(samples * fps / rate) > end - start:
+        if (samples * fps + rate - 1) // rate > end - start:
             errors.append(f"{scene_id}: narration exceeds scene duration")
         if not transcript.strip() or not captions:
             errors.append(f"{scene_id}: narrated scene needs transcript and captions")

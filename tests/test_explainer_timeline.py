@@ -2,6 +2,8 @@
 
 import copy
 import importlib.util
+import subprocess
+import sys
 import tempfile
 import unittest
 import wave
@@ -79,6 +81,43 @@ class TimelineTests(unittest.TestCase):
         self.plan["fps"] = True
         with self.assertRaisesRegex(ValueError, "integer"):
             timeline.check(self.plan, self.root)
+
+    def test_final_scene_must_reach_total(self):
+        self.plan["total_frames"] = 46
+        self.assertIn("final scene does not end at total_frames", timeline.check(self.plan, self.root))
+
+    def test_captions_must_not_overlap_within_scene(self):
+        self.plan["scenes"][0]["captions"] = [
+            {"start_frame": 0, "end_frame": 20, "text": "Wait"},
+            {"start_frame": 19, "end_frame": 30, "text": "one second."},
+        ]
+        self.assertIn("one: caption overlaps or lies outside its scene",
+                      timeline.check(self.plan, self.root))
+
+    def test_duplicate_scene_ids_rejected(self):
+        self.plan["scenes"].append(copy.deepcopy(self.plan["scenes"][0]))
+        with self.assertRaisesRegex(ValueError, "unique"):
+            timeline.check(self.plan, self.root)
+
+    def test_large_frame_counts_do_not_overflow(self):
+        self.plan["fps"] = 10**400
+        self.plan["total_frames"] = 2 * 10**400
+        self.plan["scenes"][0]["end_frame"] = 2 * 10**400
+        self.assertEqual(timeline.check(self.plan, self.root), [])
+
+    def test_zero_wav_rate_returns_input_error(self):
+        import json
+
+        audio = self.root / "audio.wav"
+        content = bytearray(audio.read_bytes())
+        content[24:28] = b"\0" * 4
+        audio.write_bytes(content)
+        plan = self.root / "plan.json"
+        plan.write_text(json.dumps(self.plan))
+        result = subprocess.run([sys.executable, str(SCRIPT), str(plan)],
+                                capture_output=True, text=True, check=False)
+        self.assertEqual(result.returncode, 2)
+        self.assertNotIn("Traceback", result.stderr)
 
 
 if __name__ == "__main__":

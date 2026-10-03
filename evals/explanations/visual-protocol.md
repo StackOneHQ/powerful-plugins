@@ -5,14 +5,27 @@ diagram-explainer and guided walkthroughs. Its relationship and comprehension
 questions follow the evaluation ideas of AI2D and ScienceQA cited in README.md;
 the cases are not examples from those datasets or official benchmark scores.
 
-Generate each applicable artifact from the same source. A video request asks for
+Run every case through all three formats in each arm: video, diagram and walkthrough.
+Report results by case and format; an unavailable format is missing evidence, not
+a smaller passing suite. Freeze development and holdout cases as the writing
+protocol describes, with at least two fresh sessions per arm and case-format pair.
+
+A video request asks for
 a narrated lesson with a transcript and captions; a diagram request asks for an
 editable source and rendered preview; a walkthrough request asks for a local
 interactive HTML page and a static equivalent. Keep the source, audience and
 budget the same across released and candidate skills. For the new diagram skill,
 use the host's ordinary diagram capability as the baseline and record that choice.
 
-Give generators only `source`, `request` and the chosen artifact format. Expected
+Before generation, record the model identifier and settings, date, full prompts,
+skill commit and content hashes, renderer and speech-engine versions, voice/model,
+tool versions, and unavailable capabilities. Fix the audience, requested duration
+or page size, tool budget and rendering limits to explicit shared values for both
+arms. Keep these conditions in a local run manifest. Record any unavoidable
+difference and do not attribute its effect to the skill.
+
+Give generators only `source`, `request`, the chosen artifact format and those
+shared audience and budget constraints, together with their skill content. Expected
 facts, answers and checks are evaluation data. Give an independent reader only
 the finished artifact and questions, then compare their answers with the source
 key. A reviewer with the source should separately audit factual support.
@@ -46,6 +59,15 @@ the generator prompt; they are the browser and media review checks.
 - Walkthrough: ask the reader to change one input, explain the resulting difference
   and return to baseline. Ask which interaction helped them understand the mechanism.
 
-Store the user's actual feedback with the exact artifact hash locally. Feedback
-on a previous render does not approve a changed narration, diagram or interaction.
+Bind feedback to the entire delivered bundle: enumerate every shipped file with
+its relative POSIX path, byte length and SHA-256, sorted by path. Include the
+rendered preview/video/HTML, editable sources, captions, transcript, static equivalent
+and any local assets they load. Reject symlinks and paths outside the bundle; inline
+or vendor remote assets so a later remote change cannot evade the manifest.
+Serialize the manifest as a UTF-8 JSON array with sorted object keys, compact
+separators and no trailing newline, then hash those bytes with SHA-256. Exclude
+the manifest itself and feedback records to avoid a recursive hash. Store that
+manifest, its hash and the user's actual feedback locally. Any changed, added or
+removed delivered file needs a new manifest and feedback.
+Feedback on a previous render does not approve a changed narration, diagram or interaction.
 Record model-reader checks as model evaluations; they are not user feedback.

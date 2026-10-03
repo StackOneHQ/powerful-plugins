@@ -1,5 +1,7 @@
 ---
 name: educational-explainer
+permissions:
+  - file_read
 description: Create a narrated video that teaches a mechanism, concept or procedure from supplied sources, with synchronized visuals, captions and a transcript. Use for educational video explainers or a visual lesson. For a promotional clip, use the video-creator workflow; for an interactive scroll page, use exploded-machine.
 ---
 
@@ -60,10 +62,16 @@ speech. Check captions against both speech and visuals. Use the local timeline
 checker when the scene plan uses its schema:
 
 ```bash
-python3 scripts/check_timeline.py plan.json
+python3 "${CLAUDE_PLUGIN_ROOT}/skills/educational-explainer/scripts/check_timeline.py" plan.json
 ```
 
+If `CLAUDE_PLUGIN_ROOT` is unset, resolve this installed skill's directory from the
+loaded `SKILL.md` path and invoke its `scripts/check_timeline.py` by absolute path.
+Keep `plan.json` relative to the user's project, not the plugin directory.
+
 The schema and a minimal example are in [references/narration.md](references/narration.md).
+The bundled checker reads the supplied plan and WAV files inside its directory;
+it does not write files or access the network.
 The script detects out-of-bounds timing and narration that exceeds its scene;
 it does not establish that the video teaches accurately. Use the scene questions
 to check that the answer is recoverable from the finished artifact. A failed render,
