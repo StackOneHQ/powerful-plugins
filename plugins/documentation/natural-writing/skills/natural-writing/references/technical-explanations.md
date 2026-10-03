@@ -62,7 +62,7 @@ copy. A hard check failure still blocks delivery, except for a direct user-reque
 exception as described in Scope and boundaries. If the checker cannot run, report
 that limitation; an unavailable check is not a pass.
 
-The separate comparison lets a literal such as `"queue\u2014paused"` remain unchanged
+The separate comparison lets a literal such as `"queue—paused"` remain unchanged
 without allowing punctuation outside that literal. Deliver the finished explanation,
 with a short note only for an unresolved ambiguity, requested exception or missing check.
 

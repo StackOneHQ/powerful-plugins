@@ -167,6 +167,16 @@ class ExplanationEvalTests(unittest.TestCase):
         self.assertEqual({case["split"] for case in cases.values()}, {"dev", "holdout"})
         self.assertTrue(all(case["expected_facts"] and case["questions"] for case in cases.values()))
 
+    def test_protected_punctuation_is_not_a_literal_escape(self):
+        case = evaluation.load_cases(ROOT / "evals/explanations/writing.jsonl")["literal-dev"]
+        self.assertIn(chr(0x2014), case["source"])
+        cases = {case["id"]: case}
+        unchanged = evaluation.score(cases, {case["id"]: {"output": case["source"]}})
+        self.assertEqual(unchanged["status"], "awaiting_reviews")
+        escaped = case["source"].replace(chr(0x2014), r"\u2014")
+        changed = evaluation.score(cases, {case["id"]: {"output": escaped}})
+        self.assertEqual(changed["status"], "mechanical_failed")
+
     def test_invalid_split_and_review_keys_rejected(self):
         for update, error in (({"split": "holduot"}, "split must"),
                               ({"expected_facts": []}, "required"),
