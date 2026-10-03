@@ -6,11 +6,11 @@ text equivalent and evidence for consequential relationships.
 
 ## Install
 
+Add this marketplace using the instructions in the repository README, then install:
+
 ```bash
-/plugin marketplace add StackOneHQ/powerful-plugins
 /plugin install diagram-explainer@powerful-plugins
 
-codex plugin marketplace add StackOneHQ/powerful-plugins
 codex plugin add diagram-explainer@powerful-plugins
 ```
 
