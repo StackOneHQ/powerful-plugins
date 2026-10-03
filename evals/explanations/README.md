@@ -60,8 +60,9 @@ python3 scripts/evaluate_explanations.py blind \
 An output JSONL row is `{"id":"case-id","output":"the finished explanation"}`.
 Use the same `--split` when preparing and scoring a partial suite. The CLI refuses
 to overwrite evidence. It never calls a model or sends data over the network.
-The `blind` output directory must be new. Both comparison files are published
-together. Assignment uses system randomness by default; an explicit `--seed`
+The `prepare` and `blind` output directories must be new. Each complete bundle is
+published together, including its manifest or private key. Assignment uses system
+randomness by default; an explicit `--seed`
 is a reproducibility override that must stay private until review is complete.
 For `score`, exit 0 requires `reviewed`; failed or pending reviews exit 1, and
 invalid inputs or unavailable checks exit 2. `prepare` and `blind` exit 0 when
@@ -74,7 +75,10 @@ negation, threshold boundaries and uncertainty.
 
 For blind comparison, `pairs.json` includes question text without answer keys.
 For the comprehension pass, give a reader only one output and those questions,
-withholding the source and the other output. Then give a separate factual reviewer
+withholding the source and the other output. Assemble a separate reader card by
+copying only `id`, `questions` and one of `A` or `B` from each selected pair; give
+the two arms to separate fresh reader sessions. Never pass the whole `pairs.json`
+to a comprehension reader. Then give a separate factual reviewer
 `pairs.json`; keep `private-key.json` away from both readers. Rate meaning, simplicity and fluency separately from
 1 (poor) to 5 (excellent), with a reason tied to the output. Answer the case's
 comprehension questions from the explanation. A case passes review only with

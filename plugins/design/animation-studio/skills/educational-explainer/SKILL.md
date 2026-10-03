@@ -1,5 +1,6 @@
 ---
 name: educational-explainer
+# SkillSpector inventory of the bundled checker; this grants no runtime access.
 permissions:
   - file_read
 description: Create a narrated video that teaches a mechanism, concept or procedure from supplied sources, with synchronized visuals, captions and a transcript. Use for educational video explainers or a visual lesson. For a promotional clip, use the video-creator workflow; for an interactive scroll page, use exploded-machine.
@@ -41,7 +42,10 @@ Read [references/narration.md](references/narration.md) when audio is requested.
 Use an existing renderer and project when available. Remotion is the preferred
 path for editable video; load `remotion-best-practices` if installed. Another
 available renderer is acceptable when it can express the explanation and deliver
-the requested editable sources. Pin any newly installed packages and keep their
+the requested editable sources. Before installing packages, confirm that the user
+has already authorized the installation. Otherwise provide the command and ask
+before running it, as the video-creator workflow does. Reuse existing authorization.
+Pin any newly installed packages and keep their
 lockfile; do not install a renderer merely to produce a storyboard.
 
 Synthesize or obtain the audio before finalizing scene durations. Measure each
@@ -72,6 +76,8 @@ Keep `plan.json` relative to the user's project, not the plugin directory.
 The schema and a minimal example are in [references/narration.md](references/narration.md).
 The bundled checker reads the supplied plan and WAV files inside its directory;
 it does not write files or access the network.
+The frontmatter capability inventory describes that script for SkillSpector.
+Running Python and reading inputs still use the host's existing tool permissions.
 The script detects out-of-bounds timing and narration that exceeds its scene;
 it does not establish that the video teaches accurately. Use the scene questions
 to check that the answer is recoverable from the finished artifact. A failed render,

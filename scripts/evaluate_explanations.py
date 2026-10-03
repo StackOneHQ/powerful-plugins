@@ -69,6 +69,7 @@ def prepare(cases: dict[str, dict[str, Any]], output: Path, split: str) -> int:
     selected = [case for case in cases.values() if split == "all" or case["split"] == split]
     if not selected:
         raise ValueError(f"no cases in split {split}")
+    files = {}
     for case in selected:
         # Only inputs go to the generator. Expected facts, questions and references stay out.
         prompt = (
@@ -76,11 +77,12 @@ def prepare(cases: dict[str, dict[str, Any]], output: Path, split: str) -> int:
             f"<source>\n{case['source']}\n</source>\n"
         )
         safe_id = hashlib.sha256(case["id"].encode()).hexdigest()[:16]
-        write_new(output / f"{safe_id}.txt", prompt)
-    write_new(output / "manifest.json", json.dumps([
+        files[f"{safe_id}.txt"] = prompt
+    files["manifest.json"] = json.dumps([
         {"id": case["id"], "file": hashlib.sha256(case["id"].encode()).hexdigest()[:16] + ".txt"}
         for case in selected
-    ], indent=2) + "\n")
+    ], indent=2) + "\n"
+    write_bundle(output, files)
     return len(selected)
 
 
@@ -185,15 +187,15 @@ def blind_pairs(
     return pairs, key
 
 
-def write_comparison(output: Path, pairs: list[dict[str, Any]], key: dict[str, Any]) -> None:
+def write_bundle(output: Path, files: dict[str, str]) -> None:
     if output.exists():
-        raise FileExistsError(f"comparison directory already exists: {output}")
+        raise FileExistsError(f"evidence directory already exists: {output}")
     output.parent.mkdir(parents=True, exist_ok=True)
-    # Publish both files together; a failed write must not expose partial evidence.
-    with tempfile.TemporaryDirectory(prefix=".comparison-", dir=output.parent) as staging:
+    # Publish the bundle together; a failed write must not expose partial evidence.
+    with tempfile.TemporaryDirectory(prefix=".evidence-", dir=output.parent) as staging:
         directory = Path(staging)
-        write_new(directory / "pairs.json", json.dumps(pairs, indent=2) + "\n")
-        write_new(directory / "private-key.json", json.dumps(key, indent=2) + "\n")
+        for filename, content in files.items():
+            write_new(directory / filename, content)
         directory.rename(output)
 
 
@@ -225,7 +227,8 @@ def main() -> int:
                 raise ValueError("--baseline is required")
             baseline = index_records(read_jsonl(args.baseline), "baseline")
             pairs, key = blind_pairs(cases, baseline, outputs, args.seed)
-            write_comparison(args.out, pairs, key)
+            write_bundle(args.out, {"pairs.json": json.dumps(pairs, indent=2) + "\n",
+                                    "private-key.json": json.dumps(key, indent=2) + "\n"})
             return 0
         reviews = index_records(read_jsonl(args.reviews), "reviews") if args.reviews else None
         report = score(cases, outputs, reviews)

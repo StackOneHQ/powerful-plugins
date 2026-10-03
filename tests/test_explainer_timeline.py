@@ -8,6 +8,7 @@ import tempfile
 import unittest
 import wave
 from pathlib import Path
+from unittest import mock
 
 SCRIPT = Path(__file__).resolve().parents[1] / (
     "plugins/design/animation-studio/skills/educational-explainer/scripts/check_timeline.py"
@@ -72,6 +73,18 @@ class TimelineTests(unittest.TestCase):
         p.write_bytes(p.read_bytes()[:-2])
         with self.assertRaisesRegex(ValueError, "truncated"):
             timeline.check(self.plan, self.root)
+
+    def test_long_audio_is_checked_in_bounded_chunks(self):
+        with wave.open(str(self.root / "audio.wav"), "wb") as audio:
+            audio.setparams((1, 2, 8000, 0, "NONE", "not compressed"))
+            audio.writeframes(b"\0\0" * 40000)
+        self.plan["total_frames"] = self.plan["scenes"][0]["end_frame"] = 200
+        original = wave.Wave_read.readframes
+        with mock.patch.object(wave.Wave_read, "readframes", autospec=True,
+                               side_effect=original) as reads:
+            self.assertEqual(timeline.check(self.plan, self.root), [])
+        self.assertGreater(reads.call_count, 1)
+        self.assertTrue(all(call.args[1] * 2 <= 65536 for call in reads.call_args_list))
 
     def test_silent_scene_cannot_claim_narration(self):
         self.plan["scenes"][0]["audio"] = None

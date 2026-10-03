@@ -1,8 +1,15 @@
 # Narration and timing
 
 Prefer an available local speech engine when the user has no provider preference.
+Inspect the existing project's audio configuration and discover installed commands:
+on a POSIX shell, `command -v say espeak-ng piper` checks common local engines;
+on PowerShell, use `Get-Command` for the available speech tools. Select an installed
+engine that supports the required language and a local audio file. Do not install
+all candidates or assume that finding a command means its voice model is cached.
 Check its installed help for text-file input and WAV output. Some engines download
-models on first use; promise offline synthesis only after the model is cached.
+models on first use. Check cache status before synthesis; if a model download is
+needed, reuse existing authorization for it or ask before triggering the download.
+Promise offline synthesis only after the model is cached.
 Installing a speech engine is optional, not a hook or a prerequisite for other
 plugin features. If none is available, ask which speech option the user wants
 when narration is essential. Do not silently return a silent video as narrated.

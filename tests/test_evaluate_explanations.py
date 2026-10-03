@@ -8,6 +8,7 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 ROOT = Path(__file__).resolve().parents[1]
 SPEC = importlib.util.spec_from_file_location("explanation_eval", ROOT / "scripts/evaluate_explanations.py")
@@ -78,13 +79,14 @@ class ExplanationEvalTests(unittest.TestCase):
 
     def test_prompt_has_no_answer_key_and_safe_filename(self):
         with tempfile.TemporaryDirectory() as directory:
-            evaluation.prepare(self.cases, Path(directory), "dev")
-            prompts = list(Path(directory).glob("*.txt"))
+            output = Path(directory) / "prompts"
+            evaluation.prepare(self.cases, output, "dev")
+            prompts = list(output.glob("*.txt"))
             self.assertEqual(len(prompts), 1)
             self.assertIn(self.cases["case"]["source"], prompts[0].read_text())
             self.assertNotIn("SECRET ANSWER", prompts[0].read_text())
             with self.assertRaises(FileExistsError):
-                evaluation.prepare(self.cases, Path(directory), "dev")
+                evaluation.prepare(self.cases, output, "dev")
 
     def test_blind_pairs_separate_the_key(self):
         baseline = {"case": {"output": "First text."}}
@@ -102,6 +104,18 @@ class ExplanationEvalTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "every selected case"):
             evaluation.blind_pairs(self.cases, {}, {"case": {"output": "Second text."}}, 407)
 
+    def test_default_blinding_uses_system_randomness(self):
+        cases = evaluation.load_cases(ROOT / "evals/explanations/writing.jsonl")
+        baseline = {case_id: {"output": "Baseline text."} for case_id in cases}
+        candidate = {case_id: {"output": "Candidate text."} for case_id in cases}
+        # Test the entropy source directly; two random assignments can validly coincide.
+        with mock.patch.object(evaluation.random, "Random", side_effect=AssertionError("seeded PRNG")):
+            pairs, key = evaluation.blind_pairs(cases, baseline, candidate)
+        for pair in pairs:
+            for label in ("A", "B"):
+                arm = {"baseline": baseline, "candidate": candidate}[key[pair["id"]][label]]
+                self.assertEqual(pair[label], arm[pair["id"]]["output"])
+
     def test_stale_key_does_not_publish_new_pairs(self):
         with tempfile.TemporaryDirectory() as directory:
             output = Path(directory) / "comparison"
@@ -109,16 +123,32 @@ class ExplanationEvalTests(unittest.TestCase):
             key = output / "private-key.json"
             key.write_text("stale key")
             with self.assertRaises(FileExistsError):
-                evaluation.write_comparison(output, [{"A": "new"}], {"A": "candidate"})
+                evaluation.write_bundle(output, {"pairs.json": "new pairs", "private-key.json": "new key"})
             self.assertFalse((output / "pairs.json").exists())
             self.assertEqual(key.read_text(), "stale key")
 
     def test_comparison_publishes_both_files(self):
         with tempfile.TemporaryDirectory() as directory:
             output = Path(directory) / "comparison"
-            evaluation.write_comparison(output, [{"A": "new"}], {"A": "candidate"})
+            evaluation.write_bundle(output, {"pairs.json": '[{"A":"new"}]',
+                                             "private-key.json": '{"A":"candidate"}'})
             self.assertEqual(json.loads((output / "pairs.json").read_text()), [{"A": "new"}])
             self.assertEqual(json.loads((output / "private-key.json").read_text()), {"A": "candidate"})
+
+    def test_failed_prompt_write_publishes_nothing(self):
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory) / "prompts"
+            original = evaluation.write_new
+
+            def fail_manifest(path, value):
+                if path.name == "manifest.json":
+                    raise OSError("disk full")
+                original(path, value)
+
+            with mock.patch.object(evaluation, "write_new", side_effect=fail_manifest):
+                with self.assertRaisesRegex(OSError, "disk full"):
+                    evaluation.prepare(self.cases, output, "dev")
+            self.assertEqual(list(Path(directory).iterdir()), [])
 
     def test_cli_unreviewed_output_is_not_success(self):
         with tempfile.TemporaryDirectory() as directory:
