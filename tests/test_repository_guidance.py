@@ -1,6 +1,7 @@
 import json
 import re
 import subprocess
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -178,10 +179,15 @@ class RepositoryGuidanceTests(unittest.TestCase):
         tracked = subprocess.run(
             ["git", "-C", str(ROOT), "ls-files", "-z"], check=True, capture_output=True, text=True
         ).stdout.split("\0")
-        fields = subprocess.run(
-            ["git", "-C", str(ROOT), "check-attr", "-z", "--stdin", "linguist-generated"],
-            input="\0".join(tracked), check=True, capture_output=True, text=True,
-        ).stdout.split("\0")
+        # Avoid a full-duplex pipe deadlock on hosts with small pipe buffers.
+        # The assertion and the exact NUL-delimited input remain unchanged.
+        with tempfile.TemporaryFile() as paths:
+            paths.write("\0".join(tracked).encode())
+            paths.seek(0)
+            fields = subprocess.run(
+                ["git", "-C", str(ROOT), "check-attr", "-z", "--stdin", "linguist-generated"],
+                stdin=paths, check=True, capture_output=True, text=True, timeout=30,
+            ).stdout.split("\0")
         marked = {fields[k] for k in range(0, len(fields) - 2, 3) if fields[k + 2] in ("set", "true")}
         listed = json.loads((ROOT / ".agents" / "plugins" / "generated-files.json").read_text())["files"]
         self.assertEqual(marked, set(listed))
