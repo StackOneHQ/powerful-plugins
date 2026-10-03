@@ -12,6 +12,7 @@ metadata:
 Use this skill when:
 - Adding animations, transitions, or motion effects to any component or page
 - Creating marketing videos, product demos, or animated explainers
+- Teaching a concept or mechanism in a narrated video (route to `educational-explainer`)
 - Someone says "make it move", "animate this", "add motion", "floating", "parallax"
 - Building interactive visual effects (hover states, scroll-triggered, layout animations)
 - Working with SVG animations, path drawing, or morphing
@@ -60,7 +61,8 @@ Check your own build rather than trusting this table: run the production build, 
    - Concept/brainstorming → `animation-ideator`
    - Motion component → `motion-creator`
    - anime.js or vanilla animation → `animejs-creator`
-   - Video → `video-creator`
+   - Marketing or product video → `video-creator`
+   - Narrated educational video → `educational-explainer` skill
    - Scroll-driven exploded view of a system → `exploded-machine` skill
 5. **Verify**: check that `prefers-reduced-motion` is respected, on the production build as well as the dev server. Dev servers can differ from production in script loading and hydration timing, so build, then serve the output with a static server or the framework's preview command. When you replace or refactor an existing animation, prove parity frame by frame: capture the old and new versions at the same timestamps and compare them. The `browser-recorder` plugin in the powerful-plugins marketplace can record both runs
 

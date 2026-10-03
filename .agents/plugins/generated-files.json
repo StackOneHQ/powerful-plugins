@@ -25,6 +25,8 @@
     "plugins/design/animation-studio/.codex/skills/animation-studio-specialists/agents/openai.yaml",
     "plugins/design/animation-studio/.codex/skills/animation-studio/SKILL.md",
     "plugins/design/animation-studio/.codex/skills/animation-studio/agents/openai.yaml",
+    "plugins/design/animation-studio/.codex/skills/educational-explainer/SKILL.md",
+    "plugins/design/animation-studio/.codex/skills/educational-explainer/agents/openai.yaml",
     "plugins/design/animation-studio/.codex/skills/exploded-machine/SKILL.md",
     "plugins/design/animation-studio/.codex/skills/exploded-machine/agents/openai.yaml",
     "plugins/design/decision-artifacts/.codex-plugin/plugin.json",
