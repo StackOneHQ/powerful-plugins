@@ -20,10 +20,13 @@ ScienceQA data is CC BY-NC-SA 4.0. Keep downloaded data and derivative outputs
 outside the repository. Record dataset revision, split, item IDs, sampling method
 and license when running a public sample. A benchmark-informed synthetic test must
 never be reported as a run on the benchmark itself.
-Every case declares `dev` or `holdout` and a review key: nonempty `expected_facts`
-for synthetic cases, or the dataset's human `references` for benchmark cases such
-as ASSET. Every supplied comprehension question needs an answer in the private
-case file. Do not invent questions merely to label a benchmark adaptation complete.
+Every case declares `dev` or `holdout`. The CLI requires nonempty `expected_facts`
+or `references`; it does not infer the dataset type from free-text provenance or
+authenticate reference content. For this protocol, use expected facts for synthetic
+cases and the dataset's human references for benchmark cases such as ASSET. The
+operator verifies that the review key matches the recorded source and provenance.
+Every supplied comprehension question needs an answer in the private case file.
+Do not invent questions merely to label a benchmark adaptation complete.
 
 ## Release sequence
 

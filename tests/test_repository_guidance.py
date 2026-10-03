@@ -180,7 +180,6 @@ class RepositoryGuidanceTests(unittest.TestCase):
             ["git", "-C", str(ROOT), "ls-files", "-z"], check=True, capture_output=True, text=True
         ).stdout.split("\0")
         # Avoid a full-duplex pipe deadlock on hosts with small pipe buffers.
-        # The assertion and the exact NUL-delimited input remain unchanged.
         with tempfile.TemporaryFile() as paths:
             paths.write("\0".join(tracked).encode())
             paths.seek(0)
