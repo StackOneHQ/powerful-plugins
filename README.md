@@ -46,6 +46,7 @@ browse the catalog.
 |--------|----------|--------------|
 | `animation-studio` | Design | Plans and builds web animations, scroll-driven 3D explainers and short videos from a rough spec, with the Web Animations API, Motion, anime.js, Three.js and Remotion. |
 | `decision-artifacts` | Design | Turns findings, options, plans and status updates into short, evidence-backed pages that help people decide. |
+| `diagram-explainer` | Design | Creates editable, source-grounded architecture, sequence, state and causal diagrams with previews and evidence. |
 | `tufte-viz` | Design | Designs and critiques charts with Edward Tufte's principles: data-ink ratio, graphical integrity, small multiples and sparklines. |
 | `natural-writing` | Documentation | Writes and edits prose that reads like a person wrote it, with a mechanical checker and a review command. |
 | `browser-recorder` | Engineering | Records browser sessions from a shot list: screenshots, video clips and a mouse event log for editing afterwards. |

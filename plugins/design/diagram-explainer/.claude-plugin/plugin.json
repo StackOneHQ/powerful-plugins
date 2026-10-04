@@ -1,0 +1,19 @@
+{
+  "name": "diagram-explainer",
+  "version": "1.0.0",
+  "description": "Create editable, source-grounded diagrams of systems, sequences, states and causal mechanisms, with rendered previews and evidence.",
+  "author": {
+    "name": "StackOne",
+    "url": "https://github.com/StackOneHQ"
+  },
+  "license": "MIT",
+  "keywords": [
+    "diagrams",
+    "architecture",
+    "sequence",
+    "explanation",
+    "mermaid",
+    "svg",
+    "excalidraw"
+  ]
+}

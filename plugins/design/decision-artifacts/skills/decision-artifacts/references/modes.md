@@ -41,6 +41,10 @@ Show:
 
 Good primary views: before/after, annotated flow, sequence, shallow architecture map, responsibility tree.
 
+When one worked example needs a step-by-step trace, use
+[guided-walkthroughs.md](guided-walkthroughs.md). Add `explore` as the secondary
+mode only when input changes explain a material difference.
+
 ## Act
 
 Use when the reader must execute work correctly.

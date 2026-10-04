@@ -2,6 +2,13 @@
 
 Writing and editing rules for prose, messages and the text inside assets.
 
+For plain technical English, runbooks and explanations of mechanisms, the skill
+has a technical explanation mode. It keeps conditions, quantities, identifiers and
+uncertainty intact, uses consistent terms, and checks protected source text
+separately from authored prose. It borrows STE principles without claiming
+ASD-STE100 compliance. Ask, for example: "Explain this retry policy in plain
+technical English for an engineer who has not worked on this service."
+
 ## Install
 
 ```bash

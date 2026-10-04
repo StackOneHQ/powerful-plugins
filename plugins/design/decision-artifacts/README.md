@@ -27,6 +27,12 @@ The default is an editorial decision brief built around **simple at rest, exhaus
 - no more than two levels of disclosure
 - source, confidence rationale, verification state, and last-checked context for consequential claims
 
+For a guided explanation, the skill can trace one example through a mechanism,
+keep a baseline beside an adjustable scenario, and deliver a complete static text
+equivalent. The diagram, step labels and result share one model so changing an
+input does not leave contradictory views. Ask: "Walk me through this retry policy
+with one example. Let me change the delay cap and show why the result changes."
+
 ## Composition with other skills
 
 The plugin composes with adjacent skills instead of copying their rules.
@@ -37,7 +43,7 @@ The plugin composes with adjacent skills instead of copying their rules.
 - `animation-studio` owns motion, when a state change needs it.
 - `browser-automation` covers interaction testing of the rendered artifact.
 - Any installed response-style skill owns response order, scannability, plain language, and honest uncertainty.
-- Any installed diagramming skill owns focused diagrams and visual explanations.
+- `diagram-explainer`, or another installed diagramming skill, owns focused diagrams and visual explanations.
 - The project's brand or design-system skill, or its design tokens, owns the visual system. If none exists, the built-in tastes apply and the skill asks before inventing brand values.
 - Any installed HTML rendering skill owns its rendering path.
 - `vercel-web-design-guidelines` covers implementation review.

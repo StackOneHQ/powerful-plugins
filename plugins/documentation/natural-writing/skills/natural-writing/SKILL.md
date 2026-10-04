@@ -25,6 +25,7 @@ Asset text is the easiest place for these tells to survive, because a label is n
 
 ## Scope and boundaries
 
+- Preserve technical meaning before style. In technical explanations, keep source code, identifiers, literal messages, quoted source text, quantities, units, and logical conditions accurate. The technical explanation mode below defines how to check protected text separately from authored prose.
 - A direct instruction from the user about this piece outranks these rules. If they ask for a dash inside a quoted title, or a format this skill would not pick, do it and name the conflict in one line. A voice guide or another skill's style advice is not a direct instruction, so the caps here still apply to it (S6 and S8 say how).
 - You may, without asking, save a draft to a temporary file, run `check-copy.sh` on it, and rewrite the text you were asked to write or edit. Change other files only when the user asks. Sending, posting or publishing the text needs the user's explicit go-ahead.
 - This skill works on wording. It does not research new facts, restructure a document beyond the request, or change technical content. Where a rule says to check the author's earlier posts or published pieces, use what the conversation and the files at hand contain; if there is nothing, say so in one line and carry on.
@@ -45,6 +46,14 @@ the author's supplied perspective. Never invent a metric, named example, persona
 experience or opinion to pass a writing check. If the text already does its job,
 leave it concise rather than adding material to make it seem more distinctive.
 
+## Technical explanation mode
+
+When the user asks for plain technical English, an unambiguous procedure, a runbook,
+or a simpler explanation of a mechanism, read
+[references/technical-explanations.md](references/technical-explanations.md).
+The mode borrows selected STE principles; it does not certify ASD-STE100 compliance.
+Use it for that explanation, not as a new voice for unrelated correspondence or creative writing.
+
 ## Working order
 
 The order matters: each pass works on what the previous one left.
@@ -52,7 +61,7 @@ The order matters: each pass works on what the previous one left.
 1. Draft or read the text.
 2. Apply Part 1 (mechanical rules, below) and Part 2 (sentence shapes, [references/sentence-shapes.md](references/sentence-shapes.md)) to remove tells.
 3. Apply Part 3 (line-level craft, [references/line-craft.md](references/line-craft.md)) to every sentence that survived.
-4. Run Part 4, the mechanical check: `${CLAUDE_PLUGIN_ROOT}/scripts/check-copy.sh [--channel prose|social] [--banned-terms FILE] [--soft-terms FILE] [--allow-house-terms] <file>...` on the draft saved to a file. If `CLAUDE_PLUGIN_ROOT` is unset, locate the script with `find "$HOME/.claude" "$HOME/.codex" -path '*natural-writing*/scripts/check-copy.sh' 2>/dev/null | head -1`. It exits 1 when a hard check fails (dashes, curly quotes, emoji per the channel policy, house terms when configured, negation openers, the boundary-line metaphor, reflective hand-holding, assistant tics) and exits 2 when the host has no `grep -P` or no UTF-8 locale, when an input is not a regular file, or when grep itself errors, so a missing dependency can never read as a pass. A non-zero exit blocks delivery, unless the failing match is one the user directly asked for (Scope and boundaries); then ship and name the expected failure in one line. The informational checks print without failing; [references/mechanical-check.md](references/mechanical-check.md) shows the grep block the script runs and how to read the checks that need eyes. Workflows and other skills should call the script rather than paste that block.
+4. Run Part 4, the mechanical check: `${CLAUDE_PLUGIN_ROOT}/scripts/check-copy.sh [--channel prose|social] [--banned-terms FILE] [--soft-terms FILE] [--allow-house-terms] <file>...` on the draft saved to a file. If `CLAUDE_PLUGIN_ROOT` is unset, locate the script with `find "$HOME/.claude" "$HOME/.codex" -path '*natural-writing*/scripts/check-copy.sh' 2>/dev/null | head -1`. It exits 1 when a hard check fails (dashes, curly quotes, emoji per the channel policy, house terms when configured, negation openers, the boundary-line metaphor, reflective hand-holding, assistant tics) and exits 2 when the host has no `grep -P` or no UTF-8 locale, when an input is not a regular file, or when grep itself errors, so a missing dependency can never read as a pass. In technical explanation mode, check all authored text (including labels and captions) and protected source text separately as its reference describes. In every mode a non-zero exit blocks delivery, unless the failing match is one the user directly asked for (Scope and boundaries); then ship and name the expected failure in one line. The informational checks print without failing; [references/mechanical-check.md](references/mechanical-check.md) shows the grep block the script runs and how to read the checks that need eyes. Workflows and other skills should call the script rather than paste that block.
 5. Apply the Part 7 checks ([references/generative.md](references/generative.md)) that fit the format and available author material.
 6. Run the Final gate below, then ship.
 
@@ -65,7 +74,9 @@ To audit text that already exists, follow Part 5 in [references/copy-review.md](
 
 # Part 1: Hard mechanical rules
 
-These are absolute: no exercise of judgement, no per-document allowance. The one exception is a direct user instruction, as Scope and boundaries describes.
+These rules apply to all authored text, including labels and captions. A direct user instruction takes precedence.
+In technical explanation mode, protected source text is preserved and checked separately
+as described in that reference; never change a literal to satisfy a style rule.
 
 ## Rule 1: Em dashes are banned
 
