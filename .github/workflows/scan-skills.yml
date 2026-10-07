@@ -27,7 +27,7 @@ concurrency:
 
 jobs:
   scan-skills:
-    runs-on: ubuntu-latest
+    runs-on: warp-ubuntu-latest-x64-4x
     permissions:
       actions: read # required by upload-sarif in private repositories
       contents: read

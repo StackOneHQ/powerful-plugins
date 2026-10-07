@@ -20,7 +20,7 @@ jobs:
     if: >-
       github.event.pull_request.user.login == 'dependabot[bot]' &&
       github.repository == 'StackOneHQ/powerful-plugins'
-    runs-on: ubuntu-latest
+    runs-on: warp-ubuntu-latest-x64-2x
     timeout-minutes: 5
     permissions:
       contents: write

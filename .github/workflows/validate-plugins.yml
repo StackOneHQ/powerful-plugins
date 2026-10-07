@@ -21,7 +21,7 @@ permissions:
 
 jobs:
   validate:
-    runs-on: ubuntu-latest
+    runs-on: warp-ubuntu-latest-x64-2x
     timeout-minutes: 30
 
     steps:
@@ -139,7 +139,7 @@ jobs:
           echo "Skills: $(find $roots -name SKILL.md | wc -l)"
 
   generator-windows:
-    runs-on: windows-latest
+    runs-on: warp-windows-2025-x64-4x
     timeout-minutes: 10
 
     steps:
