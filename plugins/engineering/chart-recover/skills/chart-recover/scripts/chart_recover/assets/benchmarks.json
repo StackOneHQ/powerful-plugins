@@ -1,0 +1,55 @@
+{
+  "charts": 220,
+  "passed": 204,
+  "automatic": {
+    "charts": 80,
+    "passed": 71
+  },
+  "calendar": {
+    "charts": 40,
+    "passed": 14
+  },
+  "ticks": {
+    "charts": 40,
+    "passed": 33
+  },
+  "comparison_studies": [
+    {
+      "version": "v1",
+      "charts": 60,
+      "passed": 8,
+      "abstained": 52,
+      "returned_failures": 0,
+      "assumption_stress_cases": 2,
+      "assumption_stress_failures": 0
+    },
+    {
+      "version": "v2",
+      "charts": 60,
+      "passed": 15,
+      "abstained": 45,
+      "returned_failures": 0,
+      "assumption_stress_cases": 2,
+      "assumption_stress_failures": 1
+    },
+    {
+      "version": "v3",
+      "charts": 60,
+      "passed": 18,
+      "abstained": 42,
+      "returned_failures": 0,
+      "assumption_stress_cases": 2,
+      "assumption_stress_failures": 2
+    }
+  ],
+  "comparison_totals": {
+    "version": "v3",
+    "charts": 60,
+    "passed": 18,
+    "abstained": 42,
+    "returned_failures": 0,
+    "assumption_stress_cases": 2,
+    "assumption_stress_failures": 2
+  },
+  "provenance": "Historical procedural studies from prototype development; protocols are separate and do not establish public-chart accuracy."
+}

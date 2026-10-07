@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "chart-recover"
+version = "0.1.0"
+description = "Evidence-grounded recovery of hidden-axis charts"
+requires-python = ">=3.11"
+dependencies = ["numpy>=1.24", "scipy>=1.10", "Pillow>=10.4", "matplotlib>=3.7", "requests>=2.32"]
+
+[project.optional-dependencies]
+test = ["pytest>=8"]
+
+[project.scripts]
+chart-recover = "chart_recover.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["skills/chart-recover/scripts"]
+
+[tool.setuptools.package-data]
+chart_recover = ["web/*.html", "web/*.js", "assets/*.json", "assets/examples/*/*.png", "assets/examples/*/*.json"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["skills/chart-recover/scripts"]
