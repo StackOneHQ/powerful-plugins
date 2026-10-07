@@ -19,7 +19,7 @@ Resolve `scripts/run.py` relative to this skill file, then call it with the user
 python /absolute/path/to/this/skill/scripts/run.py agent /absolute/path/to/chart.png --out /absolute/path/to/new-result
 ```
 
-`agent` tries image readers and explicitly conditional evidence associations. Use `--strict-only` when the user requires established correspondence. With `analyze`, supplied anchors and scale are user assertions and remain recorded as such. Read [CLI and calibration reference](references/usage.md) for manual anchors, public collection, source matching and synthetic evaluations. Run `--help` for the current command list.
+`agent` tries image readers and explicitly conditional evidence associations. For a supplied caption, use the workbench caption field. For generic evidence documents, reviewed anchors or chart context, use `analyze IMAGE --config FILE --out NEW_FOLDER`, or `investigate` for multiple evidence rounds; do not omit supplied evidence by using the image-only agent command. Use `--strict-only` when the user requires established correspondence. With `analyze`, supplied anchors and scale are user assertions and remain recorded as such. Read [CLI and calibration reference](references/usage.md) for manual anchors, public collection, source matching and synthetic evaluations. Run `--help` for the current command list.
 
 For interactive inspection, `scripts/run.py serve --port 8765` starts a loopback-only workbench. It includes three synthetic examples and accepts uploads or an explicitly requested public X import. Uploaded image bytes are processed locally. Public fetch modes have the network behavior documented in the plugin README.
 

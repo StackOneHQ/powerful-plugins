@@ -1,14 +1,33 @@
 """Local-only workbench, no external uploads or arbitrary file path reads."""
 import base64
+import io
 import json
 import tempfile
 from http.server import BaseHTTPRequestHandler,ThreadingHTTPServer
-from pathlib import Path
+from pathlib import Path,PureWindowsPath
+from PIL import Image
 from .pipeline import analyze
 from .calendar_recovery import analyze_calendar
 
-ROOT=Path(__file__).resolve().parent.parent
+ROOT=Path.cwd()
 ASSETS=Path(__file__).resolve().parent/'assets'
+
+
+def portable_evidence(value,request_root):
+    """Remove request paths while retaining public URLs and relative artifact names."""
+    roots={str(Path(request_root)),str(Path(request_root).resolve())}
+    path_fields={'image','path','snapshot','evidence_profile_snapshot','evidence_cache','output','cache_dir'}
+    def visit(item,key=None):
+        if isinstance(item,dict):return {k:visit(v,k) for k,v in item.items()}
+        if isinstance(item,list):return [visit(v) for v in item]
+        if isinstance(item,str):
+            if key in path_fields and (Path(item).is_absolute() or PureWindowsPath(item).is_absolute()):
+                return 'local upload' if key=='image' else '[local file]'
+            for root in sorted(roots,key=len,reverse=True):
+                item=item.replace(root,'[local request]')
+            return item
+        return item
+    return visit(value)
 
 
 def agent_context(config,temp):
@@ -69,7 +88,7 @@ def agent_response(folder,agent):
             if path.is_relative_to(folder.resolve()) and path.is_file():documents[step['evidence']]=json.loads(path.read_text(encoding="utf-8"))
     result['agent']=dict(agent,image='local upload');result['agent_evidence']=dict(workflow=workflow,reader_results=reader_results,documents=documents)
     result['trace']=list(result['trace'])+agent['steps']
-    return result
+    return portable_evidence(result,folder.parent)
 
 
 def import_public_post(url,temp):
@@ -77,7 +96,7 @@ def import_public_post(url,temp):
     if not isinstance(url,str) or not POST_URL.fullmatch(url):raise ValueError('Enter an original public X post URL.')
     posts=PublicXCollector().lookup(url)
     for post in posts:post['media']=post.get('media',[])[:4]
-    save_posts(posts,temp,download=True)
+    save_posts(posts,temp,download=True,max_total_bytes=20_000_000)
     records=[json.loads(line) for line in (temp/'posts.jsonl').read_text(encoding="utf-8").splitlines() if line.strip()]
     if len(records)!=1:raise ValueError('Expected one public post.')
     post=records[0];images=[];total=0
@@ -86,7 +105,8 @@ def import_public_post(url,temp):
         if not path.is_relative_to(temp.resolve()):raise ValueError('Invalid collected image path.')
         raw=path.read_bytes();total+=len(raw)
         if total>20_000_000:raise ValueError('Collected images exceed the 20MB workbench limit.')
-        images.append(dict(image=base64.b64encode(raw).decode(),sha256=item['sha256'],source_url=item.get('source_url')))
+        with Image.open(io.BytesIO(raw)) as image:mime=Image.MIME.get(image.format,'image/png')
+        images.append(dict(image=base64.b64encode(raw).decode(),mime_type=mime,sha256=item['sha256'],source_url=item.get('source_url')))
     if not images:raise ValueError('This public page exposes no downloadable image. Upload an image you can access.')
     return dict(post={k:post.get(k) for k in ('id','url','text','created_at','collection_method','collection_limits')},
                 images=images,errors=post.get('errors',[]))
@@ -163,6 +183,7 @@ class Handler(BaseHTTPRequestHandler):
             length=int(self.headers.get('Content-Length','0'))
             if not 0<length<20_000_000:raise ValueError('Request must be below 20MB')
             data=json.loads(self.rfile.read(length))
+            if not isinstance(data,dict):raise ValueError('Request JSON must be an object.')
             if self.path=='/api/import-post':
                 with tempfile.TemporaryDirectory(prefix='chart-public-import-') as temp:
                     return self._send(import_public_post(data.get('url'),Path(temp)))
@@ -190,7 +211,7 @@ class Handler(BaseHTTPRequestHandler):
                     result['overlay']=base64.b64encode((folder/'overlay.png').read_bytes()).decode()
                     result['csv']=(folder/'data.csv').read_text(encoding="utf-8")
                 result['image']='local upload';result['geometry']['image']='local upload'
-                self._send(result)
+                self._send(portable_evidence(result,temp))
         except (ValueError,KeyError,OSError,IndexError,TypeError,RuntimeError) as e:self._send({'error':str(e)},400)
         except Exception:self._send({'error':'Analysis failed; check chart configuration.'},500)
 

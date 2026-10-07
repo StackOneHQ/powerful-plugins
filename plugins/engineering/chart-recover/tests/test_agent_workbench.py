@@ -113,15 +113,17 @@ def test_public_import_uses_collector_and_preserves_caption_and_source(monkeypat
         def lookup(self,url):
             assert url=='https://x.com/u/status/123'
             return [dict(id='123',url=url,text='Original caption',created_at='2026-01-01T00:00:00Z',media=[])]
-    def save(posts,folder,download=True):
-        assert download
-        (folder/'image.png').write_bytes(b'image bytes')
+    def save(posts,folder,download=True,*,max_total_bytes=None):
+        assert download and max_total_bytes==20_000_000
+        from PIL import Image
+        Image.new('RGB',(2,2)).save(folder/'image.png')
         (folder/'posts.jsonl').write_text(json.dumps(dict(posts[0],images=[dict(path='image.png',sha256='fixture')]))+'\n')
     monkeypatch.setattr(collect,'PublicXCollector',Collector);monkeypatch.setattr(collect,'save_posts',save)
     status,r=request(dict(url='https://x.com/u/status/123'),'/api/import-post')
     assert status==200 and r['post']['text']=='Original caption'
     assert r['post']['url']=='https://x.com/u/status/123'
-    assert base64.b64decode(r['images'][0]['image'])==b'image bytes'
+    assert base64.b64decode(r['images'][0]['image']).startswith(b'\x89PNG')
+    assert r['images'][0]['mime_type']=='image/png'
 
 
 def test_cross_origin_import_is_rejected(monkeypatch):

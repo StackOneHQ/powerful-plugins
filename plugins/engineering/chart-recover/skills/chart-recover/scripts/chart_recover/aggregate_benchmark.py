@@ -5,11 +5,11 @@ import numpy as np
 from .synthetic import generate_one
 from .pipeline import analyze
 
-ROOT=Path(__file__).resolve().parent.parent
-
-
 def run(per_kind=20,seed=22000,output=None):
-    out=Path(output) if output else ROOT/'artifacts/aggregate-heldout';out.mkdir(parents=True,exist_ok=True)
+    if output is None:raise ValueError('Choose an explicit output directory')
+    out=Path(output)
+    if out.exists() and any(out.iterdir()):raise ValueError('Use a fresh empty output directory for an evaluation')
+    out.mkdir(parents=True,exist_ok=True)
     rows=[]
     for k,kind in enumerate(('bar','line','area','scatter')):
         for i in range(per_kind):
@@ -28,12 +28,15 @@ def run(per_kind=20,seed=22000,output=None):
             try:
                 result=analyze(folder/'chart.png',cfg,folder/'recovery')
                 geo=result['geometry']['series'];cal=result['recovery']
+                row.update(analyzer_status=result['status'],recovery_statuses=[c['status'] for c in cal])
+                if cal and any(c['status'] in ('unidentifiable','bounded_only','needs_correspondence') for c in cal):row['status']='abstained'
                 if len(geo)!=1 or len(geo[0]['points'])!=n or cal[0]['status']!='calibrated':
                     row['reason']='Incomplete or ambiguous extraction/calibration'
                 else:
                     pred=np.asarray(cal[0]['values']);actual=np.asarray(values)
-                    nmae=float(np.abs(pred-actual).mean()/np.ptp(actual))
                     true_x=np.array([p['x'] for p in truth['series'][0]['points']]);pred_x=np.array([p['x'] for p in geo[0]['points']])
+                    if kind in ('line','area'):actual=np.interp(pred_x,true_x,actual)
+                    nmae=float(np.abs(pred-actual).mean()/np.ptp(values))
                     max_x_error=float(np.max(np.abs(true_x-pred_x)))
                     aligned=bool(max_x_error<max(4,np.median(np.diff(true_x))*.15))
                     row.update(nmae=nmae,max_x_error=max_x_error,aligned=aligned,
@@ -45,9 +48,13 @@ def run(per_kind=20,seed=22000,output=None):
                      median_nmae=float(np.median([r['nmae'] for r in group if 'nmae' in r])) if any('nmae' in r for r in group) else None)
             for kind in ('bar','line','area','scatter') if (group:=[r for r in rows if r['kind']==kind])}
     summary=dict(charts=len(rows),passed=sum(r['status']=='passed' for r in rows),seed=seed,groups=groups,
+                 abstentions=sum(r['status']=='abstained' for r in rows),failed_recoveries=sum(r['status']=='failed' for r in rows),
                  protocol='Known kind, linear scale, observation count and memberships of two disclosed period totals. No point values, baseline, ROI or true pixel coordinates enter analyze. All individual points scored; NMAE < 2% and x alignment required.',
                  limits='Synthetic conditional evaluation; source discovery and natural-language interpretation are not scored.')
     (out/'cases.json').write_text(json.dumps(rows,indent=2), encoding="utf-8");(out/'summary.json').write_text(json.dumps(summary,indent=2), encoding="utf-8")
     print(json.dumps(summary,indent=2));return summary
 
-if __name__=='__main__':run()
+if __name__=='__main__':
+    import argparse
+    parser=argparse.ArgumentParser();parser.add_argument('--out',required=True);parser.add_argument('--seed',type=int,default=22000);parser.add_argument('--per-kind',type=int,default=20)
+    args=parser.parse_args();run(args.per_kind,args.seed,args.out)

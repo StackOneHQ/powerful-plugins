@@ -22,7 +22,7 @@ function benchmarkView(){
   query('#benchLabel').textContent=labels[key]||'SELECT A READER TO SEE ITS TEST';
   if(key==='comparison_totals')query('#benchLabel').textContent='TWO-TOTAL LINEAR HYPOTHESIS TEST';
   let note='Controlled benchmarks do not establish accuracy on public posts.';
-  if(key==='caption')note='14 of 20 flat-then-rising synthetic charts passed; 6 abstained. Caption truth was supplied by construction. No independent public accuracy measured.';
+  if(key==='caption')note=b?`${b.passed} of ${b.charts} flat-then-rising synthetic charts passed; ${b.abstentions} abstained. Caption truth was supplied by construction. No independent public accuracy measured.`:'No first-customer benchmark is available.';
   if(key==='comparison_totals')note=b?`${b.passed}/${b.charts} controlled linear charts passed; ${b.abstained} abstained; ${b.returned_failures} returned failures. Separately, ${b.assumption_stress_failures??0}/${b.assumption_stress_cases??0} scale/axis stress cases returned incorrect estimates. Shared linear scale and equal daily counts are assumptions; public values remain unchecked.`:'Two totals fit a shared linear axis. No independent public daily-value accuracy measured.';
   if(key==='external')note=(benchmarks?.external_studies||[]).map(s=>`${s.label}: ${s.passed}/${s.charts} pass, ${s.abstentions} abstain, ${s.returned_failures} returned failures.`).join(' ')+' These are separate controlled studies, not public accuracy.';
   query('#benchNote').textContent=note;
@@ -52,9 +52,13 @@ for(const id of ['calendar','agent','automatic'])query('#'+id).onchange=()=>{
 };
 for(const id of ['sameMetric','fullMonth','kind','scale','strictOnly','evidenceMode'])query('#'+id).onchange=()=>{readerView();invalidate();};
 for(const id of ['config','sourceUrl','postCaption','profileUrl','profileText'])query('#'+id).oninput=()=>{sourceLink(query('#sourceUrl').value);invalidate();};
-query('#importUrl').oninput=()=>invalidate('Post URL changed. Import the post to load its image and caption.');
-function load(b64,config={},keepImport=false){
-  imageData=b64;original='data:image/png;base64,'+b64;
+query('#importUrl').oninput=()=>{
+  if(imported){imageData='';original='';imported=null;drawRevision++;query('#canvas').hidden=true;query('#empty').hidden=false;query('#importImages').hidden=true;query('#importImage').replaceChildren();query('#sourceUrl').value='';query('#postCaption').value='';query('#config').value='{}';sourceLink('');}
+  invalidate('Post URL changed. Import the post to load its image and caption.');
+};
+function load(b64,config={},keepImport=false,mime='image/png'){
+  if(!/^image\/(png|jpeg|gif|webp|bmp|avif)$/.test(mime))throw Error('Unsupported browser image type.');
+  imageData=b64;original='data:'+mime+';base64,'+b64;
   if(!keepImport){imported=null;query('#importImages').hidden=true;query('#importImage').replaceChildren();}
   query('#agent').checked=config.reader==='agent';query('#strictOnly').checked=Boolean(config.strict_only);query('#calendar').checked=config.reader==='calendar';query('#automatic').checked=Boolean(config.auto_layout||config.reader==='bars');
   query('#sameMetric').checked=Boolean(config.assume_shared_daily_revenue);query('#fullMonth').checked=Boolean(config.assume_full_month);
@@ -65,7 +69,7 @@ function load(b64,config={},keepImport=false){
 }
 query('#upload').onchange=async e=>{
   const f=e.target.files[0];if(!f)return;invalidate('Loading image…');const token=revision,r=new FileReader();
-  r.onload=()=>{if(token===revision)load(String(r.result).split(',')[1],{reader:'agent'});};r.onerror=()=>{if(token===revision)query('#status').textContent='Could not read this image.';};r.readAsDataURL(f);
+  r.onload=()=>{if(token!==revision)return;try{load(String(r.result).split(',')[1],{reader:'agent'},false,String(r.result).slice(5).split(';')[0]);}catch(e){query('#status').textContent=e.message;}};r.onerror=()=>{if(token===revision)query('#status').textContent='Could not read this image.';};r.readAsDataURL(f);
 };
 const examples={
   comparison:{url:'/api/comparison-example',description:'Synthetic revenue curves with two disclosed totals. A shared linear axis and daily positions are hypotheses, not independently verified facts.'},
@@ -80,7 +84,7 @@ query('#loadExample').onclick=async()=>{
 };
 function selectImported(){
   const item=imported.images[Number(query('#importImage').value)],p=imported.post;
-  load(item.image,{reader:'agent',source:p.url,post_text:p.text||'',post_date:p.created_at},true);
+  load(item.image,{reader:'agent',source:p.url,post_text:p.text||'',post_date:p.created_at},true,item.mime_type||'image/png');
   query('#status').textContent=`Imported public post with ${imported.images.length} image(s). Review its caption and source before recovery.`+(imported.errors?.length?' Some media could not be collected.':'');
 }
 query('#importImage').onchange=selectImported;

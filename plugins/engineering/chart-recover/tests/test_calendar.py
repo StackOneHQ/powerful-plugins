@@ -69,11 +69,13 @@ def test_visible_different_month_blocks_calendar_correspondence():
 
 def test_matching_image_headings_and_overlapping_date_boxes_supply_correspondence():
     cal,geo=context()
+    cal['observations']=[dict(currency='$')]
     cal['consensus_tokens'] += [token('Daily',60,40,35),token('revenue',100,40,60),
+        token('$',175,40),
         token('July',210,40,35),token('2026',250,40,35),
         token('Daily',295,375,35),token('revenue',335,375,60),
         token('Jul',35,320,27),token('1',57,320,7),
         token('Jul',825,320,24),token('31',852,320,14)]
-    r=correspondence(cal,geo,{})
+    r=correspondence(cal,geo,dict(assume_full_month=True))
     assert r['status']=='matched' and r['metric_from_image'] and r['full_period_from_image']
-    assert not r['assumptions']
+    assert len(r['assumptions'])==1 and not r['daily_sampling_from_image']

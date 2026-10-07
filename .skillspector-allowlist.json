@@ -136,7 +136,7 @@
         "EA2",
         "OH1"
       ],
-      "rationale": "AST4: ocr.py and tick_benchmark.py call the user-installed Tesseract with argument lists and no shell, for local OCR and version metadata. OH1 matches the capture_output keyword on the constant tesseract --version command; neither OCR nor model output becomes a command. LP3: local image/file processing, output folders, the runtime X_BEARER_TOKEN and opt-in public network retrieval are documented in SKILL.md and README; no hooks or automatic installs run. E1: collect.py sends that token only as authorization to the fixed https://api.x.com/2/ endpoint for the requested public lookup/search. EA2: external_evidence.py records a selection_uses label describing numerical fitting dates; it does not grant autonomous actions or change permissions."
+      "rationale": "AST4: ocr.py and benchmark_support.py call the user-installed Tesseract with argument lists and no shell, for local OCR and version metadata. OH1 matches the capture_output keyword on the constant tesseract --version command; neither OCR nor model output becomes a command. LP3: local image/file processing, output folders, the runtime X_BEARER_TOKEN and opt-in public network retrieval are documented in SKILL.md and README; no hooks or automatic installs run. E1: collect.py sends that token only as authorization to the fixed https://api.x.com/2/ endpoint for the requested public lookup/search. EA2: external_evidence.py records a selection_uses label describing numerical fitting dates; it does not grant autonomous actions or change permissions."
     }
   ]
 }

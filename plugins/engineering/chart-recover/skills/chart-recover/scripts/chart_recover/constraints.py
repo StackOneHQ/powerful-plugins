@@ -7,6 +7,7 @@ from __future__ import annotations
 import math
 import numpy as np
 from scipy.optimize import linprog
+from .calibrate import _least_squares_axis
 
 
 def calibrate_totals(points, anchors=(), totals=(), *, baseline=None, value_domain=None, pixel_error=2.5):
@@ -70,8 +71,13 @@ def calibrate_totals(points, anchors=(), totals=(), *, baseline=None, value_doma
     lower=[];upper=[]
     for value in q:
         lo=linprog([value-pixel_error,1],**options);hi=linprog([-value-pixel_error,-1],**options)
-        if not lo.success or not hi.success:return dict(result,status='unidentifiable',reason='The supplied totals do not bound the entire axis.')
-        low=float(lo.fun);high=float(-hi.fun)
+        domain_low=(value_domain or {}).get('low');domain_high=(value_domain or {}).get('high')
+        if not lo.success and not (lo.status==3 and domain_low is not None):
+            return dict(result,status='unidentifiable',reason='The supplied totals do not bound the entire axis.')
+        if not hi.success and not (hi.status==3 and domain_high is not None):
+            return dict(result,status='unidentifiable',reason='The supplied totals do not bound the entire axis.')
+        low=float(lo.fun) if lo.success else domain_low
+        high=float(-hi.fun) if hi.success else domain_high
         if value_domain:
             if value_domain.get('low') is not None:low=max(low,value_domain['low'])
             if value_domain.get('high') is not None:high=min(high,value_domain['high'])
@@ -79,7 +85,24 @@ def calibrate_totals(points, anchors=(), totals=(), *, baseline=None, value_doma
     result.update(lower=lower,upper=upper)
     rank=np.linalg.matrix_rank(np.asarray(equalities)) if equalities else 0
     if rank<2:return dict(result,status='bounded_only',reason='Absolute intervals are bounded, but multiple affine scales remain. No single value estimate is justified.')
-    coef=np.linalg.lstsq(np.asarray(equalities),np.asarray(targets),rcond=None)[0]
-    if coef[0]<=0 or np.any(np.asarray(rows)@coef>np.asarray(rhs)+1e-7):coef=feasible.x
-    values=np.clip(coef[0]*q+coef[1],lower,upper).tolist()
-    return dict(result,status='calibrated',values=values,coefficients=dict(a=float(coef[0]),b=float(coef[1])))
+    # Keep the uncertainty polygon for bounds. A representative at nominal
+    # pixel centers must itself obey the domain, without clipping individual
+    # values away from the reported affine coefficients.
+    fit_rows=list(rows);fit_rhs=list(rhs);fit_feasible=feasible
+    if value_domain:
+        for value in q:
+            if value_domain.get('low') is not None:fit_rows.append([-value,-1]);fit_rhs.append(-value_domain['low'])
+            if value_domain.get('high') is not None:fit_rows.append([value,1]);fit_rhs.append(value_domain['high'])
+        fit_feasible=linprog([0,0],A_ub=fit_rows,b_ub=fit_rhs,bounds=options['bounds'],method='highs')
+        if not fit_feasible.success:
+            return dict(result,status='bounded_only',reason='Pixel-uncertainty bounds are feasible, but no nominal affine representative satisfies the value domain.')
+    design=np.asarray(equalities);counts=design[:,1]
+    # Dividing a sum equation by its count gives a mean coordinate; weighting
+    # its residual by that count retains the objective in original sum units.
+    coef,estimator=_least_squares_axis(design[:,0]/counts,np.asarray(targets)/counts,
+        fit_rows,fit_rhs,fit_feasible.x,weights=counts)
+    values=(coef[0]*q+coef[1]).tolist()
+    estimator['constraint_squared_loss']=estimator.pop('transformed_anchor_squared_loss')
+    return dict(result,status='calibrated',values=values,coefficients=dict(a=float(coef[0]),b=float(coef[1])),
+        point_estimator=dict(estimator,objective_space='point_and_total_values',
+            note='Constrained least-squares representative of the supplied point and sum observations; not independent evidence.'))

@@ -22,13 +22,14 @@ def recover(image,config=None,output='artifacts/recovery'):
                             ('ticks',analyze_ticks,dict(config,source=source))]:
         try:
             result=reader(image,cfg,out/name)
-            reasons=result.get('correspondence',{}).get('reasons',[]) if name in ('calendar','ticks') else result['trace'][-1]['next_actions']
+            reasons=list(result.get('correspondence',{}).get('reasons',[])) if name in ('calendar','ticks') else list(result['trace'][-1]['next_actions'])
+            reasons=list(dict.fromkeys(reasons+[r['reason'] for r in result['recovery'] if r.get('reason')]))
             record=dict(reader=name,status=result['status'],outcomes=[r['status'] for r in result['recovery']],
                         series=len(result['geometry']['series']),result=f'{name}/result.json',csv=f'{name}/data.csv',overlay=f'{name}/overlay.png',
                         next_actions=reasons,assumptions=list(dict.fromkeys(a for r in result['recovery'] for a in r.get('assumptions',[]))))
             summary['calibrated_candidates']+=int(result['status']=='calibrated')
-        except (ValueError,OSError) as error:
-            record=dict(reader=name,status='failed',reason=str(error),next_actions=['Inspect this reader failure; other attempts remain independent.'])
+        except Exception as error:
+            record=dict(reader=name,status='failed',error_type=type(error).__name__,reason=str(error),next_actions=['Inspect this reader failure; other attempts remain independent.'])
         attempts.append(record)
         summary['status']='has_calibrated_candidates' if summary['calibrated_candidates'] else 'needs_evidence_or_review'
         (out/'workflow.json').write_text(json.dumps(summary,indent=2), encoding="utf-8")
@@ -38,6 +39,7 @@ def recover(image,config=None,output='artifacts/recovery'):
 def recover_batch(manifest,output,configs=None,defaults=None):
     manifest=Path(manifest);out=Path(output);out.mkdir(parents=True,exist_ok=True);records=[];configs=configs or {}
     summary=dict(images=0,images_with_calibrated_candidates=0,results=records)
+    (out/'batch.json').write_text(json.dumps(summary,indent=2), encoding="utf-8")
     for line in manifest.read_text(encoding="utf-8").splitlines():
         if not line.strip():continue
         post=json.loads(line);post_id=str(post['id'])

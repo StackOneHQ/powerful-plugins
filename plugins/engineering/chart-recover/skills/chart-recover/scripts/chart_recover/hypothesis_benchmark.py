@@ -39,6 +39,12 @@ def generate(folder,seed,renderer='pillow',style='light',control=None):
         rng=np.random.default_rng(seed+90111)
         replacement=ys[::-1] if control=='reversed_curve' else rng.uniform(120,370,len(xs))
         draw.line(list(zip(xs,replacement)),fill='#13a987' if control=='two_curves' else '#7267ec',width=3)
+    if control in ('unrelated_curve','reversed_curve','two_curves'):
+        replacement_points=[dict(x=float(x),y=float(y)) for x,y in zip(xs,replacement)]
+        truth['original_curve_points']=truth['points']
+        if control=='two_curves':truth['additional_curve_points']=replacement_points
+        else:truth['points']=replacement_points
+    truth['base_control']=base_control
     im.save(path);truth.update(conditional_context='Generic Revenue headings; shared daily metric and complete-month correspondence are not asserted by headings/endpoints.',
                               inset_date_labels=inset,control=control)
     (folder/'truth.json').write_text(json.dumps(truth,indent=2), encoding="utf-8");return truth
@@ -48,7 +54,7 @@ def run(output='artifacts/hypothesis-heldout-v1',seed=80000,per_renderer=20):
     out=Path(output)
     if (out/'protocol.json').exists():raise ValueError('Use a fresh output path; existing frozen evaluations are not overwritten.')
     out.mkdir(parents=True,exist_ok=True);source=Path(__file__).parent
-    files=['hypotheses.py','hypothesis_benchmark.py','calendar_benchmark.py','calendar_recovery.py','calendar_vision.py','autopilot.py','layout.py','ocr.py','vision.py','calibrate.py']
+    files=sorted(p.name for p in Path(__file__).parent.glob('*.py'))
     (out/'source').mkdir(exist_ok=True)
     for name in files:(out/'source'/name).write_bytes((source/name).read_bytes())
     protocol=dict(seed=seed,per_renderer=per_renderer,source_hashes={f:hashlib.sha256((source/f).read_bytes()).hexdigest() for f in files},

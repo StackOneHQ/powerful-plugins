@@ -85,8 +85,10 @@ def generate_card(folder,seed,renderer='pillow',style='light',control=None):
 
 
 def run(output='artifacts/automatic-heldout',seed=48000,per_renderer=40):
-    out=Path(output);out.mkdir(parents=True,exist_ok=True)
-    files=['automatic_benchmark.py','autopilot.py','layout.py','ocr.py','pipeline.py','calibrate.py','vision.py']
+    out=Path(output)
+    if out.exists() and any(out.iterdir()):raise ValueError('Use a fresh empty output directory for a frozen evaluation')
+    out.mkdir(parents=True,exist_ok=True)
+    files=sorted(p.name for p in Path(__file__).parent.glob('*.py'))
     locked={f:hashlib.sha256((Path(__file__).parent/f).read_bytes()).hexdigest() for f in files}
     (out/'source').mkdir(exist_ok=True)
     for f in files:(out/'source'/f).write_bytes((Path(__file__).parent/f).read_bytes())
@@ -120,7 +122,7 @@ def run(output='artifacts/automatic-heldout',seed=48000,per_renderer=40):
         folder=out/f'control-{control}';generate_card(folder,seed+3000+j,control=control)
         r=analyze(folder/'chart.png',{'auto_layout':True,'scale':'linear'},folder/'analysis')
         controls.append(dict(case=control,status=r['status'],recovery_statuses=[x['status'] for x in r['recovery']],
-                             abstained=all(x.get('values') is None for x in r['recovery'])))
+                             abstained=bool(r['recovery']) and all(x.get('values') is None for x in r['recovery'])))
     summary=dict(protocol=protocol,cases=len(rows),passed=sum(r['success'] for r in rows),
                  by_renderer={name:dict(passed=sum(r['success'] for r in rows if r['renderer']==name),total=sum(r['renderer']==name for r in rows)) for name in ['pillow','matplotlib']},
                  failures=[r for r in rows if not r['success']],controls=controls,rows=rows)

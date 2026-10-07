@@ -81,12 +81,21 @@ def extract(path, *, kind='auto', roi=None, color=None, samples=101):
         if actual == 'auto':
             rects = [c for c in comps if c['solidity'] > .83 and min(c['w'], c['h']) >= 5]
             if len(rects) >= 2 and len(rects) >= len(comps)*.6:
-                actual = 'barh' if np.median([c['w']/c['h'] for c in rects]) > 3 else 'bar'
+                by_x=sorted(rects,key=lambda c:c['x']);by_y=sorted(rects,key=lambda c:c['y'])
+                vertical=np.ptp([c['y']+c['h']-1 for c in rects])<=max(3,rgb.shape[0]*.006) and all(b['x']>=a['x']+a['w']+1 for a,b in zip(by_x,by_x[1:]))
+                horizontal=np.ptp([c['x'] for c in rects])<=max(3,rgb.shape[1]*.006) and all(b['y']>=a['y']+a['h']+1 for a,b in zip(by_y,by_y[1:]))
+                if vertical==horizontal:
+                    quality_issues.append(dict(reason='Rectangular marks do not establish one shared baseline and bar orientation; specify kind.'))
+                    continue
+                actual='bar' if vertical else 'barh'
+            elif len(rects)==1 and len(comps)==1:
+                quality_issues.append(dict(reason='A single rectangular mark does not establish bar orientation or distinguish a bar from a point; specify kind.'))
+                continue
             elif biggest['w'] > rgb.shape[1]*.25:
                 actual = 'area' if biggest['solidity'] > .2 else 'line'
             else:
                 actual = 'scatter'
-        points = []
+        points = []; observed_columns = None
         if actual in ('bar','barh','stacked_bar','grouped_bar'):
             horizontal = actual == 'barh'
             for c in comps:
@@ -111,6 +120,7 @@ def extract(path, *, kind='auto', roi=None, color=None, samples=101):
             keep = [c['label'] for c in comps if c['w'] >= max(5, biggest['w']*.025)]
             clean = np.isin(labels, keep)
             cols = np.where(clean.any(axis=0))[0]
+            observed_columns = cols
             if not len(cols):
                 continue
             x_samples = np.unique(np.round(np.linspace(cols[0], cols[-1], min(samples, len(cols)))).astype(int))
@@ -127,13 +137,23 @@ def extract(path, *, kind='auto', roi=None, color=None, samples=101):
                 if actual in ('area','stacked_area'):
                     p.update(base=float(yy.max()+top), extent=float(yy.max()-yy.min()))
                 points.append(p)
-        if len(points) >= 2:
+        minimum_points = 2 if actual in ('line','area','stacked_area') else 1
+        if len(points) >= minimum_points:
             if supplied_roi and actual in ('line','area','stacked_area'):
                 coverage=(points[-1]['x']-points[0]['x'])/(right-left)
                 if coverage < .70:
                     quality_issues.append(dict(series=f'series_{len(series)}',
                         reason='Trace covers less than 70% of the supplied plot ROI width.',
                         horizontal_coverage=coverage))
+                # Span alone cannot distinguish a complete trace from two
+                # endpoints separated by a large hidden middle segment. Use
+                # observed columns so sparse requested sampling is not a gap.
+                gaps=np.diff(observed_columns)-1
+                largest_gap=int(gaps.max()) if len(gaps) else 0
+                if largest_gap>max(5,(right-left)*.05):
+                    quality_issues.append(dict(series=f'series_{len(series)}',
+                        reason='Trace contains a large unobserved horizontal gap inside the supplied plot ROI.',
+                        largest_unobserved_gap=largest_gap))
             coords = [-p['x'] if actual == 'barh' else p['y'] for p in points]
             q = -np.array(coords); spread = float(np.ptp(q))
             normalized = ((q-q.min())/spread).tolist() if spread else [0.]*len(q)

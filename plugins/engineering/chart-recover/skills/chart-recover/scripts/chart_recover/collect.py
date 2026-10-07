@@ -4,6 +4,7 @@ import hashlib
 import json
 import os
 import re
+from io import BytesIO
 from datetime import datetime,timezone
 from pathlib import Path
 from urllib.parse import urlsplit
@@ -73,8 +74,8 @@ def normalize_response(payload):
     if isinstance(posts,dict):posts=[posts]
     result=[]
     for post in posts:
-        author=users.get(post.get('author_id'),{}).get('username','i')
-        result.append(dict(id=post['id'],url=f"https://x.com/{author}/status/{post['id']}",
+        author=users.get(post.get('author_id'),{}).get('username')
+        result.append(dict(id=post['id'],url=f"https://x.com/{author or 'i'}/status/{post['id']}",
                            author=author,text=post.get('text',''),created_at=post.get('created_at'),
                            links=[{k:u[k] for k in ('url','expanded_url','display_url') if isinstance(u.get(k),str)}
                                   for u in post.get('entities',{}).get('urls',[]) if isinstance(u,dict)],
@@ -117,36 +118,65 @@ class XCollector:
         return normalize_response(self._get('tweets/'+m[1],self._fields()))
 
 
-def save_posts(posts,folder,download=True):
-    """Append deduplicated post manifest. Images are inbound only, max 20MB."""
+def save_posts(posts,folder,download=True,*,max_total_bytes=None):
+    """Save metadata and retry missing media; optionally bound this call's bytes.
+
+    Each image has a 20MB limit. The optional cumulative download budget is
+    shared by all requests, including failed or invalid images.
+    """
+    if max_total_bytes is not None and (type(max_total_bytes) is not int or max_total_bytes<0):
+        raise ValueError('max_total_bytes must be a nonnegative integer')
     out=Path(folder);out.mkdir(parents=True,exist_ok=True);manifest=out/'posts.jsonl'
     existing={}
     if manifest.exists():
         existing={p['id']:p for p in map(json.loads,manifest.read_text(encoding="utf-8").splitlines())}
-    count=0
-    for post in posts:
-        post=dict(post)
-        if not re.fullmatch(r'\d+',post['id']):raise ValueError('Post id must be numeric')
-        if post['id'] in existing:continue
+    count=updated=downloaded_bytes=0
+    for incoming in posts:
+        incoming=dict(incoming)
+        if not re.fullmatch(r'\d+',incoming['id']):raise ValueError('Post id must be numeric')
+        previous=existing.get(incoming['id'])
+        if previous is not None and not download:continue
+        post=dict(previous or {},**incoming)
+        old_images={image.get('source_url'):image for image in (previous or {}).get('images',[])}
         post.setdefault('collected_at',datetime.now(timezone.utc).isoformat());post['images']=[]
+        post.pop('errors',None)
         for i,media in enumerate(post.get('media',[])):
             if media.get('type')!='photo' or not media.get('url'):continue
             url=media['url'];parts=urlsplit(url)
             if parts.scheme!='https' or parts.hostname!='pbs.twimg.com' or not parts.path.startswith('/media/'):
                 post.setdefault('errors',[]).append('Skipped media outside the X image CDN');continue
             if not download:continue
+            cached=old_images.get(url)
+            filename=f"{post['id']}-{i}.image"
+            if cached and cached.get('path')==filename and (out/filename).is_file():
+                post['images'].append(cached);continue
+            response=None
             try:
-                r=requests.get(url,timeout=30,stream=True,allow_redirects=False);r.raise_for_status()
-                if r.status_code!=200:raise ValueError('Unexpected image redirect/status')
+                remaining=None if max_total_bytes is None else max_total_bytes-downloaded_bytes
+                if remaining is not None and remaining<=0:raise ValueError('Cumulative image download budget exhausted')
+                response=requests.get(url,timeout=30,stream=True,allow_redirects=False);response.raise_for_status()
+                if response.status_code!=200:raise ValueError('Unexpected image redirect/status')
                 content=bytearray()
-                for chunk in r.iter_content(65536):
+                chunk_size=min(65536,remaining+1) if remaining is not None else 65536
+                for chunk in response.iter_content(chunk_size):
+                    downloaded_bytes+=len(chunk)
+                    if max_total_bytes is not None and downloaded_bytes>max_total_bytes:
+                        raise ValueError('Cumulative image download budget exceeded')
+                    if len(content)+len(chunk)>20_000_000:raise ValueError('Image exceeds 20MB')
                     content.extend(chunk)
-                    if len(content)>20_000_000:raise ValueError('Image exceeds 20MB')
-                path=out/f"{post['id']}-{i}.image";path.write_bytes(content)
-                with Image.open(path) as im:im.verify()
+                # Validate dimensions before persisting or exposing the bytes
+                # to the workbench's browser decoder.
+                with Image.open(BytesIO(content)) as im:
+                    if im.width*im.height>30_000_000:raise ValueError('Image exceeds 30 megapixels')
+                    im.verify()
+                path=out/filename;path.write_bytes(content)
                 post['images'].append(dict(path=path.name,source_url=url,sha256=hashlib.sha256(content).hexdigest()))
-            except (requests.RequestException,ValueError,OSError) as e:
-                post.setdefault('errors',[]).append(type(e).__name__+': media download failed')
-        existing[post['id']]=post;count+=1
+            except (requests.RequestException,ValueError,OSError) as error:
+                post.setdefault('errors',[]).append(type(error).__name__+': media download failed: '+str(error))
+            finally:
+                if response is not None:response.close()
+        if previous is None:count+=1
+        elif post!=previous:updated+=1
+        existing[post['id']]=post
         manifest.write_text(''.join(json.dumps(p)+'\n' for p in existing.values()), encoding="utf-8")
-    return dict(added=count,total=len(existing),manifest=str(manifest))
+    return dict(added=count,updated=updated,total=len(existing),manifest=str(manifest),downloaded_bytes=downloaded_bytes)

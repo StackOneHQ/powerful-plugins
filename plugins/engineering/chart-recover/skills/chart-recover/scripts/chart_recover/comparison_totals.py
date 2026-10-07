@@ -11,6 +11,7 @@ import hashlib
 import json
 import re
 import numpy as np
+from PIL import Image
 from .autopilot import MONEY,consensus_tokens,_center
 from .calendar_vision import MONTHS
 from .constraints import calibrate_totals
@@ -48,7 +49,8 @@ def propose_comparison(candidates,tokens,source,size):
     totals=[]
     for m,t in zip(parsed,amounts):
         number=m['number'].replace(',','');value=float(number)
-        if value<=0:return reject('Need two positive totals.')
+        if not np.isfinite(value):return reject('Monetary totals must be finite.')
+        if value<0:return reject('Need two nonnegative totals.')
         decimals=len(number.split('.')[1]) if '.' in number else 0
         totals.append(dict(value=value,low=value-.5*10**-decimals,high=value+.5*10**-decimals,label=t['text'],box=t['box']))
     if abs(totals[0]['value']-totals[1]['value'])<=totals[0]['high']-totals[0]['low']+totals[1]['high']-totals[1]['low']:
@@ -97,6 +99,7 @@ def propose_comparison(candidates,tokens,source,size):
                  'Both periods contain the same number of daily observations, including their displayed endpoints.',
                  'Piecewise-linear corners and the two date labels locate the daily observations; the year is unknown.',
                  'Daily knot heights fit the observed straight segments; shared endpoints may move within 2.5 pixels of the stroke extent. The outer 5.5 pixels are excluded from fitting to avoid line caps.',
+                 'The grid diagnostic compares only counts within two of the proposed count; it does not establish uniqueness among all plausible grids.',
                  'Short missing runs at curve crossings are linearly interpolated; those columns are not observed pixels.',
                  'Curve-to-total assignment is inferred from feasibility, not established by a legend.',
                  'Two agreeing OCR passes can share errors; displayed totals are rounded to their printed precision.',
@@ -116,6 +119,8 @@ def recover_comparison(image,config,output):
     scans=[];tokens=[];disagreements=[]
     if len(candidates)==2:
         w,h=geometry['size']
+        with Image.open(image) as im:
+            invert=float(np.median(np.asarray(im.convert('L'))))<100
         # Large headlines lose currency glyphs when the entire image is
         # magnified 3x. Read the spatially separate header as one text block at
         # native/2x size; keep sparse endpoint labels at 2x/3x. Region choice
@@ -125,7 +130,7 @@ def recover_comparison(image,config,output):
                  ('outside_header',[0,0,w,h],(2.,3.),11)]
         for role,region,scales,psm in regions:
             cap=(28_000_000/(w*(region[3]-region[1])))**.5
-            pair=[read_text(image,scale=min(s,cap),region=region,psm=psm) for s in scales]
+            pair=[read_text(image,scale=min(s,cap),region=region,psm=psm,invert=invert) for s in scales]
             for scan in pair:scan['comparison_region']=role
             token_sets=[scan['tokens'] if role=='header' else
                         [t for t in scan['tokens'] if _center(t)[1]>=header_end] for scan in pair]

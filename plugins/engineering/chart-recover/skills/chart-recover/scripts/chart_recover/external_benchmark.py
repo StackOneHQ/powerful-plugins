@@ -15,10 +15,10 @@ from .public_profile import parse_profile
 from .external_evidence import recover_external
 
 
-URL='https://trustmrr.com/startup/lumen.md'
+URL='https://trustmrr.com/startup/synthetic-lumen-example.md'
 
 
-def generate(folder,seed,renderer='pillow',style='light',control=None,*,color='#7165e8',jpeg_quality=55,image_scale=1.,entity='Lumen',slug='lumen',values=None,axis_scale=None,curve='linear',step_where='post'):
+def generate(folder,seed,renderer='pillow',style='light',control=None,*,color='#7165e8',jpeg_quality=55,image_scale=1.,entity='Lumen',slug='synthetic-lumen-example',values=None,axis_scale=None,curve='linear',step_where='post'):
     if curve not in ('linear','pchip','cubic','step'):raise ValueError('Unsupported curve interpolation')
     if step_where not in ('pre','post','mid'):raise ValueError('Unsupported step convention')
     out=Path(folder);out.mkdir(parents=True,exist_ok=True);rng=np.random.default_rng(seed)

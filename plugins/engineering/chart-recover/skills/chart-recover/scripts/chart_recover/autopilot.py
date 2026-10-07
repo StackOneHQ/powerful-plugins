@@ -20,7 +20,7 @@ def _center(token):
 
 def consensus_tokens(first,second):
     """Only exact text agreements at the same location survive."""
-    accepted=[];rejected=[]
+    accepted=[];rejected=[];matched_second=set()
     for a in first:
         x,y=_center(a)
         matches=[b for b in second if abs(_center(b)[0]-x)<=max(3,a['box'][2]*.15)
@@ -28,10 +28,11 @@ def consensus_tokens(first,second):
         same=[b for b in matches if b['text']==a['text'] and min(a['confidence'],b['confidence'])>=55]
         if len(same)==1:
             accepted.append(dict(a,confidence=min(a['confidence'],same[0]['confidence']),passes=2))
+            matched_second.add(id(same[0]))
         elif MONEY.fullmatch(a['text']) or MONTH.fullmatch(a['text']) or a['text'].lower() in METRICS:
             rejected.append(dict(token=a,reason='Two OCR scales did not agree confidently at this location.',alternatives=[b['text'] for b in matches]))
     for b in second:
-        if MONEY.fullmatch(b['text']) and not any(a['text']==b['text'] and abs(_center(a)[0]-_center(b)[0])<3 and abs(_center(a)[1]-_center(b)[1])<3 for a in accepted):
+        if MONEY.fullmatch(b['text']) and id(b) not in matched_second:
             rejected.append(dict(token=b,reason='Amount in the second OCR pass lacks consensus.',alternatives=[]))
     return accepted,rejected
 
@@ -63,6 +64,8 @@ def bind_bar_labels(candidate,tokens,source,size):
             continue
         token=amounts[0];m=MONEY.fullmatch(token['text']);number=m['number'].replace(',','')
         value=float(number);decimals=len(number.split('.')[1]) if '.' in number else 0
+        if not np.isfinite(value):
+            return dict(anchors=[],decisions=[dict(status='rejected',point_index=i,reason='Monetary OCR amount must be finite.')],labels=labels)
         half=.5*10**-decimals
         anchors.append(dict(series='series_0',point_index=i,low=value-half,high=value+half,
                             source=f'{source} — image label {token["text"]} under {period["text"]}',matched=True,

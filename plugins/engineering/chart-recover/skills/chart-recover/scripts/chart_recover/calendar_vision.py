@@ -18,8 +18,18 @@ MONTHS={name.lower():i for i in range(1,13) for name in (calendar.month_name[i],
 WEEKDAYS=[['M','T','W','T','F','S','S'],['S','M','T','W','T','F','S']]
 
 
+def bounded_ocr_scales(width,height,requested=(2.,3.)):
+    """Keep the two OCR rescalings distinct under separate pixel budgets."""
+    area=width*height
+    if area<=0:raise ValueError('OCR region must have a positive area')
+    return [min(scale,(budget/area)**.5) for scale,budget in zip(requested,(15_000_000,28_000_000))]
+
+
 def _weekday(text):
     value=text.strip('()[]{}.,').upper()
+    names={name.upper():calendar.day_abbr[i][0] for i in range(7) for name in (calendar.day_name[i],calendar.day_abbr[i])}
+    names.update(TUES='T',WEDS='W',THUR='T',THURS='T')
+    if value in names:return names[value]
     return value[0] if value and len(set(value))==1 and value[0] in 'MTWFS' else None
 
 
@@ -135,7 +145,7 @@ def read_calendar(path,output,source=None):
     im=Image.open(path)
     if im.width*im.height>30_000_000:raise ValueError('Image exceeds 30 megapixels')
     im=im.convert('RGB');size=list(im.size);invert=float(np.median(np.asarray(im.convert('L'))))<100
-    scales=[min(s,(28_000_000/(im.width*im.height))**.5) for s in (2.,3.)]
+    scales=bounded_ocr_scales(im.width,im.height)
     passes=[read_text(path,scale=s,invert=invert) for s in scales]
     # Weekday glyphs have a common OCR capitalization/duplication variant.
     normalized=[]
@@ -146,13 +156,14 @@ def read_calendar(path,output,source=None):
     # Missing OCR agreement is resolved separately in isolated amount crops.
     layout_tokens=list(tokens)
     for t in normalized[0]:
-        proposed_weekday=t['text'].upper() in ('M','T','W','F','S') and t['confidence']>=70
+        proposed_weekday=_weekday(t['text']) is not None and t['confidence']>=70
         if (proposed_weekday or MONEY.fullmatch(t['text'])) and not any(t['text']==a['text'] and abs(_center(t)[0]-_center(a)[0])<3 and abs(_center(t)[1]-_center(a)[1])<3 for a in layout_tokens):
             layout_tokens.append(t)
     candidates=locate_calendar(layout_tokens,size);header_passes=[]
     if not candidates:
         for region in weekday_strip_proposals(layout_tokens,size):
-            scans=[read_text(path,scale=s,invert=invert,region=region,psm=6) for s in (3.,4.)]
+            scales=bounded_ocr_scales(region[2]-region[0],region[3]-region[1],(3.,4.))
+            scans=[read_text(path,scale=s,invert=invert,region=region,psm=6) for s in scales]
             header_passes.append(dict(region=region,ocr=scans))
             rows=[weekday_rows(p['tokens']) for p in scans]
             if len(rows[0])==len(rows[1])==1 and rows[0][0]['first_weekday']==rows[1][0]['first_weekday'] and max(abs(np.array(rows[0][0]['centers'])-rows[1][0]['centers']))<4:
@@ -180,7 +191,8 @@ def read_calendar(path,output,source=None):
         if float(np.median(np.asarray(crop)))<128:crop=ImageOps.invert(crop)
         atlas.paste(crop.convert('RGB'),(pad,pad+i*stride))
     atlas_path=out/'amount-atlas.png';atlas.save(atlas_path)
-    atlas_passes=[read_text(atlas_path,scale=s,psm=6) for s in (3.,4.)]
+    scales=bounded_ocr_scales(atlas.width,atlas.height,(3.,4.))
+    atlas_passes=[read_text(atlas_path,scale=s,psm=6) for s in scales]
     reads=[_atlas_readings(p,cells,stride,pad) for p in atlas_passes]
     result.update(layout=layout,atlas=dict(path=str(atlas_path),cells=cells,stride=stride,padding=pad,ocr=atlas_passes))
     outside=False

@@ -25,4 +25,5 @@ def test_discovery_records_failures_and_limits_reads(tmp_path):
     collector=Collector();result=discover(tmp_path,2,Session(),collector,download=False)
     assert len(collector.calls)==2 and result['discovered_urls']==3
     assert result['stored_posts']==1 and result['records'][-1]['status']=='unavailable'
-    assert json.loads((tmp_path/'posts.jsonl').read_text())['discovered_via']=='https://braginpublic.com/feed'
+    posts=[json.loads(line) for line in (tmp_path/'posts.jsonl').read_text(encoding='utf-8').splitlines()]
+    assert all(post['discovered_via']=='https://braginpublic.com/feed' for post in posts)

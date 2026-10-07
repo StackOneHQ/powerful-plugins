@@ -59,6 +59,6 @@ def test_standalone_hypothesis_benchmark_uses_its_temporary_cache(tmp_path):
     environment['PYTHONPATH'] = str(Path(chart_recover.__file__).resolve().parent.parent)
     program = ('import os; from pathlib import Path; import chart_recover.hypothesis_benchmark; import matplotlib; '
                'assert Path(matplotlib.get_configdir()).resolve() == Path(os.environ["MPLCONFIGDIR"]).resolve(); '
-               'assert "chart-recover-render-" in matplotlib.get_configdir()')
+               'assert "chart-recover-render-" in str(matplotlib.get_configdir())')
     subprocess.run([sys.executable, '-c', program], cwd=tmp_path, env=environment,
                    check=True, capture_output=True, text=True, timeout=30)

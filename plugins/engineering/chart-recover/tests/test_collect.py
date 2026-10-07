@@ -15,7 +15,7 @@ def test_media_join_and_dedup(tmp_path):
     assert len((tmp_path/'posts.jsonl').read_text().splitlines())==1
 
 
-def test_pagination_and_fields():
+def test_search_requests_expected_expansions_and_fields():
     class Response:
         status_code=200
         def raise_for_status(self):pass

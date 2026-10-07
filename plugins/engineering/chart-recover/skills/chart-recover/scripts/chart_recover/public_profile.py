@@ -9,6 +9,7 @@ import json
 import math
 from pathlib import Path
 import re
+from time import monotonic
 from urllib.parse import urlsplit
 import requests
 
@@ -115,14 +116,20 @@ def fetch_profile(url, output, session=None):
     url = profile_url(url)
     out = Path(output)
     out.mkdir(parents=True, exist_ok=True)
+    # A failed refresh must not leave an earlier profile presented as current.
+    for name in ('profile.md','profile.json'):(out/name).unlink(missing_ok=True)
+    deadline=monotonic()+30
     response = (session or requests.Session()).get(
-        url, timeout=30, stream=True, allow_redirects=False,
+        url, timeout=(10,5), stream=True, allow_redirects=False,
         headers={'User-Agent': 'ChartRecover/0.1 (public chart research)'})
     try:
         if response.status_code != 200:
             raise RuntimeError(f'Public profile unavailable (HTTP {response.status_code}); no redirect or authenticated fallback attempted')
         content = bytearray()
-        for chunk in response.iter_content(65536):
+        # One-byte yields prevent a slowly filled large chunk from hiding the
+        # wall-clock deadline; the read timeout also bounds a silent peer.
+        for chunk in response.iter_content(1):
+            if monotonic()>deadline:raise TimeoutError('Public profile exceeded its 30-second deadline')
             content.extend(chunk)
             if len(content) > 500_000:
                 raise ValueError('Public profile exceeds 500KB')
@@ -131,5 +138,8 @@ def fetch_profile(url, output, session=None):
         (out / 'profile.md').write_bytes(content)
         (out / 'profile.json').write_text(json.dumps(result, indent=2, allow_nan=False), encoding="utf-8")
         return result
+    except Exception:
+        for name in ('profile.md','profile.json'):(out/name).unlink(missing_ok=True)
+        raise
     finally:
         response.close()

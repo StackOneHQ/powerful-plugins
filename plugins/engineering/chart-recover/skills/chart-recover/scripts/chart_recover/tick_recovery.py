@@ -89,11 +89,37 @@ def bind_ticks(tokens,gridlines,size,source):
     axes=[]
     for group in groups:
         obs=sorted(group['observations'],key=lambda o:o['y'])
-        reason=None
+        reason=None;grid_top=obs[0]['y'];grid_bottom=obs[-1]['y']
         if len(obs)<3:reason='At least three consensus labels on aligned gridlines are required.'
         elif len({o['unit'] for o in obs})!=1:reason='Different currency or unit labels share this axis.'
         elif any(b['y']-a['y']<max(8,a['box'][3]) for a,b in zip(obs,obs[1:])):reason='Tick positions overlap.'
         elif any(b['value']>=a['value'] for a,b in zip(obs,obs[1:])):reason='Tick values do not increase upward.'
+        if reason is None:
+            # Include grid strokes whose label failed consensus: a missing OCR
+            # reading is not a spatial panel gap. Merge adjacent raster rows.
+            grid_ys=sorted({line['y'] for line in gridlines
+                            if abs(line['left']-group['left'])<=max(8,width*(.10 if group['side']=='right' else .01))
+                            and abs(line['right']-group['right'])<=max(8,width*(.10 if group['side']=='left' else .01))})
+            strokes=[]
+            for y in grid_ys:
+                if strokes and y-strokes[-1][-1]<=4:strokes[-1].append(y)
+                else:strokes.append([y])
+            centers=[float(np.median(stroke)) for stroke in strokes]
+            inside=[i for i,y in enumerate(centers) if obs[0]['y']-3<=y<=obs[-1]['y']+3]
+            gaps=np.diff([centers[i] for i in inside])
+            if len(gaps)<2:
+                reason='Need three distinct grid strokes with one consistent extent before tracing.'
+            else:
+                typical=float(np.median(sorted(gaps)[:max(1,(len(gaps)+1)//2)]))
+                if max(gaps)>typical*1.8:
+                    reason='Aligned grid labels have a large vertical gap; separate panels or missing ticks need review.'
+                else:
+                    # Extend across unlabeled strokes in this contiguous grid,
+                    # stopping at any separate panel rather than at tick text.
+                    first,last=inside[0],inside[-1]
+                    while first>0 and centers[first]-centers[first-1]<=typical*1.8:first-=1
+                    while last+1<len(centers) and centers[last+1]-centers[last]<=typical*1.8:last+=1
+                    grid_top,grid_bottom=centers[first],centers[last]
         if reason:
             rejected.append(dict(group=group,reason=reason));continue
         assumptions=['Numeric labels immediately outside repeated horizontal gridlines denote their Y-axis coordinates.',
@@ -101,7 +127,8 @@ def bind_ticks(tokens,gridlines,size,source):
                      'Two agreeing OCR rescalings can share recognition errors.']
         anchors=[dict(pixel=o['y'],value=o['value'],source=f'{source} — Y tick {o["text"]}',matched=True,
                       pixel_error=2.,label_box=o['box'],unit=o['unit'],assumptions=assumptions) for o in obs]
-        axis=dict(group,observations=obs,anchors=anchors,unit=obs[0]['unit'],top=obs[0]['y'],bottom=obs[-1]['y'])
+        axis=dict(group,observations=obs,anchors=anchors,unit=obs[0]['unit'],top=obs[0]['y'],bottom=obs[-1]['y'],
+                  grid_top=grid_top,grid_bottom=grid_bottom)
         fit=calibrate([axis['top'],axis['bottom']],anchors,scale='unknown',pixel_error=2.)
         axis['calibration_status']=fit['status'];axes.append(axis)
     return dict(axes=axes,rejected=rejected,observations=observations)
@@ -111,12 +138,13 @@ def trace_axis_curve(rgb,axis,samples=101):
     """Trace a single continuous colored component local to a numeric axis."""
     height,width=rgb.shape[:2];l,r=axis['left'],axis['right']
     ys=[o['y'] for o in axis['observations']];pad=max(12,int(np.median(np.diff(ys))*.5))
-    t=max(0,axis['top']-pad);b=min(height,axis['bottom']+pad)
+    t=max(0,int(axis.get('grid_top',axis['top'])-pad));b=min(height,int(axis.get('grid_bottom',axis['bottom'])+pad))
     crop=rgb[t:b,l:r];candidates=[]
     for color,mask in _masks(crop):
         labels,components=_components(mask)
         for component in components:
             if component['w']<.90*(r-l) or component['h']<5 or component['solidity']>.35:continue
+            if component['y']<=1 or component['y']+component['h']>=b-t-1:continue
             cmask=labels==component['label'];cols=np.where(cmask.any(axis=0))[0]
             if len(cols)<.97*(cols[-1]-cols[0]+1):continue
             # Multiple separated strands in the same component can be crossing
@@ -180,7 +208,7 @@ def analyze_ticks(image,config=None,output='artifacts/ticks'):
                 correspondence=dict(status='matched' if not reasons else 'needs_review',reasons=reasons),binding=binding,curve_candidates=candidates,
                 ocr=dict(passes=scans,tokens=tokens,rejected=disagreements),trace=[dict(step='read_y_ticks',axes=len(binding['axes']),next_actions=reasons)])
     (out/'result.json').write_text(json.dumps(result,indent=2,allow_nan=False), encoding="utf-8");overlay(image,geometry,out/'overlay.png')
-    with (out/'data.csv').open('w',newline='') as f:
+    with (out/'data.csv').open('w',newline='',encoding='utf-8') as f:
         writer=csv.writer(f);writer.writerow(['x_fraction','pixel_x','pixel_y','value','lower','upper','unit','status'])
         if geometry['series']:
             cal=recovery[0]

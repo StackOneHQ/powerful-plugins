@@ -75,7 +75,7 @@ def generate_one(folder, seed, kind='bar', scale='linear', variant='clean', rend
         points=[{'x':float(p[0]),'y':float(height-p[1]),'value':float(value)} for p,value in zip(coords,yy)]
         truth_series.append({'color':colors[j],'points':points,'segment_values':v.tolist()})
         cumulative+=v
-    baseline=ax.transData.transform((0,0) if scale!='log' else (low,0) if kind=='barh' else (0,low))
+    baseline=ax.transData.transform((0,0) if scale!='log' and variant!='truncated' else (low,0) if kind=='barh' else (0,low))
     path=folder/'chart.png';fig.savefig(path,facecolor=bg,dpi=dpi);plt.close(fig)
     if renderer=='pillow':
         # Independent rasterizer using the same declared data-to-pixel transform.

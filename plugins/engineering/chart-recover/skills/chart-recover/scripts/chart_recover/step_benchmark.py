@@ -2,10 +2,12 @@
 from pathlib import Path
 import hashlib
 import importlib.util
+import importlib
 import json
+import sys
+import uuid
+from contextlib import contextmanager
 import numpy as np
-from .external_benchmark import generate, score, URL
-from .public_profile import parse_profile
 
 
 def digest(path):
@@ -18,18 +20,45 @@ def totals(rows):
         returned_failures=sum(r['status']=='conditional_calibration' and not r['success'] for r in rows))
 
 
+@contextmanager
+def frozen_package(source):
+    namespace='_chart_recover_study_'+uuid.uuid4().hex
+    spec=importlib.util.spec_from_file_location(namespace,source/'__init__.py',submodule_search_locations=[str(source)])
+    module=importlib.util.module_from_spec(spec);sys.modules[namespace]=module
+    try:
+        spec.loader.exec_module(module)
+        yield namespace
+    finally:
+        for name in list(sys.modules):
+            if name==namespace or name.startswith(namespace+'.'):sys.modules.pop(name,None)
+
+
+def recover_withheld(folder,profile,readers):
+    truth_path=folder/'truth.json';private_truth=truth_path.read_bytes();truth_path.unlink()
+    try:
+        results={name:module.recover_external(folder/'chart.png',profile,folder/name) for name,module in readers.items()}
+    finally:
+        truth_path.write_bytes(private_truth)
+    return results,json.loads(private_truth)
+
+
 def run(output, baseline, seed=420000):
     out=Path(output);src=Path(__file__).parent
     if out.exists():raise ValueError('Use a new output directory; frozen studies are never overwritten')
     (out/'source').mkdir(parents=True)
-    files=['step_benchmark.py','external_benchmark.py','external_evidence.py','public_profile.py',
-           'vision.py','ocr.py','autopilot.py','calibrate.py','calendar_vision.py']
+    files=sorted(p.name for p in src.glob('*.py'))
     for f in files:(out/'source'/f).write_bytes((src/f).read_bytes())
     (out/'source'/'baseline_external_evidence.py').write_bytes(Path(baseline).read_bytes())
-    readers={}
-    for name,filename in [('baseline','baseline_external_evidence.py'),('revised','external_evidence.py')]:
-        spec=importlib.util.spec_from_file_location('chart_recover._step_study_'+name,out/'source'/filename)
-        module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module);readers[name]=module
+    with frozen_package(out/'source') as namespace:
+        return run_snapshot(out,src,baseline,seed,files,namespace)
+
+
+def run_snapshot(out,src,baseline,seed,files,namespace):
+    benchmark=importlib.import_module(namespace+'.external_benchmark')
+    generate,score,URL=benchmark.generate,benchmark.score,benchmark.URL
+    parse_profile=importlib.import_module(namespace+'.public_profile').parse_profile
+    readers={name:importlib.import_module(namespace+'.'+module) for name,module in
+             [('baseline','baseline_external_evidence'),('revised','external_evidence')]}
     plans=[]
     for ri,renderer in enumerate(('pillow','matplotlib')):
         for ci,where in enumerate(('pre','post','mid')):
@@ -52,7 +81,7 @@ def run(output, baseline, seed=420000):
         source_hashes={p.name:digest(p) for p in (out/'source').glob('*.py')},
         input='Image and linked profile with six redacted amounts. No curve convention, axis scale, ROI, numerical anchors or private date positions.',
         design='90 fresh cases: 60 pre/post/mid step charts (random levels or unequal runs of held levels), 30 linear/PCHIP/cubic regressions; two curve renderers, five styles. 14 controls include two intrinsically ambiguous pre/post affine trends. Both readers run on identical bytes.',
-        inference='Reader and scorer snapshots and complete case plan are frozen before generating any image. Both inferences finish and write results before truth is parsed. Checking values never select a date grid or step convention.',
+        inference='All local reader, generator and scorer modules execute from one isolated frozen package. The baseline reader uses the same frozen dependency set as the revised reader. Private truth is removed from the image folder before both inferences and restored only after they finish. This is a trusted-code benchmark, not an operating-system sandbox. Checking values never select a date grid or step convention.',
         acceptance='At least 8 fitting and 5 checking dates, fixed ordinal split; unique scale and, for step reader, unique plateau convention from fitting dates. Informative checking levels, NMAE <2% and coverage >=90%.',
         scoring='Same numerical criteria: correct scale, no hidden-source leakage, daily X error <=4px, no extrapolation, six hidden values at NMAE <2% of full value range. Revised step reader is scored on its exported daily plateau estimates; older reader and non-step results use raw-curve interpolation at proposed dates. Missing daily predictions fail. Both use the same updated scorer.',
         scoring_change='Explicit daily sampling avoids treating vertical-stroke midpoints as a day value. This changes the prediction representation, not date or monetary error thresholds. The raw-curve export is retained. Historical results are not overwritten.',
@@ -70,8 +99,7 @@ def run(output, baseline, seed=420000):
             step_where=plan['step_where'],values=values,axis_scale=axis_scale)
         manifest[folder.name]={f:digest(folder/f) for f in ('chart.png','profile.md','truth.json')}
         profile=parse_profile((folder/'profile.md').read_text(encoding="utf-8"),URL)
-        results={name:module.recover_external(folder/'chart.png',profile,folder/name) for name,module in readers.items()}
-        truth=json.loads((folder/'truth.json').read_text(encoding="utf-8"))
+        results,truth=recover_withheld(folder,profile,readers)
         for name,result in results.items():
             if plan['control']:
                 controls[name].append(dict(case=folder.name,kind=plan['control'],status=result['status'],abstained=result['status']!='conditional_calibration',reasons=result['reasons']))
@@ -83,9 +111,12 @@ def run(output, baseline, seed=420000):
                 rows[name].append(row)
         print(folder.name,*(f"{name}:{result['status']}" for name,result in results.items()),flush=True)
         (out/'progress.json').write_text(json.dumps(dict(rows=rows,controls=controls),indent=2), encoding="utf-8")
-    assert all(digest(src/f)==protocol['source_hashes'][f] for f in files)
-    assert all(digest(out/name/f)==h for name,fs in manifest.items() for f,h in fs.items())
-    assert digest(baseline)==protocol['source_hashes']['baseline_external_evidence.py']
+    if not all(digest(src/f)==protocol['source_hashes'][f] for f in files):
+        raise ValueError('Source files changed during the frozen study')
+    if not all(digest(out/name/f)==h for name,fs in manifest.items() for f,h in fs.items()):
+        raise ValueError('Study input files changed during inference')
+    if digest(baseline)!=protocol['source_hashes']['baseline_external_evidence.py']:
+        raise ValueError('Baseline source changed during the frozen study')
     (out/'inputs.json').write_text(json.dumps(manifest,indent=2), encoding="utf-8")
     summaries={name:dict(**totals(items),groups={group:totals([r for r in items if (r['curve']=='step')==(group=='step')]) for group in ('step','other')},
         rows=items,controls=controls[name]) for name,items in rows.items()}

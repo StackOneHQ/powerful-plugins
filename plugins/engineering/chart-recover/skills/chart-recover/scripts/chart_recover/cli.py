@@ -3,6 +3,12 @@ import json
 from pathlib import Path
 
 
+def positive_int(value):
+    number=int(value)
+    if number<=0:raise argparse.ArgumentTypeError('must be a positive integer')
+    return number
+
+
 def main():
     p=argparse.ArgumentParser(description='Recover chart geometry and calibrate it with public evidence.')
     sub=p.add_subparsers(dest='command',required=True)
@@ -25,8 +31,8 @@ def main():
     ab=sub.add_parser('agent-batch',help='Investigate every collected image, retaining strict and conditional candidates separately')
     ab.add_argument('manifest');ab.add_argument('--out',default='artifacts/agent-batch');ab.add_argument('--strict-only',action='store_true')
     ab.add_argument('--discover-evidence',action='store_true');ab.add_argument('--evidence-cache')
-    b=sub.add_parser('benchmark');b.add_argument('--out',default='artifacts/heldout');b.add_argument('--per-kind',type=int,default=20);b.add_argument('--seed',type=int,default=9000)
-    g=sub.add_parser('generate');g.add_argument('--out',default='examples/generated');g.add_argument('--seed',type=int,default=42);g.add_argument('--kind',default='bar');g.add_argument('--scale',default='linear')
+    b=sub.add_parser('benchmark');b.add_argument('--out',default='artifacts/heldout');b.add_argument('--per-kind',type=positive_int,default=20);b.add_argument('--seed',type=int,default=9000)
+    g=sub.add_parser('generate');g.add_argument('--out',default='examples/generated');g.add_argument('--seed',type=int,default=42);g.add_argument('--kind',choices=['bar','barh','line','area','scatter','grouped_bar','stacked_bar','stacked_area'],default='bar');g.add_argument('--scale',choices=['linear','log'],default='linear')
     c=sub.add_parser('collect');c.add_argument('--query');c.add_argument('--url');c.add_argument('--public',action='store_true',help='Read public URL metadata without an API token');c.add_argument('--import-jsonl');c.add_argument('--pages',type=int,default=1);c.add_argument('--out',default='data/collected');c.add_argument('--no-download',action='store_true')
     i=sub.add_parser('investigate');i.add_argument('image');i.add_argument('--config',required=True);i.add_argument('--out',default='artifacts/investigation')
     ba=sub.add_parser('batch');ba.add_argument('manifest');ba.add_argument('--configs');ba.add_argument('--out',default='artifacts/batch')

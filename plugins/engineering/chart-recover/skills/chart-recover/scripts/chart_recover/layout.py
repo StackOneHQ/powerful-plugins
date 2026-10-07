@@ -23,10 +23,13 @@ def detect_bars(path):
         if im.width*im.height>30_000_000:raise ValueError('Image exceeds 30 megapixels')
         size=list(im.size)
         ratio=min(1.,1400/max(im.size))
-        rgb=np.asarray(im.convert('RGB').resize((round(im.width*ratio),round(im.height*ratio))))
+        resized=(max(1,round(im.width*ratio)),max(1,round(im.height*ratio)))
+        x_ratio=resized[0]/im.width;y_ratio=resized[1]/im.height
+        rgb=np.asarray(im.convert('RGB').resize(resized))
     # Suppress JPEG speckles before proposing fill colors. A color tolerance
     # joins nearby compression shades without requiring exact palette bins.
-    rgb=ndimage.median_filter(rgb,size=(3,3,1))
+    # Filter along each vertical bar without erasing one-pixel horizontal gaps.
+    rgb=ndimage.median_filter(rgb,size=(3,1,1))
     h,w=rgb.shape[:2]
     q=rgb.astype(np.int32)//16;codes=q[:,:,0]*256+q[:,:,1]*16+q[:,:,2]
     counts=np.bincount(codes.ravel(),minlength=4096)
@@ -38,7 +41,7 @@ def detect_bars(path):
         seen_colors.append(color)
         mask=np.linalg.norm(rgb.astype(float)-color,axis=2)<26
         # Close compression pinholes, but do not join separate bars.
-        mask=ndimage.binary_closing(mask,structure=np.ones((3,3)))
+        mask=ndimage.binary_closing(mask,structure=np.ones((3,1)))
         labels,components=_components(mask)
         for c in components:
             x,y,bw,bh=c['x'],c['y'],c['w'],c['h']
@@ -48,8 +51,11 @@ def detect_bars(path):
             # quantization patches usually fail this side-contrast check.
             fill=np.median(rgb[y:y+bh,x:x+bw][labels[y:y+bh,x:x+bw]==c['label']],axis=0)
             pad=max(3,round(bw*.08));a=max(0,x-pad);b=min(w,x+bw+pad)
-            side=np.concatenate([rgb[y+bh//4:y+3*bh//4,a:x].reshape(-1,3),rgb[y+bh//4:y+3*bh//4,x+bw:b].reshape(-1,3)])
-            if not len(side) or np.linalg.norm(fill-np.median(side,axis=0))<28:continue
+            side_columns=list(range(a,x))+list(range(x+bw,b))
+            # A dense card may expose only one background column per gap.
+            # Median across the entire padding would mostly see adjacent bars.
+            side=[np.median(rgb[y+bh//4:y+3*bh//4,c],axis=0) for c in side_columns]
+            if not side or max(np.linalg.norm(fill-c) for c in side)<28:continue
             box=[x,y,bw,bh]
             # JPEG edge shades can yield overlapping masks of the same bar.
             if any(_same_rectangle(box,r['box']) for r in regions):continue
@@ -61,19 +67,18 @@ def detect_bars(path):
                and .72<=r['box'][2]/bw<=1.38]
         group.sort(key=lambda r:r['box'][0])
         if len(group)<3:continue
-        if any(b['box'][0] < a['box'][0]+a['box'][2]+2 for a,b in zip(group,group[1:])):continue
+        if any(b['box'][0] < a['box'][0]+a['box'][2]+1 for a,b in zip(group,group[1:])):continue
         centers=[r['box'][0]+r['box'][2]/2 for r in group]
         gaps=np.diff(centers)
         if max(gaps)/min(gaps)>1.45:continue
-        if np.ptp([r['box'][1] for r in group])<8:continue
         key=tuple(tuple(r['box']) for r in group)
         if any(g['_key']==key for g in groups):continue
-        points=[dict(x=(r['box'][0]+(r['box'][2]-1)/2)/ratio,y=r['box'][1]/ratio,
-                     base=(r['box'][1]+r['box'][3]-1)/ratio,extent=(r['box'][3]-1)/ratio,
-                     width=r['box'][2]/ratio,color=r['color']) for r in group]
-        coords=[p['y'] for p in points];q=-np.array(coords)
+        points=[dict(x=(r['box'][0]+(r['box'][2]-1)/2)/x_ratio,y=r['box'][1]/y_ratio,
+                     base=(r['box'][1]+r['box'][3]-1)/y_ratio,extent=(r['box'][3]-1)/y_ratio,
+                     width=r['box'][2]/x_ratio,color=r['color']) for r in group]
+        coords=[p['y'] for p in points];q=-np.array(coords);spread=float(np.ptp(q))
         groups.append(dict(_key=key,id=f'candidate_{len(groups)}',kind='bar',points=points,coordinates=coords,
-                           color='mixed',shape_normalized=((q-q.min())/np.ptp(q)).tolist(),
+                           color='mixed',shape_normalized=((q-q.min())/spread).tolist() if spread else [0.]*len(q),
                            shape_note='Geometry only; common baseline is not evidence of zero.',
                            roi=[min(p['x']-p['width']/2 for p in points),min(coords),
                                 max(p['x']+p['width']/2 for p in points),max(p['base'] for p in points)]))

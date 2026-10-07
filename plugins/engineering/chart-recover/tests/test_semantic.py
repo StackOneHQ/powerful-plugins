@@ -104,14 +104,18 @@ def test_calendar_axis_maps_date_without_y_coordinate_or_point_index():
     assert not bind_documents([doc('Acme MRR was USD 1000 on 2026-01-06.')],geometry('line'),cfg)['anchors']
 
 
-@pytest.mark.parametrize('change', ['no_series','no_source','wrong_period_count','stacked'])
-def test_incomplete_chart_context_abstains(change):
+@pytest.mark.parametrize('change,reason', [('no_series','series_not_explicitly_bound'),
+    ('no_source','missing_chart_identity_provenance'),('wrong_period_count','period_mark_count_or_uniqueness_mismatch'),
+    ('stacked','stack_boundary_semantics_need_review')])
+def test_incomplete_chart_context_abstains(change,reason):
     cfg=context(); geo=geometry()
     if change=='no_series':del cfg['series']
     if change=='no_source':del cfg['source']
     if change=='wrong_period_count':cfg['periods'].pop()
     if change=='stacked':geo=geometry('stacked_bar')
-    assert not bind_documents([doc('Acme MRR was USD 1000 in January 2026.')],geo,cfg)['anchors']
+    result=bind_documents([doc('Acme MRR was USD 1000 in January 2026.')],geo,cfg)
+    assert not result['anchors']
+    assert reason in result['decisions'][0]['reasons']
 
 
 def test_corpus_retrieval_and_binding_recovers_with_no_manual_numeric_anchors(tmp_path):

@@ -1,5 +1,6 @@
 """Frozen full-agent study of source retrieval followed by numerical recovery."""
 from pathlib import Path
+from .benchmark_support import require_tesseract
 import hashlib
 import json
 import shutil
@@ -12,6 +13,7 @@ NAMES=['Lumen','Cedar Metrics','Orbit Ledger','Northstar Tools','Copper Finch','
 
 
 def run(output,seed=150000):
+    tesseract_version=require_tesseract()
     out=Path(output)
     if (out/'protocol.json').exists():raise ValueError('Use a fresh output directory')
     out.mkdir(parents=True,exist_ok=True);src=Path(__file__).parent;(out/'source').mkdir()

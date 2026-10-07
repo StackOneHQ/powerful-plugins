@@ -95,7 +95,9 @@ def score(result,truth):
 
 
 def run(output,seed=540000):
-    out=Path(output);out.mkdir(parents=True,exist_ok=False)
+    out=Path(output)
+    if out.exists():raise ValueError('Use a fresh output directory for a frozen evaluation')
+    out.mkdir(parents=True)
     source=out/'source';source.mkdir()
     files=[p for p in (ROOT/'chart_recover').rglob('*') if p.is_file() and '__pycache__' not in p.parts]
     hashes={}
@@ -112,17 +114,23 @@ def run(output,seed=540000):
     combinations=list(itertools.product(('pillow','matplotlib'),('light','dark','jpeg','small','pale'),(28,30,31),('dense','sparse')))
     for index,(renderer,style,n,pattern) in enumerate(combinations):
         folder=out/f'case-{index:03d}';generate(folder,seed+index,renderer,style,n,pattern)
-        result=recover_comparison(folder/'chart.png',{'source':'https://x.com/synthetic_fixture/status/123'},folder/'recovery')
+        result=recover_comparison(folder/'chart.png',{'source':'https://example.com/synthetic_fixture/status/123'},folder/'recovery')
         row=score(result,json.loads((folder/'truth.json').read_text(encoding="utf-8")));row['case']=folder.name
         row['image_sha256']=hashlib.sha256((folder/'chart.png').read_bytes()).hexdigest();rows.append(row)
         print(folder.name,result['status'],row['passed'],flush=True)
     for index,control in enumerate(('mrr','mixed_currency','missing_comparison','missing_total','wrong_count','incomplete','third_curve','equal_totals','smooth','irregular_spacing','log_axis','independent_axes')):
         folder=out/f'control-{control}';generate(folder,seed+100+index,'pillow','light',31,'dense',control)
-        result=recover_comparison(folder/'chart.png',{'source':'https://x.com/synthetic_fixture/status/123'},folder/'recovery')
-        row=score(result,json.loads((folder/'truth.json').read_text(encoding="utf-8")));row['case']=folder.name;controls.append(row)
+        result=recover_comparison(folder/'chart.png',{'source':'https://example.com/synthetic_fixture/status/123'},folder/'recovery')
+        row=score(result,json.loads((folder/'truth.json').read_text(encoding="utf-8")));row['case']=folder.name
+        stress=control in ('log_axis','independent_axes')
+        row.update(control_kind='assumption_stress' if stress else 'expected_abstention',
+                   abstained=result['status']!='conditional_calibration',unexpected_return=not stress and result['status']=='conditional_calibration')
+        row['passed']=row['abstained'] if not stress else False
+        controls.append(row)
     summary=dict(charts=len(rows),passed=sum(r['passed'] for r in rows),abstained=sum(r['status']!='conditional_calibration' for r in rows),
                  returned_failures=sum(r['status']=='conditional_calibration' and not r['passed'] for r in rows),
-                 cases=rows,controls=controls,completed_at=datetime.now(timezone.utc).isoformat())
+                 cases=rows,controls=controls,control_failures=sum(c['unexpected_return'] for c in controls),
+                 assumption_stress_returns=sum(c['control_kind']=='assumption_stress' and not c['abstained'] for c in controls),completed_at=datetime.now(timezone.utc).isoformat())
     (out/'summary.json').write_text(json.dumps(summary,indent=2), encoding="utf-8");return summary
 
 

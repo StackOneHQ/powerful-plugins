@@ -10,7 +10,7 @@ import numpy as np
 from scipy.optimize import linprog
 
 
-def _least_squares_axis(q, target, rows, rhs, feasible):
+def _least_squares_axis(q, target, rows, rhs, feasible, weights=None):
     """Choose an anchor-midpoint least-squares axis inside the feasible polygon.
 
     There are only two parameters. If ordinary least squares is infeasible,
@@ -21,17 +21,18 @@ def _least_squares_axis(q, target, rows, rhs, feasible):
     This selects a representative axis; it does not tighten the feasible bounds.
     """
     q=np.asarray(q,float);target=np.asarray(target,float)
+    weights=np.ones(len(q)) if weights is None else np.asarray(weights,float)
     raw_a=np.asarray(rows,float);raw_b=np.asarray(rhs,float)
-    ordinary=np.polyfit(q,target,1)
+    ordinary=np.polyfit(q,target,1,w=weights)
     if ordinary[0]>=1e-12 and np.all(raw_a@ordinary<=raw_b+1e-7):
         return ordinary,dict(method='ordinary_least_squares',
-                             transformed_anchor_squared_loss=float(np.sum((ordinary[0]*q+ordinary[1]-target)**2)))
+                             transformed_anchor_squared_loss=float(np.sum((weights*(ordinary[0]*q+ordinary[1]-target))**2)))
     qc=float(q.mean());qs=float(q.std());yc=float(target.mean());ys=max(float(np.ptp(target)),1.)
     transform=np.array([[ys/qs,0.],[-ys*qc/qs,ys]])
     offset=np.array([0.,yc])
     a=np.vstack((raw_a@transform/ys,[-1.,0.]))
     b=np.append((raw_b-raw_a@offset)/ys,-1e-12*qs/ys)
-    x=np.column_stack(((q-qc)/qs,np.ones(len(q))));y=(target-yc)/ys
+    x=np.column_stack(((q-qc)/qs,np.ones(len(q))))*weights[:,None];y=(target-yc)/ys*weights
     initial=np.array([feasible[0]*qs/ys,(feasible[0]*qc+feasible[1]-yc)/ys])
     best=initial;loss=float(np.sum((x@best-y)**2));boundary_candidates=0
     for normal,limit in zip(a,b):
@@ -53,7 +54,7 @@ def _least_squares_axis(q, target, rows, rhs, feasible):
     coef=transform@best+offset
     return coef,dict(method='constrained_least_squares' if boundary_candidates else 'feasible_point_numerical_fallback',
                      boundary_candidates=boundary_candidates,
-                     transformed_anchor_squared_loss=float(np.sum((coef[0]*q+coef[1]-target)**2)))
+                     transformed_anchor_squared_loss=float(np.sum((weights*(coef[0]*q+coef[1]-target))**2)))
 
 
 def _model(points, anchors, scale, pixel_error):
@@ -116,7 +117,14 @@ def calibrate(points, anchors=(), *, scale='unknown', baseline=None, pixel_error
             a.setdefault('low', a['value']); a.setdefault('high', a['value'])
         if not all(k in a and math.isfinite(a[k]) for k in ('pixel', 'low', 'high')):
             raise ValueError('Anchor needs finite pixel and value or low/high')
-        if a['low'] > a['high'] or a.get('pixel_error', pixel_error) < 0:
+        try:
+            tolerance = float(a.get('pixel_error', pixel_error))
+        except (TypeError, ValueError, OverflowError) as error:
+            raise ValueError('Anchor pixel_error must be finite and nonnegative') from error
+        if not math.isfinite(tolerance) or tolerance < 0:
+            raise ValueError('Anchor pixel_error must be finite and nonnegative')
+        a['pixel_error'] = tolerance
+        if a['low'] > a['high']:
             raise ValueError('Invalid anchor bounds')
         usable.append(a)
         assumptions.extend(a.get('assumptions',[]))
@@ -127,15 +135,26 @@ def calibrate(points, anchors=(), *, scale='unknown', baseline=None, pixel_error
             raise ValueError('A zero baseline is usable only with an explicitly linear scale')
         if baseline.get('value', 0) != 0:
             raise ValueError('Use an ordinary anchor for a nonzero baseline')
-        usable.append(dict(pixel=float(baseline['pixel']), low=0., high=0.,
-                           pixel_error=baseline.get('pixel_error', pixel_error), source=baseline['source'], matched=True))
+        try:
+            baseline_pixel = float(baseline['pixel'])
+            baseline_error = float(baseline.get('pixel_error', pixel_error))
+        except (KeyError, TypeError, ValueError, OverflowError) as error:
+            raise ValueError('Baseline needs a finite pixel and finite nonnegative pixel_error') from error
+        if not math.isfinite(baseline_pixel) or not math.isfinite(baseline_error) or baseline_error < 0:
+            raise ValueError('Baseline needs a finite pixel and finite nonnegative pixel_error')
+        usable.append(dict(pixel=baseline_pixel, low=0., high=0.,
+                           pixel_error=baseline_error, source=baseline['source'], matched=True))
         if not baseline.get('verified', False):
             assumptions.append('The specified baseline represents zero.')
     if scale != 'unknown':
         assumptions.append(f'The axis uses the supplied {scale} scale.')
     result = {'anchors_used': usable, 'anchors_ignored': ignored, 'assumptions': assumptions,
               'pixel_error': pixel_error, 'values': None}
-    if len(usable) < 2 or np.ptp([a['pixel'] for a in usable]) <= 2*pixel_error:
+    # Two anchor intervals are disjoint exactly when the largest left edge
+    # exceeds the smallest right edge; output-point error is independent.
+    separated = (len(usable) >= 2 and max(a['pixel']-a['pixel_error'] for a in usable)
+                 > min(a['pixel']+a['pixel_error'] for a in usable))
+    if not separated:
         return dict(result, status='unidentifiable', reason='Need two separated absolute anchors, or one absolute anchor plus an explicit linear zero baseline.')
     candidates = [_model(points, usable, s, pixel_error) for s in (('linear', 'log') if scale == 'unknown' else (scale,))]
     valid = [c for c in candidates if c['status'] == 'calibrated']

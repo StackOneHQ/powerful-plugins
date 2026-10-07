@@ -7,6 +7,7 @@ conditional on those inputs, not autonomous real-world recovery accuracy.
 from pathlib import Path
 import json
 import time
+import sys
 import numpy as np
 from scipy.optimize import linear_sum_assignment
 from .synthetic import generate_one, collision_demo, KINDS
@@ -17,8 +18,8 @@ from .calibrate import calibrate
 def _rgb(c):return np.array([int(c[i:i+2],16) for i in (1,3,5)])
 
 
-def evaluate_case(folder, truth):
-    pred=extract(folder/'chart.png',kind=truth['kind'])
+def evaluate_case(folder, truth, pred=None):
+    pred=pred if pred is not None else extract(folder/'chart.png',kind=truth['kind'])
     expected=truth['series'];found=pred['series'];records=[]
     if not found:return dict(status='failed',reason='No series',series_count_ok=False,series=[])
     cost=np.array([[np.linalg.norm(_rgb(a['color'])-_rgb(b['color'])) for b in found] for a in expected])
@@ -61,7 +62,9 @@ def evaluate_case(folder, truth):
 
 
 def run_benchmark(output, per_kind=12, seed=9000, render_holdout=True):
-    out=Path(output);out.mkdir(parents=True,exist_ok=True);start=time.time();rows=[]
+    out=Path(output)
+    if out.exists() and any(out.iterdir()):raise ValueError('Use a fresh empty output directory for an evaluation')
+    out.mkdir(parents=True,exist_ok=True);start=time.time();rows=[]
     variants=('clean','dark','jpeg','small','truncated')
     cases=[]
     for k in KINDS:
@@ -77,11 +80,12 @@ def run_benchmark(output, per_kind=12, seed=9000, render_holdout=True):
     for i,(kind,scale,variant,renderer) in enumerate(cases):
         case_id=f'{i:04d}_{kind}_{scale}_{variant}_{renderer}';folder=out/'cases'/case_id
         truth=generate_one(folder,seed+i,kind,scale,variant,renderer)
-        result=evaluate_case(folder,truth)
+        pred=extract(folder/'chart.png',kind=kind)
+        result=evaluate_case(folder,truth,pred)
         row=dict(id=case_id,seed=seed+i,kind=kind,scale=scale,variant=variant,renderer=renderer,**result);rows.append(row)
-        if i<8 or result['status']=='failed':overlay(folder/'chart.png',extract(folder/'chart.png',kind=kind),folder/'overlay.png')
+        if i<8 or result['status']=='failed':overlay(folder/'chart.png',pred,folder/'overlay.png')
         (out/'cases.json').write_text(json.dumps(rows,indent=2), encoding="utf-8")
-        if (i+1)%20==0:print(f'Benchmarked {i+1}/{len(cases)} charts',flush=True)
+        if (i+1)%20==0:print(f'Benchmarked {i+1}/{len(cases)} charts',file=sys.stderr,flush=True)
     groups={}
     for k in sorted(set(r['kind'] for r in rows)):
         group=[r for r in rows if r['kind']==k];s=[s for r in group for s in r['series'] if 'nmae' in s]
@@ -91,8 +95,8 @@ def run_benchmark(output, per_kind=12, seed=9000, render_holdout=True):
     s=[s for r in rows for s in r['series'] if 'nmae' in s]
     summary=dict(charts=len(rows),passed=sum(r['status']=='passed' for r in rows),groups=groups,
                  seed=seed,seconds=round(time.time()-start,2),
-                 mean_interval_coverage=float(np.mean([r['interval_coverage'] for r in s])),
-                 all_evaluated_unanchored_series_abstained=all(r['abstained_without_evidence'] for r in s),
+                 mean_interval_coverage=float(np.mean([r['interval_coverage'] for r in s])) if s else None,
+                 all_evaluated_unanchored_series_abstained=bool(s) and all(r['abstained_without_evidence'] for r in s),
                  renderer_holdout=dict(charts=sum(r['renderer']=='pillow' for r in rows),passed=sum(r['renderer']=='pillow' and r['status']=='passed' for r in rows)),
                  collision_proof=collision_demo(out/'collision'),
                  protocol='Known family and scale; image-only geometry; first and last point values/correspondence disclosed. Pass = all series counted/aligned, continuous traces cover at least 96/101 samples, and each series interior-point mean absolute value error <2% of its true range. Failures retained. No claim of open-world accuracy.')

@@ -55,7 +55,11 @@ def test_irregular_corners_do_not_establish_regular_daily_grid():
     knots=np.arange(50,921,30,dtype=float);knots[1:-1]+=np.tile([-4.5,4.5],14)
     ys=np.interp(xs,knots,np.random.default_rng(21).uniform(100,400,30))
     g,a=fixture(ys)
-    assert select_alignment(g,[],a)[0] is None
+    result,ledger=select_alignment(g,[],a)
+    assert result is None
+    corners=ledger['corner_search']
+    assert corners['grid_residual']>2.5
+    assert corners['reason']=='Corners do not support one regular grid within the existing text-axis adjustment limits.'
 
 
 def test_fitting_pixels_cannot_dilute_error_on_rounded_join():

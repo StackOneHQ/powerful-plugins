@@ -4,6 +4,7 @@ Private truth is scored only after recovery. This is partial-axis reading,
 not recovery of an entirely absent axis without external numerical evidence.
 """
 from pathlib import Path
+from .benchmark_support import require_tesseract
 import hashlib
 import json
 import os
@@ -71,7 +72,7 @@ def generate(folder,seed,renderer='pillow',style='light',control=None):
     if style=='jpeg':
         Image.open(folder/'chart.png').convert('RGB').save(folder/'compressed.jpg',quality=48)
         Image.open(folder/'compressed.jpg').save(folder/'chart.png')
-    truth=dict(seed=seed,renderer=renderer,style=style,control=control,scale=scale,side=side,font=fontpath,
+    truth=dict(seed=seed,renderer=renderer,style=style,control=control,scale=scale,side=side,font=Path(fontpath).name,
                points=[dict(x=float(x),y=float(y),value=float(v)) for x,y,v in zip(xs,ys,values)],
                ticks=[dict(value=float(v),y=float(y),visible=i in visible) for i,(v,y) in enumerate(zip(ticks,tick_y))],
                plot=[float(l),float(t),float(r),float(b)])
@@ -79,17 +80,18 @@ def generate(folder,seed,renderer='pillow',style='light',control=None):
 
 
 def run(output='artifacts/tick-heldout-v1',seed=70000,per_renderer=20):
+    tesseract_version=require_tesseract()
     out=Path(output)
     if (out/'protocol.json').exists():raise ValueError('Refusing to overwrite an existing frozen evaluation; choose a fresh output directory.')
     out.mkdir(parents=True,exist_ok=True);source=Path(__file__).parent
-    files=['tick_recovery.py','tick_benchmark.py','autopilot.py','layout.py','ocr.py','vision.py','calibrate.py']
+    files=sorted(p.name for p in Path(__file__).parent.glob('*.py'))
     (out/'source').mkdir(exist_ok=True)
     for name in files:(out/'source'/name).write_bytes((source/name).read_bytes())
     protocol=dict(seed=seed,per_renderer=per_renderer,source_hashes={f:hashlib.sha256((source/f).read_bytes()).hexdigest() for f in files},
                   input='Image only. Three of five numeric Y tick labels are visible. No scale, kind, ROI, color, anchors or date coordinates supplied.',
                   scoring='Private truth opened after recovery. At least 96 samples, 97% X coverage, correct axis scale, no wrongly read tick, rendered-curve NMAE below 2%, and two absent tick values each within 2% of full axis range.',
                   limitations='Two procedural renderers and one font family. Linear/log single continuous colored curves with neutral gridlines. Dates and original observation counts not inferred. This is partial-axis reading, not full absent-axis recovery.',
-                  runtime=dict(python=platform.python_version(),numpy=np.__version__,matplotlib=matplotlib.__version__,tesseract=subprocess.run(['tesseract','--version'],capture_output=True,text=True).stdout.splitlines()[0]))
+                  runtime=dict(python=platform.python_version(),numpy=np.__version__,matplotlib=matplotlib.__version__,tesseract=tesseract_version))
     (out/'protocol.json').write_text(json.dumps(protocol,indent=2), encoding="utf-8");rows=[]
     for ri,renderer in enumerate(['pillow','matplotlib']):
         for j in range(per_renderer):
@@ -106,7 +108,7 @@ def run(output='artifacts/tick-heldout-v1',seed=70000,per_renderer=20):
                 bad_ticks=[]
                 for a in cal['anchors_used']:
                     nearest=min(truth['ticks'],key=lambda k:abs(k['y']-a['pixel']))
-                    if abs(nearest['y']-a['pixel'])>4 or nearest['value']!=a['value'] or not nearest['visible']:bad_ticks.append(a)
+                    if abs(nearest['y']-a['pixel'])>4 or abs(nearest['value']-a['value'])>max(1e-9,abs(nearest['value'])*5e-6) or not nearest['visible']:bad_ticks.append(a)
                 hidden=[]
                 for tick in truth['ticks']:
                     if tick['visible']:continue

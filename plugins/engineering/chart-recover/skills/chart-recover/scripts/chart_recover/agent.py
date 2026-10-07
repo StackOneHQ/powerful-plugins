@@ -2,6 +2,7 @@
 from pathlib import Path
 import csv
 import json
+import sys
 from .automatic import recover
 from .hypotheses import propose_calendar,candidate_result
 from .vision import overlay
@@ -55,15 +56,18 @@ def investigate_image(image,config=None,output='artifacts/agent',strict_only=Fal
     if not strict_only:
         from .comparison_totals import recover_comparison
         folder='conditional-comparison-totals'
-        comparison=recover_comparison(image,config,out/folder)
-        summary['steps'].append(dict(action='test_comparison_totals',status=comparison['status'],
-            result=f'{folder}/result.json',evidence_strength=comparison['evidence_strength']))
-        if comparison['status']=='conditional_calibration':
-            summary['conditional_candidates']+=1
-            summary['conditional_results'].append(dict(reader='comparison_totals',result=f'{folder}/result.json',
-                csv=f'{folder}/data.csv',overlay=f'{folder}/overlay.png',status=comparison['status'],
-                evidence_strength=comparison['evidence_strength'],date_assignment=comparison['date_assignment'],assumptions=comparison['assumptions']))
-            if not workflow['calibrated_candidates']:summary['status']='has_conditional_candidates'
+        try:
+            comparison=recover_comparison(image,config,out/folder)
+            summary['steps'].append(dict(action='test_comparison_totals',status=comparison['status'],
+                result=f'{folder}/result.json',evidence_strength=comparison['evidence_strength']))
+            if comparison['status']=='conditional_calibration':
+                summary['conditional_candidates']+=1
+                summary['conditional_results'].append(dict(reader='comparison_totals',result=f'{folder}/result.json',
+                    csv=f'{folder}/data.csv',overlay=f'{folder}/overlay.png',status=comparison['status'],
+                    evidence_strength=comparison['evidence_strength'],date_assignment=comparison['date_assignment'],assumptions=comparison['assumptions']))
+                if not workflow['calibrated_candidates']:summary['status']='has_conditional_candidates'
+        except (ValueError,OSError,RuntimeError) as error:
+            summary['steps'].append(dict(action='test_comparison_totals',status='unavailable',reason=str(error)))
     sources=[]
     discovery_enabled=config.get('discover_evidence') or config.get('evidence_cache')
     if discovery_enabled:
@@ -123,15 +127,20 @@ def investigate_batch(manifest,output='artifacts/agent-batch',strict_only=False,
         if not line.strip():continue
         post=json.loads(line);post_id=str(post['id'])
         if not post_id.isdigit():raise ValueError('Expected numeric post id')
-        for i,media in enumerate(post.get('images',[])):
+        images=post.get('images',[])
+        if post.get('image'):images=images+[{'path':post['image']}]
+        for i,media in enumerate(images):
             path=(manifest.parent/media['path']).resolve()
             if not path.is_relative_to(manifest.parent.resolve()):raise ValueError('Image path outside manifest directory')
-            result=investigate_image(path,dict(source=post['url'],post_text=post.get('text',''),post_links=post.get('links',[]),
-                post_date=post.get('created_at'),discover_evidence=discover_evidence,evidence_cache=evidence_cache),out/f'{post_id}-{i}',strict_only,resolver)
-            rows.append(dict(post_id=post_id,image=media['path'],status=result['status'],strict_candidates=result['strict_candidates'],
-                             conditional_candidates=result['conditional_candidates'],result=f'{post_id}-{i}/agent.json'))
+            try:
+                result=investigate_image(path,dict(source=post['url'],post_text=post.get('text',''),post_links=post.get('links',[]),
+                    post_date=post.get('created_at'),discover_evidence=discover_evidence,evidence_cache=evidence_cache),out/f'{post_id}-{i}',strict_only,resolver)
+                rows.append(dict(post_id=post_id,image=media['path'],status=result['status'],strict_candidates=result['strict_candidates'],
+                                 conditional_candidates=result['conditional_candidates'],result=f'{post_id}-{i}/agent.json'))
+            except (ValueError,OSError,RuntimeError) as error:
+                rows.append(dict(post_id=post_id,image=media['path'],status='failed',reason=str(error),strict_candidates=0,conditional_candidates=0))
             summary=dict(images=len(rows),images_with_strict_candidates=sum(r['strict_candidates']>0 for r in rows),
                          images_with_conditional_candidates=sum(r['conditional_candidates']>0 for r in rows),results=rows)
-            (out/'batch.json').write_text(json.dumps(summary,indent=2), encoding="utf-8");print(post_id,result['status'],flush=True)
+            (out/'batch.json').write_text(json.dumps(summary,indent=2), encoding="utf-8");print(post_id,rows[-1]['status'],file=sys.stderr,flush=True)
     return dict(images=len(rows),images_with_strict_candidates=sum(r['strict_candidates']>0 for r in rows),
                 images_with_conditional_candidates=sum(r['conditional_candidates']>0 for r in rows),results=rows)

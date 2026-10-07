@@ -35,13 +35,13 @@ def _turns(values):
     return int(np.sum(sign[:-1]!=sign[1:]))
 
 
-def _anchors(observations,mapping):
+def _anchors(observations,mapping,pixel_error=2.5):
     anchors=[]
     for obs in observations:
         day=int(obs['date'][-2:]);coordinate=mapping(day)
         if coordinate is None:continue
         pixel,extra=coordinate
-        anchors.append(dict(pixel=pixel,low=obs['low'],high=obs['high'],pixel_error=2.5+extra,
+        anchors.append(dict(pixel=pixel,low=obs['low'],high=obs['high'],pixel_error=pixel_error+extra,
                             source=obs['source'],matched=True,correspondence_basis='conditional_hypothesis',source_observation_date=obs['date'],label_box=obs['box']))
     return anchors
 
@@ -53,6 +53,7 @@ def propose_calendar(calendar_result):
     result is always a hypothesis, even when every numerical check succeeds.
     """
     result=calendar_result;calendar=result.get('calendar',{});geometry=result.get('geometry',{})
+    pixel_error=result.get('config',{}).get('pixel_error',2.5)
     correspondence=result.get('correspondence',{});rejected=[]
     audit=dict(status='unavailable');hypotheses=[]
     summary=dict(status='no_supported_hypothesis',hypotheses=hypotheses,rejections=rejected,
@@ -95,10 +96,10 @@ def propose_calendar(calendar_result):
         hypothesis=dict(id=name,status='rejected',fit_observations=len(fitting),check_observations=len(checking),reasons=[],
                         source='calendar observations and curve geometry in the same image',date_assignment='unassigned')
         hypotheses.append(hypothesis)
-        train=_anchors(fitting,mapping);test=_anchors(checking,mapping)
+        train=_anchors(fitting,mapping,pixel_error);test=_anchors(checking,mapping,pixel_error)
         if len(train)!=len(fitting) or len(test)!=len(checking):
             hypothesis['reasons'].append('Some calendar dates lie outside the curve under this mapping.');continue
-        fit=calibrate([a['pixel'] for a in test],train,scale='unknown',pixel_error=2.5+max(errors))
+        fit=calibrate([a['pixel'] for a in test],train,scale='unknown',pixel_error=pixel_error+max(errors))
         hypothesis['fit_status']=fit['status']
         if fit['status']!='calibrated':
             hypothesis['reasons'].append(fit.get('reason','Numerical constraints do not select one scale.'));continue
@@ -110,15 +111,15 @@ def propose_calendar(calendar_result):
                                  meaning='Same-image cells excluded from coefficient fitting; not independent factual corroboration or held-out external ground truth.')
         if nmae>.02 or coverage<.9:
             hypothesis['reasons'].append('Unused checking cells do not support this mapping within the fixed error/coverage thresholds.');continue
-        anchors=_anchors(observations,mapping)
-        final=calibrate(ys,anchors,scale='unknown',pixel_error=2.5+max(errors))
+        anchors=_anchors(observations,mapping,pixel_error)
+        final=calibrate(ys,anchors,scale='unknown',pixel_error=pixel_error+max(errors))
         if final['status']!='calibrated':
             hypothesis['reasons'].append('Not all accepted observations admit one bounded calibration.');continue
         alignment_assumption=('Calendar dates in order correspond to equally spaced locations across the complete curve span.' if name=='calendar_order_over_curve_span'
                               else 'Printed date-label centers denote exact positions on a linear calendar-day X axis.')
         assumptions=['The calendar amounts and selected curve describe the same daily revenue metric, entity and currency.',alignment_assumption,
                      'Numerical agreement supports this association but does not prove panel identity or truthful source data.',
-                     'Dates are not assigned to the output curve; calendar dates remain source-observation metadata.']+calendar.get('assumptions',[])
+                     'Dates are not assigned to the output curve; calendar dates remain source-observation metadata.']+calendar.get('assumptions',[])+correspondence.get('assumptions',[])
         if audit.get('status')=='label_centers_disagree':
             assumptions.append('Printed date-label centers disagree with full-month spacing; the positional hypothesis treats those labels as inset or decorative, not exact tick coordinates.')
         final['assumptions']+=assumptions
@@ -126,6 +127,8 @@ def propose_calendar(calendar_result):
         # Calendars have observed dates; they are not promoted to chart dates.
         hypothesis['proposed_source_dates']=[f"{layout['year']:04d}-{layout['month']:02d}-{i+1:02d}" for i in range(days)] if name=='calendar_order_over_curve_span' else None
     supported=[h for h in hypotheses if h['status']=='supported_conditional_hypothesis']
+    if not supported:
+        rejected.extend(dict.fromkeys(reason for h in hypotheses for reason in h['reasons']))
     if len(supported)==1:
         summary.update(status='one_supported_conditional_hypothesis',selected=supported[0]['id'])
     elif len(supported)>1:

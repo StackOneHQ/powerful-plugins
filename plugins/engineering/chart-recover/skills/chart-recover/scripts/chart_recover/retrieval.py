@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 import re
 from pathlib import Path
-from .semantic import METRICS
+from .semantic import METRICS, REVENUE_VERBS, REVENUE_FALLBACK
 
 
 def plan_queries(context):
@@ -15,7 +15,7 @@ def plan_queries(context):
     entity = re.sub(r'["\r\n]', ' ', entity)
     terms = {'mrr': '(MRR OR "monthly recurring revenue")',
              'arr': '(ARR OR "annual recurring revenue")',
-             'revenue': '(revenue OR sales OR made)',
+             'revenue': '(' + ' OR '.join(('revenue', 'sales', *REVENUE_VERBS)) + ')',
              'users': 'users', 'customers': 'customers'}[metric]
     return [f'"{entity}" {terms} -is:retweet']
 
@@ -27,7 +27,7 @@ class CorpusRetriever:
 
     @classmethod
     def from_jsonl(cls, path):
-        with Path(path).open() as f:
+        with Path(path).open(encoding='utf-8') as f:
             return cls(json.loads(line) for line in f if line.strip())
 
     def retrieve(self, context, limit=30):
@@ -42,10 +42,14 @@ class CorpusRetriever:
             metadata_match = str(doc.get('entity', '')).casefold() in names and doc.get('entity_source')
             if not (entity_match or metadata_match): continue
             source = doc.get('url', doc.get('source', ''))
-            if not source or (source, text) in seen: continue
-            seen.add((source, text))
+            provenance = json.dumps([doc.get(k) for k in ('entity', 'entity_source', 'created_at')], sort_keys=True)
+            key = (source, text, provenance)
+            if not source or key in seen: continue
+            seen.add(key)
             metric = context.get('metric', '')
-            score = 2 + bool(re.search(METRICS.get(metric, r'(?!)'), content, re.I))
+            metric_pattern = METRICS.get(metric, r'(?!)')
+            if metric == 'revenue': metric_pattern += '|' + REVENUE_FALLBACK
+            score = 2 + bool(re.search(metric_pattern, content, re.I))
             record = dict(doc, text=text, url=source, retrieval_score=score, retrieval_method='local_public_corpus')
             found.append(record)
         return sorted(found, key=lambda d: (-d['retrieval_score'], d['url']))[:limit]

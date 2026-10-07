@@ -2,6 +2,7 @@
 import re
 import math
 import numpy as np
+from .semantic import split_clauses
 
 MONEY=re.compile(r'(?P<currency>[$€£])\s*(?P<amount>\d[\d,]*(?:\.\d+)?)\s*(?P<suffix>[kKmMbB])?\b')
 METRIC=re.compile(r'\b(MRR|ARR|revenue|users|customers|subscriptions|downloads)\b',re.I)
@@ -9,15 +10,19 @@ METRIC=re.compile(r'\b(MRR|ARR|revenue|users|customers|subscriptions|downloads)\
 
 def claims_from_text(text,source,entity=None):
     claims=[]
-    for m in MONEY.finditer(text):
-        amount=float(m['amount'].replace(',',''))*{'':1,'k':1e3,'m':1e6,'b':1e9}[(m['suffix'] or '').lower()]
-        if not math.isfinite(amount):continue
-        context=text[max(0,m.start()-50):min(len(text),m.end()+60)]
-        metric=METRIC.search(text[m.end():m.end()+25]) or METRIC.search(text[max(0,m.start()-30):m.start()])
-        claims.append(dict(value=amount,currency=m['currency'],metric=metric[0].lower() if metric else None,
-                           entity=entity,source=source,quote=context,matched=False,
-                           status='lead_requires_metric_period_and_point_match'))
-    for m in re.finditer(r'\b(\d+(?:\.\d+)?)\s*[x×]\b',text,re.I):
+    for clause in split_clauses(text):
+        for m in MONEY.finditer(clause):
+            integer=m['amount'].split('.')[0]
+            if ',' in integer and not re.fullmatch(r'\d{1,3}(?:,\d{3})+',integer):continue
+            if re.search(r'[-−+(]\s*$',clause[:m.start()]):continue
+            amount=float(m['amount'].replace(',',''))*{'':1,'k':1e3,'m':1e6,'b':1e9}[(m['suffix'] or '').lower()]
+            if not math.isfinite(amount):continue
+            context=clause[max(0,m.start()-50):min(len(clause),m.end()+60)]
+            metric=METRIC.search(clause[m.end():m.end()+25]) or METRIC.search(clause[max(0,m.start()-30):m.start()])
+            claims.append(dict(value=amount,currency=m['currency'],metric=metric[0].lower() if metric else None,
+                               entity=entity,source=source,quote=context,matched=False,
+                               status='lead_requires_metric_period_and_point_match'))
+    for m in re.finditer(r'\b(\d+(?:\.\d+)?)\s*[x×](?!\w)',text,re.I):
         ratio=float(m[1])
         if math.isfinite(ratio):claims.append(dict(ratio=ratio,source=source,matched=False,status='relative_claim_not_absolute_anchor'))
     return claims

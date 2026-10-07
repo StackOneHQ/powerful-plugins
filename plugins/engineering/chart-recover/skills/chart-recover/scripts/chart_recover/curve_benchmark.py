@@ -11,7 +11,7 @@ def run(output,seed=230000):
     out=Path(output)
     if (out/'protocol.json').exists():raise ValueError('Use a fresh output directory')
     out.mkdir(parents=True,exist_ok=True);(out/'source').mkdir();src=Path(__file__).parent
-    files=['curve_benchmark.py','external_benchmark.py','external_evidence.py','public_profile.py','vision.py','ocr.py','autopilot.py','calibrate.py','calendar_vision.py']
+    files=sorted(p.name for p in Path(__file__).parent.glob('*.py'))
     for f in files:(out/'source'/f).write_bytes((src/f).read_bytes())
     protocol=dict(seed=seed,cases=30,controls=9,curves=['pchip','cubic','step'],
         source_hashes={f:hashlib.sha256((src/f).read_bytes()).hexdigest() for f in files},
@@ -41,7 +41,7 @@ def run(output,seed=230000):
     summary=dict(protocol=protocol,cases=len(rows),passed=sum(r['success'] for r in rows),
         abstentions=sum(r['status']!='conditional_calibration' for r in rows),
         incorrect_returned_candidates_under_criteria=sum(r['status']=='conditional_calibration' and not r['success'] for r in rows),
-        corner_grids_on_non_linear_curves=sum(r['alignment_strategy']=='image_corners' for r in rows),rows=rows,controls=controls)
+        corner_grid_selections={group:sum(r['alignment_strategy']=='image_corners' for r in rows if (r['curve']=='step')==(group=='step')) for group in ('smooth','step')},rows=rows,controls=controls)
     (out/'summary.json').write_text(json.dumps(summary,indent=2), encoding="utf-8");return summary
 
 

@@ -12,7 +12,7 @@ def run(output,seed=120000):
     out=Path(output)
     if (out/'protocol.json').exists():raise ValueError('Use a fresh output directory')
     out.mkdir(parents=True,exist_ok=True);source=Path(__file__).parent;(out/'source').mkdir(exist_ok=True)
-    files=['jpeg_benchmark.py','external_benchmark.py','external_evidence.py','public_profile.py','vision.py','ocr.py','autopilot.py','calibrate.py','calendar_vision.py']
+    files=sorted(p.name for p in Path(__file__).parent.glob('*.py'))
     for f in files:(out/'source'/f).write_bytes((source/f).read_bytes())
     settings=list(itertools.product(['pillow','matplotlib'],['#e22a36','#18aa78','#d68416'],[35,55,75],[1.,.8]))
     protocol={'seed':seed,'cases':len(settings),'source_hashes':{f:hashlib.sha256((source/f).read_bytes()).hexdigest() for f in files},

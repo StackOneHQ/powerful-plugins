@@ -7,6 +7,8 @@ import tempfile
 from pathlib import Path
 from PIL import Image, ImageOps
 
+MAX_OCR_OUTPUT=8_000_000
+
 
 def read_text(path, *, scale=1., region=None, invert=False, psm=11):
     """Read tokens, retaining their locations in the original image.
@@ -30,13 +32,22 @@ def read_text(path, *, scale=1., region=None, invert=False, psm=11):
         if invert:im=ImageOps.invert(im)
         with tempfile.TemporaryDirectory(prefix='chart-ocr-') as tmp:
             prepared=Path(tmp)/'input.png';im.save(prepared)
-            try:
-                proc=subprocess.run([executable,str(prepared),'stdout','--psm',str(psm),'tsv'],capture_output=True,text=True,encoding="utf-8",timeout=45)
-            except subprocess.TimeoutExpired:
-                return {'available':False,'tokens':[],'text':'','reason':'OCR timed out'}
+            # Spool subprocess output to disk, never unbounded in-memory
+            # capture. Stderr is diagnostic-only and is not consumed.
+            with tempfile.TemporaryFile() as output:
+                try:
+                    proc=subprocess.run([executable,str(prepared),'stdout','--psm',str(psm),'tsv'],
+                                        stdout=output,stderr=subprocess.DEVNULL,text=True,encoding="utf-8",timeout=45)
+                except subprocess.TimeoutExpired:
+                    return {'available':False,'tokens':[],'text':'','reason':'OCR timed out'}
+                output.seek(0)
+                raw=output.read(MAX_OCR_OUTPUT+1)
+                if len(raw)>MAX_OCR_OUTPUT:
+                    return {'available':False,'tokens':[],'text':'','reason':'OCR output exceeds the 8 MB limit'}
+                text_output=raw.decode('utf-8')
     if proc.returncode:return {'available':False,'tokens':[],'text':'','reason':'OCR failed'}
     rows=[]
-    for r in csv.DictReader(io.StringIO(proc.stdout),delimiter='\t'):
+    for r in csv.DictReader(io.StringIO(text_output),delimiter='\t'):
         text=r.get('text','').strip()
         if text and float(r['conf'])>=30:
             rows.append(dict(text=text,confidence=float(r['conf']),

@@ -3,6 +3,7 @@ from __future__ import annotations
 import csv
 import hashlib
 import json
+import math
 from pathlib import Path
 from .vision import extract,overlay
 from .calibrate import calibrate
@@ -24,19 +25,24 @@ def analyze(image,config=None,output='artifacts/analysis'):
         geometry=extract(image,kind=config.get('kind','auto'),roi=config.get('roi'),color=config.get('color'),samples=config.get('samples',101))
     trace.append(dict(step='extract',series=len(geometry['series']),method=geometry['method']))
     ocr=visual['ocr'] if visual else read_text(image) if config.get('ocr',True) else {'available':False,'text':'','tokens':[]}
-    leads=claims_from_text(config.get('post_text',''),config.get('post_url','provided post text'),config.get('entity'))
+    post_source=config.get('post_url') or config.get('source') or ''
+    leads=claims_from_text(config.get('post_text',''),post_source or 'provided post text',config.get('entity'))
     leads+=claims_from_text(ocr['text'],'OCR of input image',config.get('entity'))
     for doc in config.get('evidence_documents',[]):
-        leads+=claims_from_text(doc['text'],doc['url'],doc.get('entity'))
+        leads+=claims_from_text(doc.get('text',doc.get('text_excerpt','')),doc.get('url',doc.get('source','')),doc.get('entity'))
     documents=list(config.get('evidence_documents',[]))
     if config.get('post_text'):
-        documents.append(dict(text=config['post_text'],url=config.get('post_url',''),created_at=config.get('post_date')))
+        documents.append(dict(text=config['post_text'],url=post_source,created_at=config.get('post_date')))
     binding=bind_documents(documents,geometry,config['chart_context'],pixel_error=config.get('pixel_error',2.5)) if config.get('chart_context') else dict(claims=[],decisions=[],anchors=[])
     visual_anchors=visual['binding']['anchors'] if visual else []
     all_anchors=list(config.get('anchors',[]))+binding['anchors']+visual_anchors
     trace.append(dict(step='gather_evidence',candidate_claims=len(leads),accepted_anchors=len(all_anchors),
                       automatically_bound=len(binding['anchors'])+len(visual_anchors),rejected_claims=sum(d['status']=='rejected' for d in binding['decisions']),
                       supplied_period_totals=len(config.get('totals',[]))))
+    extracted_ids={s['id'] for s in geometry['series']}
+    for total in config.get('totals',[]):
+        if 'series' not in total:raise ValueError('Every total must name its series')
+        if total['series'] not in extracted_ids:raise ValueError('Total references an unknown series')
     results=[]
     for s in geometry['series']:
         anchors=[]
@@ -46,13 +52,15 @@ def analyze(image,config=None,output='artifacts/analysis'):
             if 'point_index' in a:
                 if len(geometry['series']) > 1 and 'series' not in a:
                     raise ValueError('A point_index anchor must name its series when multiple series are detected')
-                idx=int(a.pop('point_index'))
+                raw_index=a.pop('point_index')
+                if isinstance(raw_index,bool) or not (isinstance(raw_index,int) or
+                        isinstance(raw_index,float) and math.isfinite(raw_index) and raw_index.is_integer()):
+                    raise ValueError('point_index must be an integer')
+                idx=int(raw_index)
                 if not -len(s['points'])<=idx<len(s['points']):raise ValueError('Anchor point_index outside extracted series')
                 a['pixel']=s['coordinates'][idx]
             anchors.append(a)
         totals=[t for t in config.get('totals',[]) if t.get('series')==s['id']]
-        if config.get('totals') and any('series' not in t for t in config['totals']):
-            raise ValueError('Every total must name its series')
         if totals:
             if config.get('scale')!='linear':raise ValueError('Period-total calibration needs an explicitly linear scale')
             if s['kind'].startswith('stacked'):raise ValueError('Period totals for stacked boundaries need additional semantic review')

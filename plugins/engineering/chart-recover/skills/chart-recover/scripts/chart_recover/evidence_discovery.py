@@ -14,6 +14,7 @@ from PIL import Image
 from .public_profile import profile_url, fetch_profile, parse_profile
 from .ocr import read_text
 from .autopilot import consensus_tokens
+from .calendar_vision import bounded_ocr_scales
 
 DISCOVERY_URL='https://trustmrr.com/api/ai/discovery'
 GROUPS=('recentlyAddedStartups','fastestGrowingStartups')
@@ -97,6 +98,9 @@ class EvidenceDiscovery:
             if self.cache:
                 path=(self.cache/'discovery.json').resolve()
                 if not path.is_relative_to(self.cache):raise ValueError('Catalog cache path escapes its directory')
+                if not path.exists():
+                    path=(self.cache/'catalog.raw.json').resolve()
+                    if not path.is_relative_to(self.cache):raise ValueError('Catalog cache path escapes its directory')
                 with path.open('rb') as f:content=f.read(2_000_001)
                 retrieved_at=None
             else:
@@ -132,15 +136,17 @@ class EvidenceDiscovery:
         if not candidates:
             try:
                 catalog=self.catalog();result.update(catalog_used=True,catalog_source=catalog['source'],catalog_sha256=catalog['source_sha256'])
-                scans=[read_text(image,scale=s) for s in (2.,3.)]
+                with Image.open(image) as im:width,height=im.size
+                scans=[read_text(image,scale=s) for s in bounded_ocr_scales(width,height)]
                 tokens,disagreements=consensus_tokens(scans[0]['tokens'],scans[1]['tokens'])
-                with Image.open(image) as im:height=im.height
                 headers=header_lines(tokens,height);result.update(ocr=scans,ocr_disagreements=disagreements,image_headers=headers)
+                post_text=context.get('post_text')
+                if not isinstance(post_text,str):post_text=''
                 for entry in catalog['entries']:
                     basis=[]
                     for header in headers:
                         if exact_name(entry['name'],header['text']):basis.append(dict(kind='catalog_name_in_image_header',**header))
-                    if exact_name(entry['name'],context.get('post_text') or ''):basis.append(dict(kind='catalog_name_in_post_text',name=entry['name']))
+                    if exact_name(entry['name'],post_text):basis.append(dict(kind='catalog_name_in_post_text',name=entry['name']))
                     if basis:candidates.append(dict(url=entry['url'],name=entry['name'],catalog_locations=entry['locations'],basis=basis))
                 result['status']='candidates_found' if candidates else 'no_candidate'
             except (ValueError,OSError,RuntimeError,requests.RequestException) as e:

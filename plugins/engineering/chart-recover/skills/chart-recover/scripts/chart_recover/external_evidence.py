@@ -15,7 +15,7 @@ from scipy import ndimage
 from .vision import _masks, overlay
 from .ocr import read_text
 from .autopilot import consensus_tokens, _center
-from .calendar_vision import MONTHS
+from .calendar_vision import MONTHS,bounded_ocr_scales
 from .calibrate import calibrate
 
 
@@ -156,9 +156,9 @@ def date_axis(tokens, geometry, periods):
             continue
         n = near[0]
         choices = by_month_day.get(f'{month:02d}-{int(n["text"]):02d}', [])
-        if len(choices) != 1:
-            continue
-        labels.append(dict(date=choices[0], x=(x+n['box'][0]+n['box'][2])/2,
+        labels.append(dict(date=choices[0] if len(choices)==1 else None,
+                           month_day=f'{month:02d}-{int(n["text"]):02d}',matching_dates=choices,
+                           x=(x+n['box'][0]+n['box'][2])/2,
                            y=_center(t)[1], height=h, month_box=t['box'], day_box=n['box']))
     rows = []
     for label in sorted(labels, key=lambda t:t['y']):
@@ -170,6 +170,10 @@ def date_axis(tokens, geometry, periods):
     if len(rows) != 1:
         return dict(status='needs_review', reason='Need one row with at least three unambiguous month/day labels.', labels=labels)
     labels = rows[0]
+    unmatched=[label for label in labels if label['date'] is None]
+    if unmatched:
+        return dict(status='needs_review',reason='Visible date-axis labels are absent from or ambiguous in the public table.',
+                    labels=labels,unmatched_labels=unmatched)
     outside=[]
     for label in labels:
         width=label['day_box'][0]+label['day_box'][2]-label['month_box'][0]
@@ -452,7 +456,8 @@ def recover_external(image, profile, output):
     out = Path(output)
     out.mkdir(parents=True, exist_ok=True)
     geometry, candidates = trace_curve(image)
-    scans = [read_text(image, scale=s) for s in (2., 3.)]
+    scales = bounded_ocr_scales(*geometry['size'])
+    scans = [read_text(image, scale=s) for s in scales]
     tokens, disagreements = consensus_tokens(scans[0]['tokens'], scans[1]['tokens'])
     result = dict(image=str(image), image_sha256=hashlib.sha256(Path(image).read_bytes()).hexdigest(),
                   status='needs_evidence_or_review', geometry=geometry, curve_candidates=candidates,
@@ -568,4 +573,6 @@ def recover_external(image, profile, output):
             fields=['proposed_date','pixel_x','pixel_y','sample_x','sample_window','sampling_convention',
                     'conditional_value','lower','upper','status','date_assignment']
             writer=csv.DictWriter(f,fieldnames=fields);writer.writeheader();writer.writerows(result['daily_recovery'])
+    else:
+        (out/'daily.csv').unlink(missing_ok=True)
     return result

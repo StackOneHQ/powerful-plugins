@@ -15,7 +15,7 @@ def run(output,seed=160000,per_renderer=4,styles=('light','dark')):
     out=Path(output)
     if (out/'protocol.json').exists():raise ValueError('Use a fresh output directory')
     out.mkdir(parents=True,exist_ok=True);(out/'source').mkdir();src=Path(__file__).parent
-    files=['sparse_benchmark.py','external_benchmark.py','external_evidence.py','public_profile.py','vision.py','ocr.py','autopilot.py','calibrate.py','calendar_vision.py']
+    files=sorted(p.name for p in Path(__file__).parent.glob('*.py'))
     for f in files:(out/'source'/f).write_bytes((src/f).read_bytes())
     protocol=dict(seed=seed,per_renderer=per_renderer,styles=list(styles),cases=2*per_renderer,controls=2*per_renderer,source_hashes={f:hashlib.sha256((src/f).read_bytes()).hexdigest() for f in files},
         design='Sparse linear daily revenue, mostly zero. Positive cases have distinct fitting/checking levels and one hidden positive peak. Controls have only zero checking values. Two renderers with the explicitly listed styles.',
@@ -24,8 +24,8 @@ def run(output,seed=160000,per_renderer=4,styles=('light','dark')):
         scoring='Correct scale, no hidden-value leakage, <=4px proposed X error, no extrapolation and six-amount NMAE <2% of the full value range. Truth is read only after inference.',
         limitations='Procedural sparse curves and a supplied profile source; tests informative-checking policy, not independent public identity or general accuracy.')
     (out/'protocol.json').write_text(json.dumps(protocol,indent=2), encoding="utf-8");rows=[];controls=[];hidden=[3,8,13,19,23,27]
-    fit=[i for i in range(1,29) if i not in hidden and date(2026,9,i+1).toordinal()%3!=1]
-    check=[i for i in range(1,29) if i not in hidden and date(2026,9,i+1).toordinal()%3==1]
+    fit=[i for i in range(30) if i not in hidden and date(2026,9,i+1).toordinal()%3!=1]
+    check=[i for i in range(30) if i not in hidden and date(2026,9,i+1).toordinal()%3==1]
     for ri,renderer in enumerate(('pillow','matplotlib')):
         for flat in (False,True):
             for j in range(per_renderer):

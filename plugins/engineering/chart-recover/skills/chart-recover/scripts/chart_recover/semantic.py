@@ -7,6 +7,7 @@ need provenance; a matching shape, nearby number or document rank is not proof.
 from __future__ import annotations
 import calendar
 import hashlib
+import json
 import math
 import re
 from datetime import date
@@ -21,6 +22,8 @@ METRICS = {
     'revenue': r'\b(?:revenue|sales)\b',
     'users': r'\busers\b', 'customers': r'\bcustomers\b',
 }
+REVENUE_VERBS = ('made', 'generated', 'earned')
+REVENUE_FALLBACK = r'\b(?:' + '|'.join(REVENUE_VERBS) + r')\b'
 MONTHS = {v.lower(): k for k in range(1, 13) for v in (calendar.month_name[k], calendar.month_abbr[k])}
 MONTH_PATTERN = '|'.join(sorted(MONTHS, key=len, reverse=True))
 TARGET = re.compile(r'\b(?:target|goal|aim|aiming|hope|hoping|forecast|projected|projection|'
@@ -31,6 +34,37 @@ NON_TOTAL = re.compile(r'\b(?:increase|increased|decrease|decreased|grew by|up b
 
 def _norm(value):
     return re.sub(r'\W+', '', str(value)).casefold()
+
+
+def split_clauses(text):
+    """Keep the supported comparison abbreviation within its sentence."""
+    return re.split(r'(?<!vs\.)(?<=[.!?])\s+|[;\n]+', text, flags=re.I)
+
+
+def _claim_entity(clause, document, entity, aliases):
+    """Metadata can fill an unnamed subject, never replace a conflicting name."""
+    names = [n for n in (entity, *aliases) if n]
+    known = {_norm(n) for n in names}
+    literal = entity if any(re.search(r'(?<!\w)' + re.escape(n) + r'(?!\w)', clause, re.I) for n in names) else None
+    metadata = document.get('entity') if document.get('entity_source') else None
+    # This deliberately small subject grammar detects conflicts; it does not
+    # establish an unfamiliar company as the chart's identity.
+    subject = re.match(r"\s*([\w&.-]+(?:\s+[\w&.-]+){0,4}?)(?:['’]s)?\s+"
+                       r'(?=(?:MRR|ARR|monthly recurring revenue|annual recurring revenue|revenue|sales|'
+                       r'users|customers|made|generated|earned|hit|reached|reported|is|was|has|had)\b)', clause, re.I)
+    subject = subject[1] if subject else None
+    if subject and subject.casefold() in {'we', 'i', 'our', 'my', 'its', 'their', 'the', 'this', 'that', 'it',
+                                        'mrr', 'arr', 'revenue', 'sales', 'users', 'customers',
+                                        'monthly recurring revenue', 'annual recurring revenue'}:
+        subject = None
+    conflict = bool(metadata and literal and _norm(metadata) not in known)
+    if metadata and subject:
+        agrees = _norm(subject) == _norm(metadata) or (_norm(subject) in known and _norm(metadata) in known)
+        if not agrees:
+            return subject, 'literal_subject_conflicts_with_metadata', True
+    if literal:
+        return literal, 'literal_name_in_clause', conflict
+    return metadata, document.get('entity_source') if metadata else None, conflict
 
 
 def _period(text, published_at=None):
@@ -84,9 +118,9 @@ def parse_document(document, entity=None, aliases=()):
     """
     text = document.get('text', document.get('text_excerpt', ''))
     source = document.get('url', document.get('source', ''))
+    source = source if isinstance(source, str) else ''
     claims = []
-    names = [x for x in (entity, *aliases) if x]
-    for clause in re.split(r'(?<=[.!?])\s+|[;\n]+', text):
+    for clause in split_clauses(text):
         money = list(MONEY.finditer(clause))
         if not money:
             continue
@@ -97,17 +131,13 @@ def parse_document(document, entity=None, aliases=()):
         for key, pattern in METRICS.items():
             if re.search(pattern, metric_text, re.I):
                 metric_hits.append(key)
-        if not metric_hits and re.search(r'\b(?:made|generated|earned)\b', clause, re.I):
+        if not metric_hits and re.search(REVENUE_FALLBACK, clause, re.I):
             metric_hits = ['revenue']
         metric = metric_hits[0] if len(metric_hits) == 1 else None
-        claim_entity, entity_basis = None, None
-        if any(re.search(r'(?<!\w)' + re.escape(n) + r'(?!\w)', clause, re.I) for n in names):
-            claim_entity, entity_basis = entity, 'literal_name_in_clause'
-        if document.get('entity') and document.get('entity_source'):
-            claim_entity, entity_basis = document['entity'], document['entity_source']
+        claim_entity, entity_basis, entity_conflict = _claim_entity(clause, document, entity, aliases)
         period, period_basis = _period(clause, document.get('created_at'))
-        aggregation = ('snapshot' if metric in ('mrr', 'arr', 'users', 'customers') else
-                       'cumulative' if re.search(r'\b(?:all[- ]time|lifetime|cumulative|since launch)\b', clause, re.I) else
+        aggregation = ('cumulative' if re.search(r'\b(?:all[- ]time|lifetime|cumulative|since launch)\b', clause, re.I) else
+                       'snapshot' if metric in ('mrr', 'arr', 'users', 'customers') else
                        'monthly_total' if metric == 'revenue' and period and len(period) == 7 else None)
         for m in money:
             multiplier = {'': 1, 'k': 1000, 'm': 1e6, 'b': 1e9}[(m['suffix'] or '').lower()]
@@ -120,7 +150,14 @@ def parse_document(document, entity=None, aliases=()):
             operator = ('lower_bound' if re.search(r'\b(?:over|above|passed|crossed|more than|at least|past)\s*$', before, re.I) or re.match(r'\s*\+', after) else
                         'upper_bound' if re.search(r'\b(?:under|below|less than|at most)\s*$', before, re.I) else
                         'approximate' if re.search(r'\b(?:about|around|roughly|approximately|nearly|almost)\s*$', before, re.I) else 'reported')
+            if re.match(r'\s*(?:(?:or|and)\s+(?:more|above|higher)|minimum|at least)\b', after, re.I): operator = 'lower_bound'
+            if re.match(r'\s*(?:(?:or|and)\s+(?:less|below|lower)|maximum|at most)\b', after, re.I): operator = 'upper_bound'
             issues = []
+            if re.match(r'\s*(?:[-–—−]|to\b|through\b|and\b)\s*(?:US\$|USD|EUR|GBP|[$€£])?\s*\d', after, re.I):
+                issues.append('range_not_point_value')
+            if re.match(r'\s*(?:thousand|million|billion|trillion)s?\b', after, re.I):
+                issues.append('word_multiplier_needs_review')
+            if entity_conflict: issues.append('conflicting_entity_evidence')
             if len(money) != 1: issues.append('multiple_amounts_in_clause')
             if len(metric_hits) != 1: issues.append('missing_or_ambiguous_metric')
             if TARGET.search(clause): issues.append('target_or_forecast')
@@ -131,7 +168,9 @@ def parse_document(document, entity=None, aliases=()):
                 issues.append('other_financial_measure_in_clause')
             if re.search(r'\b(?:their|competitor|portfolio|combined|across|versus|compared|says|said)\b',clause,re.I):
                 issues.append('entity_relationship_needs_review')
-            if re.search(r'\b(?:not|never|wasn.t|isn.t|didn.t|incorrect|false)\b', clause, re.I): issues.append('negation_or_disputed_claim')
+            if re.search(r"\b(?:not|never|cannot|\w+n['’]t|incorrect|false)\b", clause, re.I): issues.append('negation_or_disputed_claim')
+            if '?' in clause or re.match(r'\s*(?:did|does|do|is|are|was|were|can|could|would|should|will|has|have|had|what|when|why|how|whether)\b', clause, re.I):
+                issues.append('interrogative_claim')
             if re.search(r'[-−(]\s*$',before) or re.match(r'\s*[-−]',m['amount']): issues.append('signed_amount_needs_review')
             integer=m['amount'].split('.')[0].rstrip(',')
             if ',' in integer and not re.fullmatch(r'\d{1,3}(?:,\d{3})+',integer): issues.append('ambiguous_number_format')
@@ -142,14 +181,21 @@ def parse_document(document, entity=None, aliases=()):
             if not period: issues.append(period_basis)
             if operator != 'reported': issues.append(operator + '_not_point_value')
             if not aggregation: issues.append('aggregation_not_bound')
-            if urlsplit(source).scheme not in ('http', 'https') or not urlsplit(source).hostname:
+            try:
+                parsed_source = urlsplit(source)
+                public_source = parsed_source.scheme in ('http', 'https') and bool(parsed_source.hostname)
+                parsed_source.port  # Force validation of malformed explicit ports.
+            except ValueError:
+                public_source = False
+            if not public_source:
                 issues.append('missing_public_source_url')
             claim = dict(value=amount, currency=currency, metric=metric, aggregation=aggregation,
                          entity=claim_entity, entity_basis=entity_basis, period=period, period_basis=period_basis,
                          operator=operator, reported_precision=precision, abbreviated=bool(m['suffix']),
                          source=source, quote=clause.strip(), matched=False, issues=issues,
                          status='lead_requires_metric_period_and_point_match')
-            claim['id'] = hashlib.sha256((source + '\n' + clause + '\n' + str(m.start())).encode()).hexdigest()[:20]
+            provenance = json.dumps([document.get(k) for k in ('entity', 'entity_source', 'created_at')], sort_keys=True)
+            claim['id'] = hashlib.sha256((source + '\n' + clause + '\n' + str(m.start()) + '\n' + provenance).encode()).hexdigest()[:20]
             claims.append(claim)
     return claims
 
@@ -161,6 +207,14 @@ def _coordinate(series, period, context):
     if periods is not None:
         if not context.get('period_source'): return None, 'missing_period_axis_provenance'
         if len(periods) != len(points) or len(set(periods)) != len(periods): return None, 'period_mark_count_or_uniqueness_mismatch'
+        try:
+            if not all(isinstance(p, str) and re.fullmatch(r'20\d{2}-\d{2}(?:-\d{2})?', p) for p in periods):
+                return None, 'invalid_period_axis'
+            if len({len(p) for p in periods}) != 1: return None, 'invalid_period_axis'
+            dates = [date.fromisoformat(p + '-01' if len(p) == 7 else p) for p in periods]
+        except ValueError:
+            return None, 'invalid_period_axis'
+        if any(a >= b for a,b in zip(dates, dates[1:])): return None, 'nonmonotonic_period_axis'
         if period not in periods: return None, 'period_not_on_chart'
         i = periods.index(period)
         return dict(pixel=series['coordinates'][i], point_index=i, period=period,
@@ -211,7 +265,9 @@ def bind_documents(documents, geometry, context, *, pixel_error=2.5):
             for key in ('entity', 'metric', 'currency', 'aggregation'):
                 if not context.get(key) or _norm(claim.get(key)) != _norm(context.get(key)):
                     reasons.append(key + '_mismatch')
-            if claim['period_basis'] != 'explicit' and not context.get('allow_inferred_periods', False):
+            derived_explicit_period = (claim['period_basis'] == 'derived_previous_month'
+                                       and claim.get('derivation', {}).get('current_period_basis') == 'explicit')
+            if claim['period_basis'] != 'explicit' and not derived_explicit_period and not context.get('allow_inferred_periods', False):
                 reasons.append('inferred_period_needs_review')
             if claim['abbreviated'] and context.get('rounding_policy') != 'nearest':
                 reasons.append('abbreviated_amount_needs_rounding_policy')
@@ -222,7 +278,7 @@ def bind_documents(documents, geometry, context, *, pixel_error=2.5):
             if not reasons:
                 mapping, issue = _coordinate(selected[0], claim['period'], context)
                 if issue: reasons.append(issue)
-            decision = dict(claim_id=claim['id'], source=claim['source'], period=claim['period'],
+            decision = dict(claim_id=claim['id'], source=claim['source'], period=claim['period'], period_basis=claim['period_basis'],
                             status='rejected' if reasons else 'accepted', reasons=list(dict.fromkeys(reasons)))
             if not reasons:
                 # Abbreviations use an explicitly chosen rounding assumption.

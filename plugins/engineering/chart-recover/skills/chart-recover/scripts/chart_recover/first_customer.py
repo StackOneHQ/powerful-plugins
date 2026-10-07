@@ -30,10 +30,15 @@ def caption_claim(text,source):
     forbidden=r'\b(?:not|never|didn.t|wasn.t|isn.t|hope|hoping|goal|target|forecast|will|would|could|should|if|wish|friend|their|says|said|again|another|second|existing|already|previous|former|restarted|last\s+(?:year|month|week)|back\s+in|years?\s+ago|months?\s+ago|days?\s+ago|this\s+plan)\b'
     if re.search(forbidden,text,re.I) or any(c in text for c in ('?','"','“','”')):
         result['reasons'].append('Caption has retrospective, hypothetical, quoted, repeated or conflicting customer scope.')
-    pattern=r'^(?:\W)*(?:(?:I|we)\s+)?(?:(?:just|finally)\s+)?(?:got|landed|acquired)\s+(?:my|our)\s+(?:very\s+)?first\s+paying\s+customer\b'
+    pattern=r'^(?:\W)*(?:(?:I|we)\s+)?(?:(?:just|finally)\s+)?(?:got|landed|acquired)\s+(?:my|our)\s+(?:very\s+)?first\s+paying\s+customer'
+    timing=r'(?:\s+(?:today|yesterday|this\s+(?:morning|week)|\d+\s+days?\s+after\s+(?:I|we)\s+launched\s+(?:a|my|our)\s+(?:new\s+)?(?:startup|business|product)))?'
     clauses=re.split(r'(?<=[.!?])\s+|[\n;]+',text)
-    matches=[c.strip() for c in clauses if re.search(pattern,c,re.I)]
+    matches=[c.strip() for c in clauses if re.fullmatch(pattern+timing+r'[.!\s]*',c.strip(),re.I)]
     if len(matches)!=1:result['reasons'].append('Need one direct first-person statement of a first paying customer.')
+    # Additional chart/business assertions can contradict the correspondence
+    # hypothesis. Only the bounded claim above may establish its scope.
+    if any(c.strip() not in matches and re.search(r'\b(?:chart|graph|plot|dashboard|mrr|revenue|business|company|startup|product|but|however|although|other|different|unrelated|instead)\b',c,re.I) for c in clauses):
+        result['reasons'].append('Additional caption clauses leave chart or business scope unsupported.')
     if not result['reasons']:result.update(status='proposed',quote=matches[0])
     return result
 
@@ -75,6 +80,8 @@ def propose_first_customer(geometry,tokens,caption,source,disagreements=()):
         result['reasons'].append('Need one uncontested headline amount between the MRR heading and curve.');return result
     amount=amounts[0];match=MONEY.fullmatch(amount['text']);number=match['number'].replace(',','')
     value=float(number);decimals=len(number.split('.')[1]) if '.' in number else 0
+    if not np.isfinite(value):
+        result['reasons'].append('Headline amount must be finite.');return result
     half=.5*10**-decimals
     if value<=half:
         result['reasons'].append('Headline must be positive and distinguishable from zero.');return result

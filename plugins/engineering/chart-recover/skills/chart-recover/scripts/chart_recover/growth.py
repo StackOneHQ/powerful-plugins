@@ -13,7 +13,7 @@ GROWTH = re.compile(
     r'\s+(?:(?:was|is|has|had)\s+)?(?P<direction>up|down|grew|increased|decreased|rose|fell)'
     r'\s+(?:by\s+)?(?P<percent>\d+(?:\.\d+)?)\s*%\s+'
     r'(?P<comparison>(?:(?:on|from|versus|vs\.?|compared with|compared to)\s+(?:the\s+)?(?:last|previous)\s+month)'
-    r'|month[- ]over[- ]month|MoM)\b', re.I)
+    r'|month[- ]over[- ]month|MoM)\b\s*[.!]?\s*$', re.I)
 DISPUTED = re.compile(r'\b(?:not|never|incorrect|false|mistake|correction|would|could|should|forecast|'
                       r'target|expect|projected|hypothetical|competitor|their|combined|portfolio)\b', re.I)
 
@@ -44,11 +44,15 @@ def previous_amount_interval(amount,precision,percent,direction):
 
 def derive_previous_month_claims(document,base_claims):
     """Accept a narrow, explicit month-over-month sentence; retain rejections."""
-    from .semantic import _period
+    from .semantic import _period, split_clauses
     text=document.get('text',document.get('text_excerpt',''));derived=[];decisions=[]
-    for clause in re.split(r'(?<=[.!?])\s+|[;\n]+',text):
-        match=GROWTH.match(clause)
-        if not match:continue
+    for clause in split_clauses(text):
+        match=GROWTH.fullmatch(clause)
+        if not match:
+            if re.match(r'\s*(?:MRR|ARR|revenue|sales|monthly recurring revenue|annual recurring revenue)\b.*\d\s*%', clause, re.I):
+                decisions.append(dict(source=document.get('url',document.get('source','')),quote=clause.strip(),
+                    status='rejected',reasons=['Growth statement is outside the supported unqualified whole-clause grammar.']))
+            continue
         metric=match['metric'].lower()
         metric={'monthly recurring revenue':'mrr','annual recurring revenue':'arr','sales':'revenue'}.get(metric,metric)
         candidates=[c for c in base_claims if c.get('metric')==metric and not c.get('issues')
@@ -74,16 +78,17 @@ def derive_previous_month_claims(document,base_claims):
             period=previous_month(current['period'])
         except (ValueError,OverflowError) as error:
             decision['reasons'].append(str(error));decisions.append(decision);continue
-        claim=dict(current,value=interval['value'],period=period,operator='derived_range',
+        claim=dict(current,value=interval['value'],period=period,period_basis='derived_previous_month',operator='derived_range',
                    interval_low=interval['low'],interval_high=interval['high'],
                    quote=current['quote']+'\n'+clause.strip(),
                    derivation=dict(operation='previous_month = current_month / (1 + signed_change)',
-                                   current_claim_id=current['id'],current_period=current['period'],
+                                   current_claim_id=current['id'],current_period=current['period'],current_period_basis=current['period_basis'],
                                    direction=match['direction'].lower(),percent=match['percent'],
                                    current_interval=interval['current_interval'],percentage_interval=interval['percentage_interval'],
                                    factor_interval=interval['factor_interval'],independent_evidence=False),
                    derivation_assumptions=['The stated monetary amount and percentage were rounded to their displayed precision.',
                                            'The explicit month-over-month statement refers to the single current amount for this metric in the document.',
+                                           'The prior period is derived by subtracting one calendar month from the current disclosure period.',
                                            'The derived prior amount depends on the current disclosure; it is not independent corroboration.'])
         claim['id']=hashlib.sha256((current['id']+'\n'+clause+'\n'+period).encode()).hexdigest()[:20]
         derived.append(claim);decision.update(status='derived',claim_id=claim['id'],current_claim_id=current['id'],period=period)

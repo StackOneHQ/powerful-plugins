@@ -37,8 +37,10 @@ def test_smooth_trace_does_not_identify_a_unique_daily_count():
     assert fit(candidates)['status']=='needs_review'
 
 
-def test_unobserved_internal_knots_are_not_filled_as_measurements():
+def test_unobserved_interior_spans_are_refused_before_knot_fitting():
     candidates,_,_=curves()
     c=candidates[0];x=np.array(c['x']);keep=(x<250)|(x>500)
     c['x']=x[keep].tolist();c['y']=np.array(c['y'])[keep].tolist()
-    assert fit(candidates)['status']=='needs_review'
+    result=fit(candidates)
+    assert result['status']=='needs_review'
+    assert result['reason']=='Observed trace has unsupported gaps or unordered positions.'

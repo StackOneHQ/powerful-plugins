@@ -47,6 +47,7 @@ def test_tesseract_output_uses_utf8_independently_of_locale(tmp_path, monkeypatc
     monkeypatch.setattr(ocr.shutil, "which", lambda name: "tesseract")
     def run(*args, **kwargs):
         assert kwargs.get("encoding") == "utf-8"
-        return SimpleNamespace(returncode=0, stdout="level\tblock_num\tpar_num\tline_num\tleft\ttop\twidth\theight\tconf\ttext\n5\t1\t1\t1\t1\t1\t20\t10\t99\t€100\n")
+        kwargs['stdout'].write("level\tblock_num\tpar_num\tline_num\tleft\ttop\twidth\theight\tconf\ttext\n5\t1\t1\t1\t1\t1\t20\t10\t99\t€100\n".encode('utf-8'))
+        return SimpleNamespace(returncode=0)
     monkeypatch.setattr(ocr.subprocess, "run", run)
     assert ocr.read_text(image)["tokens"][0]["text"] == "€100"

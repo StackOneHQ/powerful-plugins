@@ -12,7 +12,7 @@ import re
 import numpy as np
 from PIL import Image
 from .vision import _masks,_components,extract,overlay
-from .calendar_vision import read_calendar,MONTHS,titles
+from .calendar_vision import read_calendar,MONTHS,titles,bounded_ocr_scales
 from .autopilot import _center,consensus_tokens
 from .calibrate import calibrate
 from .ocr import read_text
@@ -64,7 +64,7 @@ def detect_curves(path,days):
 def _metric_heading(tokens,left,right,bottom,lookback):
     found=[]
     for t in tokens:
-        if t['text'].lower() not in ('revenue','mrr','arr'):continue
+        if t['text'].lower() not in ('revenue','mrr','arr','sales','profit','expenses','orders','users','customers'):continue
         x,y=_center(t)
         if not left-20<=x<=right+20 or not bottom-lookback<=y<bottom:continue
         row=[r for r in tokens if left-20<=_center(r)[0]<=right+20 and abs(_center(r)[1]-y)<=max(4,t['box'][3]*.6)]
@@ -83,15 +83,29 @@ def _date_ticks(tokens,roi,month,days):
         if not bottom<cy<bottom+max(90,(right-left)*.15) or not left-35<x<right+35:continue
         combined=re.fullmatch(r'([A-Za-z]+)\s*(\d{1,2})',t['text'])
         if combined:
-            if MONTHS.get(combined[1].lower())==month:found.append(dict(day=int(combined[2]),x=x+w/2,box=t['box']))
-        elif MONTHS.get(t['text'].lower())==month:
+            parsed_month=MONTHS.get(combined[1].lower())
+            if parsed_month:found.append(dict(month=parsed_month,day=int(combined[2]),x=x+w/2,box=t['box']))
+        elif MONTHS.get(t['text'].lower()):
             # Tesseract can return slightly overlapping word boxes for a month
             # and a narrow digit, even when both text readings agree.
             nums=[n for n in tokens if re.fullmatch(r'\d{1,2}',n['text']) and -max(h,n['box'][3])*.75<=n['box'][0]-x-w<=h*1.5
                   and n['box'][0]>x+w*.5 and abs(_center(n)[1]-cy)<h*.6]
             if len(nums)==1:
-                n=nums[0];found.append(dict(day=int(n['text']),x=(x+n['box'][0]+n['box'][2])/2,box=[x,y,n['box'][0]+n['box'][2]-x,max(h,n['box'][3])]))
-    return [t for t in found if 1<=t['day']<=days]
+                n=nums[0];found.append(dict(month=MONTHS[t['text'].lower()],day=int(n['text']),x=(x+n['box'][0]+n['box'][2])/2,box=[x,y,n['box'][0]+n['box'][2]-x,max(h,n['box'][3])]))
+    # Contradictions must survive parsing, including another month's day 31.
+    return [t for t in found if 1<=t['day']<=31]
+
+
+def _curve_currencies(tokens,roi,lookback):
+    left,top,right,bottom=roi
+    symbols=set()
+    codes={'USD':'$','EUR':'€','GBP':'£'}
+    for token in tokens:
+        x,y=_center(token)
+        if left-50<=x<=right+50 and top-lookback<=y<=bottom:
+            symbols.update(re.findall(r'[$€£]',token['text']))
+            symbols.update(codes[code] for code in re.findall(r'\b(?:USD|EUR|GBP)\b',token['text'].upper()))
+    return symbols
 
 
 def correspondence(calendar,geometry,config):
@@ -102,9 +116,15 @@ def correspondence(calendar,geometry,config):
     calendar_heading=_metric_heading(tokens,xs[0]-step/2,xs[-1]+step/2,layout['weekday']['y']-5,80)
     same_metric=bool(curve_heading and calendar_heading and curve_heading['metric']==calendar_heading['metric']=='revenue'
                      and curve_heading['aggregation']==calendar_heading['aggregation']=='daily')
+    curve_currencies=_curve_currencies(tokens,roi,lookback)
+    calendar_currencies={o['currency'] for o in calendar.get('observations',[]) if o.get('currency')}
+    same_currency=len(curve_currencies)==len(calendar_currencies)==1 and curve_currencies==calendar_currencies
+    contrary_currency=(len(curve_currencies)>1 or len(calendar_currencies)>1
+                       or bool(curve_currencies and calendar_currencies and curve_currencies!=calendar_currencies))
     contrary_metric=any(h and (h['metric']!='revenue' or h['aggregation'] in ('monthly','quarterly','annual','qualified_or_ambiguous')) for h in (curve_heading,calendar_heading))
     if contrary_metric:reasons.append('A visible heading contradicts the shared daily-revenue interpretation.')
-    elif not same_metric:
+    if contrary_currency:reasons.append('A visible currency contradicts the shared-currency interpretation or is ambiguous.')
+    if not contrary_metric and not contrary_currency and (not same_metric or not same_currency):
         if config.get('assume_shared_daily_revenue'):
             assumptions.append('The separate calendar and selected curve both represent daily revenue in the same currency; supplied assumption, not established by the image headings.')
         else:reasons.append('Confirm that the calendar and curve represent the same daily revenue metric and currency.')
@@ -112,19 +132,22 @@ def correspondence(calendar,geometry,config):
     period=[t for t in visible_periods if t['year']==layout['year'] and t['month']==layout['month']]
     ticks=_date_ticks(tokens,roi,layout['month'],layout['days'])
     points=geometry['series'][0]['points'];tol=max(8,(points[-1]['x']-points[0]['x'])*.025)
-    first=[t for t in ticks if t['day']==1 and abs(t['x']-points[0]['x'])<=tol]
-    last=[t for t in ticks if t['day']==layout['days'] and abs(t['x']-points[-1]['x'])<=tol]
+    first=[t for t in ticks if t['month']==layout['month'] and t['day']==1 and abs(t['x']-points[0]['x'])<=tol]
+    last=[t for t in ticks if t['month']==layout['month'] and t['day']==layout['days'] and abs(t['x']-points[-1]['x'])<=tol]
     full_period=len(period)==1 and len(first)==len(last)==1
     contrary_period=any(t['year']!=layout['year'] or t['month']!=layout['month'] for t in visible_periods)
-    contrary_endpoint=any((abs(t['x']-points[0]['x'])<=tol and t['day']!=1) or (abs(t['x']-points[-1]['x'])<=tol and t['day']!=layout['days']) for t in ticks)
+    contrary_endpoint=any((abs(t['x']-points[0]['x'])<=tol and (t['month']!=layout['month'] or t['day']!=1))
+                         or (abs(t['x']-points[-1]['x'])<=tol and (t['month']!=layout['month'] or t['day']!=layout['days'])) for t in ticks)
     if contrary_period or contrary_endpoint:reasons.append('A visible plot period or endpoint date contradicts the full calendar-month interpretation.')
-    elif not full_period:
+    else:
         if config.get('assume_full_month'):
-            assumptions.append('The complete calendar month spans the curve endpoints with one equally spaced daily observation; supplied assumption, not established by exact endpoint date ticks.')
-        else:reasons.append('Confirm that the curve spans this full calendar month with one equally spaced observation per day.')
+            assumptions.append('The complete calendar month spans the curve endpoints with one equally spaced daily observation; supplied assumption. Endpoint date ticks establish a visible period, not the sampling of interior observations.')
+        else:reasons.append('Confirm that the curve spans this full calendar month with one equally spaced daily observation; endpoint labels alone do not establish daily sampling.')
     return dict(status='matched' if not reasons else 'needs_review',reasons=reasons,assumptions=assumptions,
                 curve_heading=curve_heading,calendar_heading=calendar_heading,date_ticks=ticks,
-                metric_from_image=same_metric,full_period_from_image=full_period)
+                metric_from_image=same_metric,currency_from_image=same_currency,
+                curve_currencies=sorted(curve_currencies),calendar_currencies=sorted(calendar_currencies),full_period_from_image=full_period,
+                daily_sampling_from_image=False)
 
 
 def analyze_calendar(image,config=None,output='artifacts/calendar-recovery'):
@@ -137,12 +160,13 @@ def analyze_calendar(image,config=None,output='artifacts/calendar-recovery'):
     if len(geometry['series'])!=1 or geometry.get('quality_issues'):binding['reasons'].append('Need one complete curve trace before matching calendar dates.')
     if not binding['reasons']:
         ticks=_date_ticks(calendar['consensus_tokens'],geometry['roi'],calendar['layout']['month'],days)
-        if not {1,days}.issubset({t['day'] for t in ticks}):
+        if not {1,days}.issubset({t['day'] for t in ticks if t['month']==calendar['layout']['month']}):
             l,t,r,b=geometry['roi'];w,h=calendar['size']
             region=[max(0,l-40),b+4,min(w,r+40),min(h,int(b+max(90,(r-l)*.15)))]
             if region[1]<region[3]:
                 invert=calendar['full_image_ocr'][0]['preprocessing']['invert']
-                scans=[read_text(image,scale=s,invert=invert,region=region,psm=6) for s in (2.,3.)]
+                scales=bounded_ocr_scales(region[2]-region[0],region[3]-region[1])
+                scans=[read_text(image,scale=s,invert=invert,region=region,psm=6) for s in scales]
                 accepted,rejected=consensus_tokens(scans[0]['tokens'],scans[1]['tokens'])
                 calendar['plot_date_ocr']=dict(region=region,ocr=scans,rejected=rejected)
                 calendar['consensus_tokens']=[t for t in calendar['consensus_tokens'] if not region[1]<=_center(t)[1]<=region[3]]+accepted
@@ -163,11 +187,11 @@ def analyze_calendar(image,config=None,output='artifacts/calendar-recovery'):
                 trace=[dict(step='read_calendar',observations=len(calendar['observations']),days=days),dict(step='locate_curve',candidates=len(candidates)),
                        dict(step='check_correspondence',**binding),dict(step='calibrate',status=cal['status'],anchors=len(anchors))])
     (out/'result.json').write_text(json.dumps(result,indent=2,allow_nan=False), encoding="utf-8");overlay(image,geometry,out/'overlay.png')
-    with (out/'data.csv').open('w',newline='') as f:
+    with (out/'data.csv').open('w',newline='',encoding='utf-8') as f:
         writer=csv.writer(f);writer.writerow(['date','pixel_x','pixel_y','value','lower','upper','status'])
         if len(geometry['series'])==1:
             for i,p in enumerate(geometry['series'][0]['points']):
-                layout=calendar.get('layout',{});date=f"{layout['year']:04d}-{layout['month']:02d}-{i+1:02d}" if layout else ''
+                layout=calendar.get('layout',{});date=f"{layout['year']:04d}-{layout['month']:02d}-{i+1:02d}" if layout and binding['status']=='matched' else ''
                 val=lambda k:cal[k][i] if cal.get(k) is not None else ''
                 writer.writerow([date,p['x'],p['y'],val('values'),val('lower'),val('upper'),cal['status']])
     return result

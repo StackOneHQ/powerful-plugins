@@ -44,7 +44,7 @@ def investigate(image,config,output,max_rounds=5,retriever=None):
                 if key in packet:config[key]=packet[key]
         fingerprint=hashlib.sha256(json.dumps(config,sort_keys=True).encode()).hexdigest()
         if fingerprint in seen:
-            history.append({'round':round_no,'action':'stop','reason':'No new evidence'});break
+            history.append({'round':round_no,'action':'skip','reason':'No new evidence'});continue
         seen.add(fingerprint)
         result=analyze(image,config,out/f'round-{round_no}')
         history.append(dict(round=round_no,status=result['status'],outcomes=[r['status'] for r in result['recovery']],
@@ -54,7 +54,7 @@ def investigate(image,config,output,max_rounds=5,retriever=None):
     retrieval_evaluated=retriever is None or not documents or any(h.get('round',0)>=1 and h.get('status') for h in history)
     final=dict(status=result['status'] if retrieval_evaluated else 'needs_evidence_or_review',rounds=history,
                retrieval_evaluated=retrieval_evaluated,
-               final_result=f"round-{history[-1]['round'] if history[-1].get('status') else history[-2]['round']}/result.json")
+               final_result=f"round-{next(h['round'] for h in reversed(history) if h.get('status'))}/result.json")
     (out/'investigation.json').write_text(json.dumps(final,indent=2), encoding="utf-8");return final
 
 
@@ -75,6 +75,6 @@ def batch(manifest,output,configs=None,defaults=None):
             try:
                 r=investigate(path,cfg,out/f'{post_id}-{i}')
                 results.append(dict(post_id=post_id,image=media['path'],**r))
-            except (ValueError,OSError) as e:results.append(dict(post_id=post_id,image=media['path'],status='failed',reason=str(e)))
+            except (ValueError,OSError,RuntimeError) as e:results.append(dict(post_id=post_id,image=media['path'],status='failed',reason=str(e)))
     summary=dict(images=len(results),calibrated=sum(r['status']=='calibrated' for r in results),results=results)
     (out/'batch.json').write_text(json.dumps(summary,indent=2), encoding="utf-8");return summary

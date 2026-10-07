@@ -1,5 +1,5 @@
 {
   "auto_layout": true,
   "scale": "linear",
-  "source": "https://example.com/synthetic-bars"
+  "post_url": "https://example.com/synthetic-bars"
 }
