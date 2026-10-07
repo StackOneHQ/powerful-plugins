@@ -50,6 +50,7 @@ browse the catalog.
 | `tufte-viz` | Design | Designs and critiques charts with Edward Tufte's principles: data-ink ratio, graphical integrity, small multiples and sparklines. |
 | `natural-writing` | Documentation | Writes and edits prose that reads like a person wrote it, with a mechanical checker and a review command. |
 | `browser-recorder` | Engineering | Records browser sessions from a shot list: screenshots, video clips and a mouse event log for editing afterwards. |
+| `chart-recover` | Engineering | Recovers chart values from visible geometry and numerical evidence, with a local workbench, explicit assumptions and synthetic evaluations. |
 | `spark` | Engineering | Finds the most useful next addition to a change, pressure-tests plans and strips AI slop from code, and runs read-only simplification audits. |
 | `reflect` | Engineering | Learns from the current session, or from your session history, git changes and review feedback, and proposes fixes to your skills and guidance. |
 | `review-loop` | Engineering | Gets a pull request through every AI code reviewer on it (Copilot, cubic, Greptile, CodeRabbit and others): triggers each one, verifies every comment, fixes or declines it, and repeats until they're all clean. |

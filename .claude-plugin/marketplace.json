@@ -335,6 +335,24 @@
       "author": {
         "name": "Anthropic"
       }
+    },
+    {
+      "name": "chart-recover",
+      "version": "0.1.0",
+      "description": "Recover hidden-axis chart values from visible geometry and explicit evidence, with local analysis, synthetic evaluations and reviewable uncertainty.",
+      "author": {
+        "name": "StackOne",
+        "url": "https://github.com/StackOneHQ"
+      },
+      "source": "./plugins/engineering/chart-recover",
+      "category": "engineering",
+      "tags": [
+        "charts",
+        "data-extraction",
+        "evidence",
+        "evaluation",
+        "ocr"
+      ]
     }
   ]
 }

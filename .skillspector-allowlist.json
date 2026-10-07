@@ -117,6 +117,26 @@
         "LP3"
       ],
       "rationale": "Generated runtime adapter for the pinned external vercel-web-design-guidelines plugin. Its only code is materialize_pinned_upstream.py, which runs git with an argument list, no shell and no credential helper to fetch the upstream at a fixed 40-character commit into a local cache; LP3 counts that as undeclared env, file-write and shell use."
+    },
+    {
+      "skill": "plugins/engineering/chart-recover",
+      "rules": [
+        "AST4",
+        "OH1",
+        "SC6"
+      ],
+      "rationale": "SC6 misidentifies the optional-dependency group key test as a package resembling pytest, and the established scientific dependencies scipy and six as resembling scrapy and pip. The group installs pytest, not a package named test. SciPy provides image processing and six is required by python-dateutil; their exact distributions are pinned with hashes in requirements.lock. This exception covers package-name similarity only; vulnerability findings remain blocking. AST4 and OH1: test_pr_review.py starts the current Python interpreter with a fixed import/assertion program and no shell to verify cache isolation in a fresh process; capture_output is a subprocess option, not executable external output. The child uses test-owned config/cache paths and no input from charts, users or network sources."
+    },
+    {
+      "skill": "plugins/engineering/chart-recover/skills/chart-recover",
+      "rules": [
+        "AST4",
+        "LP3",
+        "E1",
+        "EA2",
+        "OH1"
+      ],
+      "rationale": "AST4: ocr.py and benchmark_support.py call the user-installed Tesseract with argument lists and no shell, for local OCR and version metadata. OH1 matches the capture_output keyword on the constant tesseract --version command; neither OCR nor model output becomes a command. LP3: local image/file processing, output folders, the runtime X_BEARER_TOKEN and opt-in public network retrieval are documented in SKILL.md and README; no hooks or automatic installs run. E1: collect.py sends that token only as authorization to the fixed https://api.x.com/2/ endpoint for the requested public lookup/search. EA2: external_evidence.py records a selection_uses label describing numerical fitting dates; it does not grant autonomous actions or change permissions."
     }
   ]
 }
