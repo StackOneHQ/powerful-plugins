@@ -11,6 +11,13 @@ from scipy import ndimage
 from .vision import _components
 
 
+def _same_rectangle(a,b):
+    if max(abs(a[i]-b[i]) for i in range(4))<3:return True
+    overlap=max(0,min(a[0]+a[2],b[0]+b[2])-max(a[0],b[0]))*max(0,min(a[1]+a[3],b[1]+b[3])-max(a[1],b[1]))
+    union=a[2]*a[3]+b[2]*b[3]-overlap
+    return overlap/union>.85
+
+
 def detect_bars(path):
     with Image.open(path) as im:
         if im.width*im.height>30_000_000:raise ValueError('Image exceeds 30 megapixels')
@@ -44,7 +51,8 @@ def detect_bars(path):
             side=np.concatenate([rgb[y+bh//4:y+3*bh//4,a:x].reshape(-1,3),rgb[y+bh//4:y+3*bh//4,x+bw:b].reshape(-1,3)])
             if not len(side) or np.linalg.norm(fill-np.median(side,axis=0))<28:continue
             box=[x,y,bw,bh]
-            if any(max(abs(box[i]-r['box'][i]) for i in range(4))<3 for r in regions):continue
+            # JPEG edge shades can yield overlapping masks of the same bar.
+            if any(_same_rectangle(box,r['box']) for r in regions):continue
             regions.append(dict(box=box,color=fill.astype(int).tolist(),solidity=c['solidity']))
     groups=[]
     for seed in regions:
