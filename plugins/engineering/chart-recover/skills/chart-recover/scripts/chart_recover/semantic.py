@@ -135,7 +135,9 @@ def parse_document(document, entity=None, aliases=()):
             if re.search(r'[-−(]\s*$',before) or re.match(r'\s*[-−]',m['amount']): issues.append('signed_amount_needs_review')
             integer=m['amount'].split('.')[0].rstrip(',')
             if ',' in integer and not re.fullmatch(r'\d{1,3}(?:,\d{3})+',integer): issues.append('ambiguous_number_format')
-            if not math.isfinite(amount): issues.append('nonfinite_amount')
+            if not math.isfinite(amount):
+                issues.append('nonfinite_amount')
+                amount=None
             if not claim_entity: issues.append('entity_not_bound')
             if not period: issues.append(period_basis)
             if operator != 'reported': issues.append(operator + '_not_point_value')

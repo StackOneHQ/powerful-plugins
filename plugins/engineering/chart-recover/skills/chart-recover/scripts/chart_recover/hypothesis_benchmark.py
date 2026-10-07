@@ -8,6 +8,8 @@ import hashlib
 import json
 import numpy as np
 from PIL import Image,ImageDraw,ImageFont
+from .render_cache import configure_cache
+configure_cache()
 from matplotlib import font_manager
 from .calendar_benchmark import generate_dashboard
 from .calendar_recovery import analyze_calendar

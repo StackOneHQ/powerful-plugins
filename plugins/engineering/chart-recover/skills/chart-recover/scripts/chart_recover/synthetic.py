@@ -16,6 +16,11 @@ PALETTES = [('#4263eb','#e67700','#0ca678'),('#ad45ce','#00a6a6','#ef5b5b'),('#7
 
 
 def generate_one(folder, seed, kind='bar', scale='linear', variant='clean', renderer='matplotlib'):
+    if kind not in KINDS:raise ValueError(f'Unsupported chart kind: {kind}')
+    if scale not in ('linear','log'):raise ValueError(f'Unsupported scale: {scale}')
+    if variant not in ('clean','truncated','dark','jpeg','small'):raise ValueError(f'Unsupported variant: {variant}')
+    if renderer not in ('matplotlib','pillow'):raise ValueError(f'Unsupported renderer: {renderer}')
+    if renderer=='pillow' and kind not in ('bar','line','area','scatter'):raise ValueError('Pillow holdout supports bar/line/area/scatter')
     folder=Path(folder); folder.mkdir(parents=True,exist_ok=True)
     rng=np.random.default_rng(seed); n=int(rng.integers(8,16)); x=np.arange(n)
     values=np.cumsum(rng.uniform(.1,1,n)); values=values/values.max()*10**rng.uniform(2,7)
@@ -24,7 +29,7 @@ def generate_one(folder, seed, kind='bar', scale='linear', variant='clean', rend
     nseries=3 if kind in ('grouped_bar','stacked_bar','stacked_area') else 1
     vals=np.array([values*(.5+s*.35)*(1+rng.uniform(-.07,.07,n)) for s in range(nseries)])
     if scale=='log':
-        vals=np.array([10**np.linspace(1,3.6,n)*10**rng.uniform(-.05,.05,n)])
+        vals=np.array([10**np.linspace(1,3.6,n)*10**rng.uniform(-.05,.05,n) for _ in range(nseries)])
     if variant=='truncated':
         vals+=vals.max()*3
     colors=PALETTES[seed%len(PALETTES)]; dark=variant=='dark'
@@ -39,6 +44,7 @@ def generate_one(folder, seed, kind='bar', scale='linear', variant='clean', rend
     low=float(vals.min()*.85) if scale=='log' or variant=='truncated' else 0.
     high=maxv*(1.25 if scale=='log' else 1.12)
     if kind=='barh':
+        if scale=='log':ax.set_xscale('log')
         ax.barh(x,vals[0],color=colors[0],height=.65); ax.set_xlim(low,high)
         ax.set_xticks(np.linspace(low,high,6));ax.set_xticklabels([]);ax.set_yticks(x, [f'M{i+1}' for i in x])
         ax.xaxis.grid(True,color=fg,alpha=.12); ax.set_axisbelow(True)
@@ -69,7 +75,7 @@ def generate_one(folder, seed, kind='bar', scale='linear', variant='clean', rend
         points=[{'x':float(p[0]),'y':float(height-p[1]),'value':float(value)} for p,value in zip(coords,yy)]
         truth_series.append({'color':colors[j],'points':points,'segment_values':v.tolist()})
         cumulative+=v
-    baseline=ax.transData.transform((0,0) if scale!='log' else (0,low))
+    baseline=ax.transData.transform((0,0) if scale!='log' else (low,0) if kind=='barh' else (0,low))
     path=folder/'chart.png';fig.savefig(path,facecolor=bg,dpi=dpi);plt.close(fig)
     if renderer=='pillow':
         # Independent rasterizer using the same declared data-to-pixel transform.

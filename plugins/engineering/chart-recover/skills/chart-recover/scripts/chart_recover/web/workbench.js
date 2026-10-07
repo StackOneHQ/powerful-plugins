@@ -5,7 +5,12 @@ let showingOverlay=false,benchmarks=null,revision=0,drawRevision=0;
 const names={bars:'Bar labels',calendar:'Calendar and curve',ticks:'Visible Y ticks',first_customer:'First-customer caption',comparison_totals:'Comparison-period totals',external_daily_revenue:'Public daily revenue'};
 const fmt=v=>v==null?'Unresolved':Number(v).toLocaleString(undefined,{maximumFractionDigits:2});
 function readingMode(){return query('#agent').checked?'agent':query('#calendar').checked?'calendar':query('#automatic').checked?'bars':'manual';}
-function sourceLink(source){const valid=/^https?:\/\//i.test(source||'');query('#sourceLink').hidden=!valid;if(valid)query('#sourceLink').href=source;}
+function sourceLink(source){
+  const link=document.getElementById('sourceLink');link.hidden=true;link.removeAttribute('href');
+  if(typeof source!=='string')return;
+  try{const url=new URL(source);if(url.protocol!=='http:'&&url.protocol!=='https:')return;link.href=url.href;link.hidden=false;}
+  catch{/* An invalid source remains plain evidence text. */}
+}
 function paragraph(text,container=query('#evidenceDecisions')){const p=document.createElement('p');p.textContent=text;container.append(p);return p;}
 function benchmarkView(){
   const selected=bundle?.agent_views?.find(v=>v.id===result?.selected_view);

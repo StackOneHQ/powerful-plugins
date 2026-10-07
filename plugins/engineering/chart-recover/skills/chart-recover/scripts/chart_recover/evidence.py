@@ -1,5 +1,6 @@
 """Conservative claim discovery. A mention is a lead, not a chart anchor."""
 import re
+import math
 import numpy as np
 
 MONEY=re.compile(r'(?P<currency>[$€£])\s*(?P<amount>\d[\d,]*(?:\.\d+)?)\s*(?P<suffix>[kKmMbB])?\b')
@@ -10,13 +11,15 @@ def claims_from_text(text,source,entity=None):
     claims=[]
     for m in MONEY.finditer(text):
         amount=float(m['amount'].replace(',',''))*{'':1,'k':1e3,'m':1e6,'b':1e9}[(m['suffix'] or '').lower()]
+        if not math.isfinite(amount):continue
         context=text[max(0,m.start()-50):min(len(text),m.end()+60)]
         metric=METRIC.search(text[m.end():m.end()+25]) or METRIC.search(text[max(0,m.start()-30):m.start()])
         claims.append(dict(value=amount,currency=m['currency'],metric=metric[0].lower() if metric else None,
                            entity=entity,source=source,quote=context,matched=False,
                            status='lead_requires_metric_period_and_point_match'))
     for m in re.finditer(r'\b(\d+(?:\.\d+)?)\s*[x×]\b',text,re.I):
-        claims.append(dict(ratio=float(m[1]),source=source,matched=False,status='relative_claim_not_absolute_anchor'))
+        ratio=float(m[1])
+        if math.isfinite(ratio):claims.append(dict(ratio=ratio,source=source,matched=False,status='relative_claim_not_absolute_anchor'))
     return claims
 
 
