@@ -20,7 +20,7 @@ Use Claude's native artifact capability when available.
 
 ### Page constraints
 
-The page runs under a strict content security policy. Load any library from the allowed public CDNs (cdnjs, unpkg, jsDelivr `/npm/`, the Tailwind and jQuery CDNs) and type from Google Fonts, inline all other CSS and JavaScript, and embed images, logos and screenshots as data URIs; external images do not load. The page cannot fetch other origins, so live data comes only through declared connectors. Use in-page anchors for long content, because relative links do not resolve.
+The page runs under a strict content security policy. Load any library from the allowed public CDNs (cdnjs, unpkg, jsDelivr `/npm/`, the Tailwind and jQuery CDNs) and type from Google Fonts. Pin every script URL to an exact version and add an `integrity` hash with `crossorigin="anonymous"` when the CDN publishes one, because the page may run with the viewer's connector access; prefer inlining a small library over loading it. Then inline all other CSS and JavaScript, and embed images, logos and screenshots as data URIs; external images do not load. The page cannot fetch other origins, so live data comes only through declared connectors. Use in-page anchors for long content, because relative links do not resolve.
 
 ### Runtime capabilities
 
@@ -28,7 +28,7 @@ Connector calls and file downloads are declared when the artifact is published, 
 
 - **Live data.** Name the connector tools the page calls and check the names against the tools the connector actually exposes; a wrong name leaves the section empty for every viewer. Show when each live section last refreshed and offer a refresh control when the data moves during a meeting.
 - **Downloads.** The viewer blocks downloads the page starts itself, including `data:` and `blob:` links. Offer a CSV of a table or a PNG of a chart only through the declared downloads capability.
-- **Actions.** A control can call a connector tool with side effects, such as filing a ticket or posting a message once a decision is made. It runs as whoever selects it. Build one only when the user asked for it, label the destination and the effect on the control, and show what will be sent before it fires.
+- **Actions.** A control can call a connector tool with side effects, such as filing a ticket or posting a message once a decision is made. It runs as whoever selects it. Build one only when the user asked for it, label the destination and the effect on the control, show what will be sent, and require the viewer to confirm in a separate step immediately before the call. Never fire a side effect on page load, on a timer or from a single click.
 
 ### Recording the decision
 
@@ -45,7 +45,7 @@ Shared artifacts can carry comment threads. People with edit access can send a t
 
 ### Decks and design canvases
 
-When the reader will consume the decision in a meeting, a Slides template (`/slides` in Claude Code) usually fits better than a scrolling page; read [presentations.md](presentations.md). When the request is a visual mockup of a screen or flow rather than a decision, a Design canvas (`/design`) is the native surface, and this skill supplies only the decision context around it.
+When the reader will consume the decision in a meeting, a Slides template (`/slides` in Claude Code) usually fits better than a scrolling page; read [presentations.md](presentations.md). When the request is a visual mockup of a screen or flow rather than a decision, a Design canvas (`/design` in Claude Code) is the native surface, and this skill supplies only the decision context around it. Where no Design canvas is available, as in Codex, build the mockup as a focused page through the Codex site or self-contained HTML routes below.
 
 Official references: [using Claude artifacts](https://support.claude.com/en/articles/9487310-what-are-artifacts-and-how-do-i-use-them), [publishing and sharing artifacts](https://support.claude.com/en/articles/9547008-publish-and-share-artifacts), and [sharing session output as artifacts from Claude Code](https://code.claude.com/docs/en/artifacts).
 
