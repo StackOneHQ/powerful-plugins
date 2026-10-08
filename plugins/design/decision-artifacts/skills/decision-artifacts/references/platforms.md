@@ -32,7 +32,7 @@ Connector calls and file downloads are declared when the artifact is published, 
 
 ### Recording the decision
 
-A decide or track artifact is more useful when the choice stays on the page. When the platform offers storage, record the selected option, who chose it, when, and any condition attached, in shared storage only when the audience should see each other's input, and show the recorded state on the page at rest. When storage is unavailable or the result needs to return to the working session, add an export control that copies the decision and its evidence references as plain text for the next prompt.
+A decide or track artifact is more useful when the choice stays on the page. Claude artifacts can store text data between sessions, either personal to each viewer or shared with everyone who opens the page ([storing data in an artifact](https://support.claude.com/en/articles/9487310-what-are-artifacts-and-how-do-i-use-them)). When the platform offers storage, record the selected option, who chose it, when, and any condition attached, in shared storage only when the audience should see each other's input, and show the recorded state on the page at rest. When storage is unavailable or the result needs to return to the working session, add an export control that copies the decision and its evidence references as plain text for the next prompt.
 
 ### Review loop
 
