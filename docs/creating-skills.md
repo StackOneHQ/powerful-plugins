@@ -98,6 +98,7 @@ Don't script the agent's actions step by step in the example.
 
 | Category | For Skills About |
 |--------|-----------------|
+| `calculators/` | Cost and usage calculators and forecasts |
 | `design/` | Animation, visual design, data visualization |
 | `documentation/` | Writing, editing, formatting |
 | `engineering/` | Code patterns, development workflows, browser and agent tooling |
