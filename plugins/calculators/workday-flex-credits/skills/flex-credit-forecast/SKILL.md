@@ -123,9 +123,10 @@ Files in `./flex-credit-forecast/`, never in the plugin folder: `input.json`, `r
 
 The script prints a chat summary of 11 lines or fewer, ending with the file paths (the
 lines before the paths are also `chat_summary` in `result.json`). Paste it as printed, then
-add the refine offer in one line, 12 lines in all. Quote figures only from that summary or
-`result.json`; don't recompute them, round them differently or describe a path against
-another path's allowance. The headline follows this shape:
+add the refine offer in one line, 12 lines in all. The first-forecast reply is that and
+nothing else: no extra figures and no "what this means" section. Explain more only when the
+user asks, and then quote figures only from the summary or `result.json`; don't compute new
+ones, round them differently or describe a path against another path's allowance. The headline follows this shape:
 
 > {Need} credits in the next {months} months (range {low} to {high}, confidence {level}).
 > {To buy} to buy, about {$} at {price} a credit. Free credits run out in {Month YYYY}.

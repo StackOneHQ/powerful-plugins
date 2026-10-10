@@ -14,7 +14,10 @@ negative numbers, employees under 100, a price under $0.005, fewer than 1 call p
 outside 2000 to 2100, growth above 10 (1,000%), and inventory items whose calls can't be
 counted.
 
-`organization` (text) names the report. `contract_notes` (a list of text) carries order-form
+`organization` (text) names the report. `customer_sizing` (true or false) adds, for vendors,
+the credits per task on each path and the agent tasks a month that fit in each employee
+band's API allowance after typical integrations (the input's integration counts, or 3
+efficient and 2 typical), at 2,000, 6,000, 15,000, 50,000 and 150,000 employees. `contract_notes` (a list of text) carries order-form
 wording the model doesn't cover, such as rollover, true-down or rate lock, word for word.
 
 ```json

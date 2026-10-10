@@ -448,6 +448,38 @@ class ReviewFixTests(unittest.TestCase):
                            capture_output=True, check=True)
         self.assertFalse((SCRIPTS / "__pycache__").exists())
 
+    def test_half_dollars_round_up_consistently(self) -> None:
+        self.assertEqual(forecast.fmt_usd(137932.5), "$137,933")
+        self.assertEqual(forecast.fmt_usd(144997.5), "$144,998")
+        self.assertEqual(forecast.fmt_usd(2.125), "$2.13")
+        self.assertEqual(forecast.fmt_credits(2.5), "3")
+        self.assertEqual(forecast.fmt_credits(3.5), "4")
+
+    def test_customer_sizing_is_computed_by_the_script(self) -> None:
+        inp = _with_forecast("buy")
+        inp["agents"][0]["path"] = "unsure"
+        inp["customer_sizing"] = True
+        res = forecast.build_result(inp)
+        ag = res["customer_sizing"]["agents"][0]
+        self.assertAlmostEqual(ag["credits_per_task"]["tools_external"], 0.7, places=9)
+        self.assertAlmostEqual(ag["credits_per_task"]["extend_custom"], 2.35, places=9)
+        self.assertAlmostEqual(ag["credits_per_task"]["api"], 0.0, places=9)
+        self.assertAlmostEqual(ag["api_credits_per_task_above_allowance"], 0.03, places=9)
+        mid = next(b for b in ag["bands"] if b["band"] == "10,000 to 29,999")
+        expected_used = 3 * forecast.pattern_calls("efficient", 15000) + 2 * forecast.pattern_calls("typical", 15000)
+        self.assertEqual(mid["integration_calls"], expected_used)
+        self.assertAlmostEqual(mid["tasks_per_month_that_fit"], (4_500_000 - expected_used) / 60)
+        self.assertTrue(any(line.startswith("Per task, agent 1") for line in res["chat_summary"]))
+        self.assertTrue(any(line.startswith("Tasks a month that fit") for line in res["chat_summary"]))
+        self.assertLessEqual(len(res["chat_summary"]), 10)
+        self.assertIn("## Sizing for your customers", forecast.render_report(res))
+        self.assertIsNone(forecast.build_result(_with_forecast("buy"))["customer_sizing"])
+        self.assertTrue(any(e.startswith("customer_sizing:") for e in forecast.validate({"customer_sizing": "yes"})))
+
+    def test_first_reply_is_capped_at_the_summary(self) -> None:
+        text = " ".join((SCRIPTS.parent / "SKILL.md").read_text().split())
+        self.assertIn("The first-forecast reply is that and nothing else", text)
+
 
 if __name__ == "__main__":
     unittest.main()

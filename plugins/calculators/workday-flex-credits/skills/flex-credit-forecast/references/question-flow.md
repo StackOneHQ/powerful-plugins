@@ -103,8 +103,10 @@ Each branch is described in `data-sources.md`. After each one, update `input.jso
 
 ## Sizing for your customers (vendors)
 
-When the user builds or sells an agent and sizes it for their customers, report for each
-path the credits per task and the Workday calls per task, plus the allowance headroom for a
-customer in each employee band. Give conditional figures ("0 credits while the tenant stays
+When the user builds or sells an agent and sizes it for their customers, set
+`"customer_sizing": true` in `input.json`. The script then prints and reports, for each path,
+the credits per task, and for each employee band the agent tasks a month that fit in the API
+allowance after typical integrations. Quote those figures; don't work them out yourself. Give
+conditional figures ("0 credits while the tenant stays
 under its allowance; X credits a year through Agent-Ready Tools"), not a recommended path,
 and don't write customer-facing claims into the report.

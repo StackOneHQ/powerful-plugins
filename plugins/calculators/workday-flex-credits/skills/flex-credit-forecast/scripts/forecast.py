@@ -17,6 +17,7 @@ import datetime as dt
 import json
 import math
 import sys
+from decimal import ROUND_HALF_UP, Decimal
 from pathlib import Path
 from typing import Any, Union
 
@@ -798,6 +799,8 @@ def validate(raw: object, c: Json | None = None) -> list[str]:
             _check_month(e, f"{where}.{k}", pk.get(k))
         if isinstance(pk.get("from"), str) and isinstance(pk.get("to"), str) and pk["from"] > pk["to"]:
             e.append(f"{where}: 'from' is after 'to'")
+    if raw.get("customer_sizing") is not None and not isinstance(raw.get("customer_sizing"), bool):
+        e.append("customer_sizing: expected true or false")
     for i, note in enumerate(_as_list(e, "contract_notes", raw.get("contract_notes"))):
         if not isinstance(note, str):
             e.append(f"contract_notes[{i}]: expected text")
@@ -809,8 +812,13 @@ def validate(raw: object, c: Json | None = None) -> list[str]:
 # ---------------------------------------------------------------- formatting
 
 
+def round_half_up(x: float, places: int = 0) -> float:
+    """Round halves away from zero ($137,932.5 -> $137,933), unlike round()'s half-to-even."""
+    return float(Decimal(repr(x)).quantize(Decimal(1).scaleb(-places), rounding=ROUND_HALF_UP))
+
+
 def fmt_credits(x: float) -> str:
-    return f"{round(x):,}"
+    return f"{int(round_half_up(x)):,}"
 
 
 def fmt_number(x: float) -> str:
@@ -819,7 +827,7 @@ def fmt_number(x: float) -> str:
 
 def fmt_usd(x: float) -> str:
     """Cents under $10, whole dollars otherwise."""
-    return f"${x:,.2f}" if abs(x) < 10 else f"${round(x):,}"
+    return f"${round_half_up(x, 2):,.2f}" if abs(x) < 10 else f"${int(round_half_up(x)):,}"
 
 
 def fmt_price(p: float) -> str:
@@ -1127,6 +1135,68 @@ def _first_year_line(res: Json) -> str:
             f"{fmt_credits(fy['allowance_calls'])} calls{share}.")
 
 
+# A typical employee count for each band, used only for the customer sizing table.
+BAND_REFERENCE_EMPLOYEES = {100000: 150000, 30000: 50000, 10000: 15000, 3500: 6000, 0: 2000}
+
+
+def _customer_sizing(base: Json, c: Json) -> Json | None:
+    """For vendors sizing an agent for their customers: credits per task on each path, and how
+    many tasks a month fit in each employee band's API allowance after typical integrations.
+    Computed here so the chat never has to do this arithmetic."""
+    if not base.get("customer_sizing"):
+        return None
+    agents = [(i, a) for i, a in enumerate(base.get("agents") or [])
+              if _is_number(a.get("tasks_per_month")) and a["tasks_per_month"] > 0]
+    if not agents:
+        return None
+    integ = base.get("integrations") or {}
+    counts = integ.get("counts") if integ.get("mode") in (None, "estimate") and integ.get("counts") else None
+    counts = counts or {"efficient": 3, "typical": 2, "heavy": 0}
+    counts_text = ", ".join(f"{fmt_number(float(n))} {p}" for p, n in counts.items() if n) or "none"
+    out: Json = {"integrations_assumed": counts_text, "agents": []}
+    for i, ag in agents:
+        per_path = {}
+        for path in c["agent_paths"]:
+            trial = copy.deepcopy(base)
+            trial["agents"] = [dict(ag, path=path)]
+            row = compute(trial, c)["agents"][0]
+            per_path[path] = (row["tool_credits"] + row["invocation_credits"]) / row["tasks_per_year"]
+        calls = sanitize({"agents": [ag]}, c)["agents"][0]["calls_per_task"]
+        bands = []
+        for band in c["bands"]:
+            n = BAND_REFERENCE_EMPLOYEES.get(band["min_employees"], band["min_employees"])
+            used = float(sum(float(cnt or 0) * pattern_calls(p, n) for p, cnt in counts.items()))
+            left = max(0.0, band["allowance_calls"] - used)
+            bands.append({"band": band["label"], "employees": n, "allowance_calls": band["allowance_calls"],
+                          "integration_calls": used, "tasks_per_month_that_fit": left / (12 * calls)})
+        out["agents"].append({
+            "agent": i + 1, "calls_per_task": calls,
+            "credits_per_task": per_path,
+            "api_credits_per_task_above_allowance": calls * c["api_credits_per_call"],
+            "bands": sorted(bands, key=lambda b: b["employees"]),
+        })
+    return out
+
+
+def _sizing_lines(sizing: Json | None) -> list[str]:
+    if not sizing:
+        return []
+    lines = []
+    for ag in sizing["agents"]:
+        cpt = ag["credits_per_task"]
+        lines.append(
+            f"Per task, agent {ag['agent']} ({fmt_number(ag['calls_per_task'])} Workday calls): Workday APIs 0 credits "
+            f"inside the allowance, {ag['api_credits_per_task_above_allowance']:.3g} above it; Workday's Agent-Ready "
+            f"Tools {cpt['tools_external']:.3g}; custom agent in Workday Extend {cpt['extend_custom']:.3g}."
+        )
+        fits = "; ".join(f"{b['band']}: {fmt_credits(b['tasks_per_month_that_fit'])}" for b in ag["bands"])
+        lines.append(
+            f"Tasks a month that fit in the API allowance after typical integrations ({sizing['integrations_assumed']}), "
+            f"by employee band, no subscription uplifts: {fits}."
+        )
+    return lines
+
+
 def _chat_summary(res: Json) -> list[str]:
     """The summary forecast.py prints, ready to paste: every figure the chat needs, so nothing
     has to be recomputed. At most 10 lines, so with the Files line and the agent's refine
@@ -1136,6 +1206,7 @@ def _chat_summary(res: Json) -> list[str]:
         if extra:
             lines.append(extra)
     lines.append(_first_year_line(res))
+    lines += _sizing_lines(res["customer_sizing"])[:4]
     asks = [q["question"] for q in res["open_questions"] if q["applies"]][:2]
     room = 10 - len(lines) - (1 if asks else 0) - 1
     if res["assumed"] and room > 0:
@@ -1193,6 +1264,7 @@ def build_result(raw: Json, c: Json | None = None, today: dt.date | None = None)
     res["assumed"] = _assumed(res, src, raw, c)
     res["agent_paths"] = _path_comparison(resolved, c, today)
     res["levers"] = _levers(resolved, res["totals"], c, today)
+    res["customer_sizing"] = _customer_sizing(resolved, c)
     res["open_questions"] = _open_questions(res, src, raw)
     res["caveats"] = _caveats(res, c)
     res["forecast_assumptions"] = _forecast_assumptions(res, c)
@@ -1304,12 +1376,12 @@ def _input_rows(res: Json, raw: Json, c: Json) -> list[list[str]]:
 
 
 def _credits(x: float, bold: bool = False) -> StyledCell:
-    return StyledCell(round(x, 2), "credits", bold)
+    return StyledCell(round_half_up(x, 2), "credits", bold)
 
 
 def _usd(x: float, bold: bool = False) -> StyledCell:
     """Cents under $10, whole dollars from $10, as in the report."""
-    return StyledCell(round(x, 2), "usd" if abs(x) < 10 else "usd_whole", bold)
+    return StyledCell(round_half_up(x, 2), "usd" if abs(x) < 10 else "usd_whole", bold)
 
 
 def _head(*labels: str) -> list[Cell]:
@@ -1423,6 +1495,20 @@ def build_sheets(res: Json) -> list[tuple[str, list[list[Cell]]]]:
                 _credits(row["to_buy"]), _usd(row["token_cost_usd"]), row["included"],
             ])
         agents.append(["Workday APIs show 0 only while you're inside your allowance."])
+    if res["customer_sizing"]:
+        sz = res["customer_sizing"]
+        agents += [[], [StyledCell("Sizing for your customers", "text", True)]]
+        for ag in sz["agents"]:
+            cpt = ag["credits_per_task"]
+            agents += [_head("Agent", "Path", "Credits per task"),
+                       [ag["agent"], PATH_NAMES["api"] + " (above the allowance)", ag["api_credits_per_task_above_allowance"]],
+                       [ag["agent"], PATH_NAMES["tools_external"], round_half_up(cpt["tools_external"], 4)],
+                       [ag["agent"], PATH_NAMES["extend_custom"], round_half_up(cpt["extend_custom"], 4)],
+                       _head("Agent", "Employee band", "Employees used", "Allowance", "Integration calls",
+                             "Agent tasks a month that fit")]
+            agents += [[ag["agent"], b["band"], _credits(b["employees"]), _credits(b["allowance_calls"]),
+                        _credits(b["integration_calls"]), _credits(b["tasks_per_month_that_fit"])] for b in ag["bands"]]
+        agents.append([f"Typical integrations assumed: {sz['integrations_assumed']}. No subscription uplifts."])
 
     assumptions: list[list[Cell]] = [_head("#", "Assumption")]
     numbered = list(res["caveats"]) + list(res["forecast_assumptions"])
@@ -1552,6 +1638,29 @@ def render_report(res: Json) -> str:
     else:
         lines.append("No agents in this forecast.")
     lines.append("")
+
+    if res["customer_sizing"]:
+        sz = res["customer_sizing"]
+        lines += ["## Sizing for your customers", ""]
+        for ag in sz["agents"]:
+            cpt = ag["credits_per_task"]
+            lines += [f"Agent {ag['agent']}, {fmt_number(ag['calls_per_task'])} Workday calls per task.", ""]
+            lines += _table(
+                ["Path", "Credits per task"],
+                [[PATH_NAMES["api"], f"0 inside the allowance; {ag['api_credits_per_task_above_allowance']:.3g} above it"],
+                 [PATH_NAMES["tools_external"], f"{cpt['tools_external']:.3g}"],
+                 [PATH_NAMES["extend_custom"], f"{cpt['extend_custom']:.3g}, model included"]],
+            )
+            lines += ["", f"API allowance headroom by employee band, after typical integrations "
+                      f"({sz['integrations_assumed']}) and before subscription uplifts:", ""]
+            lines += _table(
+                ["Employee band", "Employees used", "Allowance", "Integration calls", "Agent tasks a month that fit"],
+                [[b["band"], fmt_credits(b["employees"]), fmt_credits(b["allowance_calls"]),
+                  fmt_credits(b["integration_calls"]), fmt_credits(b["tasks_per_month_that_fit"])] for b in ag["bands"]],
+            )
+            lines.append("")
+        lines += ["Agent-Ready Tools and Extend agents don't use the API allowance (our assumption, caveat 5), and "
+                  "need Workday Extend Professional, which raises the allowance by 50%.", ""]
 
     lines += ["## Integrations", "", _first_year_line(res)]
     integ = res["sanitized"]["integrations"]
