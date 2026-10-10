@@ -58,6 +58,7 @@ my-plugin/
 
 | Category | Use For |
 |----------|---------|
+| `calculators/` | Cost and usage calculators and forecasts |
 | `design/` | Animation, visual design, data visualization |
 | `documentation/` | Writing standards, editing, technical prose |
 | `engineering/` | Development workflows, browser tooling, agent tooling |
@@ -266,7 +267,7 @@ changed and in which plugin, for example `natural-writing: flag stacked hedges`.
 What this PR adds or changes
 
 ## Category
-design | documentation | engineering | productivity
+calculators | design | documentation | engineering | productivity
 
 ## Type
 skill | plugin | hook | template | tooling
