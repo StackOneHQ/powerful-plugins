@@ -178,10 +178,10 @@ reported in `expiring_unused` (month, credits, dollars), in the headline and as 
 expires" note on that month. With purchased packages, the headline says "You start buying
 more in {month}" instead of "Free credits run out in {month}".
 
-**Chat summary.** The script writes a ready-to-paste summary of at most 11 lines to
-`summary.txt` (also `chat_summary` in result.json) and prints only its path: the headline,
-the $0.01 line, the other path for an unsure agent, first-year calls against the allowance,
-up to 5 Assumed lines, the top 2 questions for Workday and the file paths.
+**Chat summary.** The script prints a ready-to-paste summary of at most 12 lines (also in
+`chat_summary` in result.json): the headline, the $0.01 line, the other path for an unsure
+agent, first-year calls against the allowance, up to 5 Assumed lines, the top 2 questions
+for Workday and the file paths.
 
 ## Derived values in the report
 

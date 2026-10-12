@@ -104,7 +104,7 @@ Each branch is described in `data-sources.md`. After each one, update `input.jso
 ## Sizing for your customers (vendors)
 
 When the user builds or sells an agent and sizes it for their customers, set
-`"customer_sizing": true` in `input.json`. The summary and the report then give, for each path,
+`"customer_sizing": true` in `input.json`. The script then prints and reports, for each path,
 the credits per task, and for each employee band the agent tasks a month that fit in the API
 allowance after typical integrations. Quote those figures; don't work them out yourself. Give
 conditional figures ("0 credits while the tenant stays

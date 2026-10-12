@@ -241,7 +241,7 @@ class UnitTests(unittest.TestCase):
 
 
 class CommandLineTests(unittest.TestCase):
-    def test_example_writes_three_files_and_the_summary(self) -> None:
+    def test_example_writes_three_files(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             run = subprocess.run(
                 [sys.executable, str(SCRIPTS / "forecast.py"), "--input", str(EXAMPLE), "--out-dir", tmp],
@@ -249,21 +249,14 @@ class CommandLineTests(unittest.TestCase):
             )
             self.assertEqual(run.returncode, 0, run.stderr)
             names = sorted(p.name for p in Path(tmp).iterdir())
-            self.assertEqual(names, ["forecast.xlsx", "report.md", "result.json", "summary.txt"])
-            summary_path = Path(tmp) / "summary.txt"
-            # stdout carries only the paths; the figures stay in the files.
-            self.assertEqual(run.stdout.strip().splitlines(), [
-                f"Chat summary: {summary_path}",
-                "Files: " + ", ".join(str(Path(tmp) / n) for n in
-                                      ("result.json", "report.md", "forecast.xlsx", "summary.txt")),
-            ])
-            summary = summary_path.read_text(encoding="utf-8").strip().splitlines()
+            self.assertEqual(names, ["forecast.xlsx", "report.md", "result.json"])
+            out = run.stdout.strip().splitlines()
             result = json.loads((Path(tmp) / "result.json").read_text())
-            self.assertLessEqual(len(summary), 11)
-            self.assertEqual(summary[0], result["headline"])
-            self.assertEqual(summary[:-1], result["chat_summary"])
-            self.assertTrue(summary[-1].startswith("Files: "))
-            self.assertEqual(summary[-1].count(tmp), 3)
+            self.assertLessEqual(len(out), 11)
+            self.assertEqual(out[0], result["headline"])
+            self.assertEqual(out[:-1], result["chat_summary"])
+            self.assertTrue(out[-1].startswith("Files: "))
+            self.assertEqual(out[-1].count(tmp), 3)
             self.assertEqual(result["confidence"], "low")
 
     def test_bad_input_exits_2_with_one_line_per_error(self) -> None:

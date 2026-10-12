@@ -60,7 +60,7 @@ which your model provider bills.
 
 ## Outputs
 
-Five files in `./flex-credit-forecast/` in your working directory:
+Four files in `./flex-credit-forecast/` in your working directory:
 
 | File | Contents |
 |---|---|
@@ -68,10 +68,9 @@ Five files in `./flex-credit-forecast/` in your working directory:
 | `result.json` | Every month, year and total, the range, confidence and sources |
 | `report.md` | Summary, numbered assumptions, month and year tables, where the credits go, agent paths, integrations, questions for Workday and levers |
 | `forecast.xlsx` | Summary, By month, By year, Inputs, Agents, Assumptions and Open questions sheets |
-| `summary.txt` | The short chat summary, ending with the file paths |
 
 Ask for a CSV too if you want a by-month CSV. In the chat you get a short summary of at most
-12 lines, taken straight from `summary.txt`: the headline, what was assumed, the
+12 lines, taken straight from the script's output: the headline, what was assumed, the
 first-year calls against your allowance and the top questions for Workday.
 
 ## Data handling

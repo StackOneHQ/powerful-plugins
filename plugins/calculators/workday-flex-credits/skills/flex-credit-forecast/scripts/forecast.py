@@ -1198,9 +1198,9 @@ def _sizing_lines(sizing: Json | None) -> list[str]:
 
 
 def _chat_summary(res: Json) -> list[str]:
-    """The summary forecast.py writes to summary.txt, ready to paste: every figure the chat
-    needs, so nothing has to be recomputed. At most 10 lines, so with the Files line and the
-    agent's refine offer the chat reply stays within 12."""
+    """The summary forecast.py prints, ready to paste: every figure the chat needs, so nothing
+    has to be recomputed. At most 10 lines, so with the Files line and the agent's refine
+    offer the chat reply stays within 12."""
     lines = [res["headline"]]
     for extra in (res["low_price_note"], res["path_note"]):
         if extra:
@@ -1744,21 +1744,13 @@ def write_outputs(res: Json, out_dir: Path, formats: tuple[str, ...]) -> list[Pa
             for r in res["months"]:
                 writer.writerow([r["month"], *(round(r[k], 4) for k in cols[1:]), _month_notes(r).replace(", ", "; ")])
         written.append(path)
-    # The chat summary goes to a file, not stdout, so contract figures stay out of logs.
-    path = out_dir / "summary.txt"
-    path.write_text("\n".join([*res["chat_summary"], _files_line(written)]) + "\n", encoding="utf-8")
-    written.append(path)
     return written
-
-
-def _files_line(paths: list[Path]) -> str:
-    return "Files: " + ", ".join(str(p) for p in paths)
 
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Forecast Workday Flex Credit use month by month.")
     parser.add_argument("--input", required=True, help="input JSON (see references/model.md)")
-    parser.add_argument("--out-dir", required=True, help="folder for result.json, report.md, forecast.xlsx and summary.txt")
+    parser.add_argument("--out-dir", required=True, help="folder for result.json, report.md and forecast.xlsx")
     parser.add_argument("--formats", default="xlsx,md,json", help="comma-separated: xlsx, md, json, csv")
     parser.add_argument("--constants", default=None, help="model constants JSON (default: the bundled one)")
     args = parser.parse_args(argv)
@@ -1789,8 +1781,9 @@ def main(argv: list[str] | None = None) -> int:
         print(f"input: these values are too large or inconsistent to forecast ({exc})", file=sys.stderr)
         return 2
     written = write_outputs(res, Path(args.out_dir), formats)
-    print(f"Chat summary: {written[-1]}")
-    print(_files_line(written))
+    for line in res["chat_summary"]:
+        print(line)
+    print("Files: " + ", ".join(str(p) for p in written))
     return 0
 
 
