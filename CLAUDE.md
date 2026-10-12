@@ -102,8 +102,8 @@ generated files; change the source and rerun the generator.
    skill's scripts in its own folder. Never invent `CODEX_PLUGIN_ROOT`.
 5. Update the plugin's README so it lists the skills, commands, agents and hooks that exist.
 
-Categories are `design`, `documentation`, `engineering` and `productivity`. Add a new one only
-when nothing fits, using the same slug as the `category` field.
+Categories are `calculators`, `design`, `documentation`, `engineering` and `productivity`. Add a
+new one only when nothing fits, using the same slug as the `category` field.
 
 ### Writing instructions that work on any model
 

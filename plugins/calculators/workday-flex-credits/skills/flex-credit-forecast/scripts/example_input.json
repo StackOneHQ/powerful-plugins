@@ -1,0 +1,46 @@
+{
+  "organization": "Example Retail Co",
+  "employees": 8200,
+  "skus": [],
+  "price_per_credit": 0.1,
+  "integrations": {
+    "mode": "estimate",
+    "counts": {"efficient": 4, "typical": 2, "heavy": 1}
+  },
+  "ssa_actions_per_employee_month": 2,
+  "skills": [{"skill": "recruiting_fetch", "volume_per_year": 60}],
+  "agents": [
+    {
+      "tasks_per_month": 10000,
+      "calls_per_task": 5,
+      "path": "unsure",
+      "read_format": "rest_detail",
+      "advanced_share": 0.1,
+      "model_tier": "standard"
+    }
+  ],
+  "advanced": {
+    "purchased_credits": 0,
+    "policy_signed": true,
+    "llm_price_per_m_tokens": 3.0,
+    "context_rereads": 1.0,
+    "tool_calls_also_metered_as_api": false,
+    "allowance_override": null,
+    "complimentary_override": null
+  },
+  "forecast": {
+    "start": "2026-11",
+    "months": 24,
+    "growth": {"integrations": 0.0, "agents": 0.5, "workday_agents": 0.2}
+  },
+  "sources": {
+    "employees": "user",
+    "api_calls": "user",
+    "agents": "user",
+    "workday_agents": "user",
+    "allowance": "default",
+    "pool": "default",
+    "price_per_credit": "default",
+    "growth": "default"
+  }
+}

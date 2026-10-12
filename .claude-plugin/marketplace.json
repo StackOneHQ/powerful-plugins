@@ -2,7 +2,7 @@
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "powerful-plugins",
   "version": "1.0.0",
-  "description": "Plugins for Claude Code and OpenAI Codex, built by the StackOne team for anyone to use: design and data visualization, natural writing, code review loops, browser automation and recording, session reflection, spoken notifications and conversation export.",
+  "description": "Plugins for Claude Code and OpenAI Codex, built by the StackOne team for anyone to use: design and data visualization, natural writing, code review loops, browser automation and recording, session reflection, spoken notifications, conversation export and Workday Flex Credit forecasting.",
   "owner": {
     "name": "StackOne",
     "url": "https://github.com/StackOneHQ"
@@ -228,6 +228,27 @@
         "voice"
       ],
       "version": "1.1.1",
+      "author": {
+        "name": "StackOne",
+        "url": "https://github.com/StackOneHQ"
+      }
+    },
+    {
+      "name": "workday-flex-credits",
+      "source": "./plugins/calculators/workday-flex-credits",
+      "description": "Forecasts Workday Flex Credit use and cost month by month for AI agents and integrations, from your Platform Consumption Console, order form or estimates, and writes a spreadsheet and a report.",
+      "category": "calculators",
+      "tags": [
+        "workday",
+        "flex-credits",
+        "forecast",
+        "calculator",
+        "ai-agents",
+        "mcp",
+        "finance",
+        "budgeting"
+      ],
+      "version": "1.0.0",
       "author": {
         "name": "StackOne",
         "url": "https://github.com/StackOneHQ"

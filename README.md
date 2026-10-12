@@ -13,7 +13,8 @@
 
 Plugins for Claude Code and OpenAI Codex that we built at StackOne for our own day-to-day work:
 design and data visualization, writing, getting pull requests through AI review, browser
-automation, learning from past sessions, spoken notifications and conversation export.
+automation, learning from past sessions, spoken notifications, conversation export and Workday
+Flex Credit forecasting.
 
 None of them needs a StackOne account, and there's nothing StackOne-specific inside them. We
 use them every day and thought other people would find them useful too. Every plugin installs
@@ -44,6 +45,7 @@ browse the catalog.
 
 | Plugin | Category | What it does |
 |--------|----------|--------------|
+| `workday-flex-credits` | Calculators | Forecasts Workday Flex Credit use and cost month by month for AI agents and integrations, from your Console, order form or estimates, as a spreadsheet and report. |
 | `animation-studio` | Design | Plans and builds web animations, scroll-driven 3D explainers and short videos from a rough spec, with the Web Animations API, Motion, anime.js, Three.js and Remotion. |
 | `decision-artifacts` | Design | Turns findings, options, plans and status updates into short, evidence-backed pages that help people decide. |
 | `diagram-explainer` | Design | Creates editable, source-grounded architecture, sequence, state and causal diagrams with previews and evidence. |
