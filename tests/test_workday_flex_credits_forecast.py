@@ -157,6 +157,15 @@ class UnitTests(unittest.TestCase):
         self.assertTrue(any(e.startswith("agents[0].path:") for e in errors), errors)
         self.assertTrue(any(e.startswith("agents[0].advanced_share:") for e in errors), errors)
 
+    def test_number_errors_name_the_bound_but_not_the_value(self) -> None:
+        errors = forecast.validate({"employees": 73, "price_per_credit": "0.2",
+                                    "ssa_actions_per_employee_month": -41})
+        self.assertEqual(errors, [
+            "employees: can't be less than 100",
+            "price_per_credit: expected a number, got str",
+            "ssa_actions_per_employee_month: can't be negative",
+        ])
+
     def test_validate_accepts_presets_unsure_and_the_example(self) -> None:
         for key, preset in DATA["presets"].items():
             with self.subTest(preset=key):

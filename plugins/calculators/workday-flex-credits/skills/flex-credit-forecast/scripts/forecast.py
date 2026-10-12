@@ -654,18 +654,20 @@ def confidence(sources: Json, driver: str | None = None) -> str:
 def _check_number(
     errors: list[str], where: str, v: object, maximum: float | None = None, minimum: float = 0.0
 ) -> None:
+    # Messages name the field and the bound but never echo the value: it is already in the
+    # input file, and headcount or contract figures don't belong in stderr or logs.
     if v is None:
         return
     if not _is_number(v):
-        errors.append(f"{where}: expected a number, got {v!r}")
+        errors.append(f"{where}: expected a number, got {type(v).__name__}")
         return
     value = float(v)  # type: ignore[arg-type]
     if value < 0 and minimum == 0:
-        errors.append(f"{where}: can't be negative ({v})")
+        errors.append(f"{where}: can't be negative")
     elif value < minimum:
-        errors.append(f"{where}: can't be less than {minimum:g} ({v})")
+        errors.append(f"{where}: can't be less than {minimum:g}")
     elif maximum is not None and value > maximum:
-        errors.append(f"{where}: can't be more than {maximum:g} ({v})")
+        errors.append(f"{where}: can't be more than {maximum:g}")
 
 
 def _check_month(errors: list[str], where: str, v: object) -> None:
@@ -709,8 +711,8 @@ def validate(raw: object, c: Json | None = None) -> list[str]:
     big = 1e12
     if raw.get("organization") is not None and not isinstance(raw.get("organization"), str):
         e.append("organization: expected text")
-    _check_number(e, "employees", raw.get("employees"), big, ranges["employees"][0])
-    _check_number(e, "price_per_credit", raw.get("price_per_credit"), big, ranges["price_per_credit"][0])
+    for key in ("employees", "price_per_credit"):
+        _check_number(e, key, raw.get(key), big, ranges[key][0])
     _check_number(e, "ssa_actions_per_employee_month", raw.get("ssa_actions_per_employee_month"), big)
     for i, sku in enumerate(_as_list(e, "skus", raw.get("skus"))):
         _check_enum(e, f"skus[{i}]", sku, list(c["sku_uplifts"]))
