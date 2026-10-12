@@ -73,7 +73,7 @@ In a runtime other than Claude, name that assistant instead of Claude.
    (`references/question-flow.md`). Ask with `AskUserQuestion` in Claude Code, 2 to 4 options
    per question; elsewhere ask in plain text with numbered options.
 2. Write `./flex-credit-forecast/input.json` from the answers and the defaults, with a
-   `sources` block, then run the script below and paste the summary it prints.
+   `sources` block, then run the script below and paste the summary it writes.
 3. Offer to refine: read the Console with the user watching, read an order form or export,
    list integrations one by one, or add growth for a multi-year view.
 4. After each refinement, update `input.json` and its `sources`, rerun, and say what moved.
@@ -119,11 +119,12 @@ in `references/data-sources.md`.
 ## Output
 
 Files in `./flex-credit-forecast/`, never in the plugin folder: `input.json`, `result.json`,
-`report.md` and `forecast.xlsx`.
+`report.md`, `forecast.xlsx` and `summary.txt`.
 
-The script prints a chat summary of 11 lines or fewer, ending with the file paths (the
-lines before the paths are also `chat_summary` in `result.json`). Paste it as printed, then
-add the refine offer in one line, 12 lines in all. The first-forecast reply is that and
+The script writes a chat summary of 11 lines or fewer to `summary.txt`, ending with the file
+paths (the lines before the paths are also `chat_summary` in `result.json`). It prints only
+the path to `summary.txt` and the list of files, so read `summary.txt` after each run. Paste
+it as written, then add the refine offer in one line, 12 lines in all. The first-forecast reply is that and
 nothing else: no extra figures and no "what this means" section. Explain more only when the
 user asks, and then quote figures only from the summary or `result.json`; don't compute new
 ones, round them differently or describe a path against another path's allowance. The headline follows this shape:
