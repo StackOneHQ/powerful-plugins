@@ -81,6 +81,14 @@ class XlsxWriterTests(unittest.TestCase):
         self.assertEqual(texts, ["A & B", "x < y > z", "=SUM(A1)", '"quoted"', "+1", "-2", "@cmd", "bellgone"])
         self.assertIsNone(sheet.find(".//m:f", NS))
 
+    def test_clean_text_strips_exactly_the_characters_xml_cannot_carry(self) -> None:
+        # C0 controls except tab, LF and CR; lone surrogates; U+FFFE and U+FFFF.
+        expected = {*range(0x00, 0x09), 0x0B, 0x0C, *range(0x0E, 0x20), *range(0xD800, 0xE000), 0xFFFE, 0xFFFF}
+        everything = "".join(map(chr, range(0x110000)))
+        kept = {ord(ch) for ch in wfc_xlsx._CONTROL.sub("", everything)}
+        self.assertEqual(set(range(0x110000)) - kept, expected)
+        self.assertEqual(wfc_xlsx.clean_text("a\tb\nc\rd\x00e￿f\U0001f600"), "a\tb\nc\rdef\U0001f600")
+
     def test_sheet_names_are_sanitized_capped_and_unique(self) -> None:
         long_name = "A very long sheet name that goes past thirty-one characters"
         path = self._write("n.xlsx", [(long_name, [[1]]), ("Bad[]:*?/\\Name", [[2]]), ("bad name", [[3]]),

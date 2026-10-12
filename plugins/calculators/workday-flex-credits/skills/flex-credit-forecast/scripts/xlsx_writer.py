@@ -33,7 +33,9 @@ NUM_FMT_IDS = {"general": 0, "credits": 164, "usd": 165, "usd_whole": 167, "pct"
 NUM_FMT_CODES = {164: "#,##0", 165: '"$"#,##0.00', 166: "0.0%", 167: '"$"#,##0'}
 MAX_CELL_TEXT = 32767  # Excel's limit per cell
 FIXED_DATE = (1980, 1, 1, 0, 0, 0)
-_CONTROL = re.compile("[\x00-\x08\x0b\x0c\x0e-\x1f￾￿\ud800-\udfff]")
+# Anything outside XML 1.0's Char production: C0 controls other than tab, LF and CR, lone
+# surrogates, U+FFFE and U+FFFF.
+_CONTROL = re.compile(r"[^\t\n\r\x20-\ud7ff\ue000-\ufffd\U00010000-\U0010ffff]")
 _SHEET_BAD = re.compile(r"[\[\]:*?/\\]")
 
 
