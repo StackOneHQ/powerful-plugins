@@ -59,7 +59,8 @@ Use this to pick the right library per proposal:
 | No | Yes | No | No | anime.js |
 | Any | Any | Any | Yes | Remotion |
 
-A scroll-driven 3D explainer of a system or pipeline is its own case: propose the `exploded-machine` skill.
+An interactive explanation of a system, process or mechanism is its own case: propose the
+`explain-machine` skill. A detailed exploded drawing uses its `exploded-machine` Inspect recipe.
 
 ## Default constraints
 
@@ -70,5 +71,5 @@ Override these with the project's motion tokens when it has them.
 - Patterns: fade-up default, scale-in for emphasis, slide-in for directional
 - Max stagger items: 6
 - Respect `prefers-reduced-motion`
-- No 3D on a live page by default: Canvas 2D projection for data, `exploded-machine` for a system explainer, Remotion for video
+- No 3D on a live page by default: Canvas 2D projection for data, `explain-machine` for an interactive explanation, Remotion for video
 - Match the brand's tone; the defaults assume a professional product, so minimal bounce and no playful wobble
