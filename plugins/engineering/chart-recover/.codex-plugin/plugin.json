@@ -1,0 +1,34 @@
+{
+  "name": "chart-recover",
+  "version": "0.1.0",
+  "description": "Recover hidden-axis chart values from visible geometry and explicit evidence, with local analysis, synthetic evaluations and reviewable uncertainty.",
+  "author": {
+    "name": "StackOne",
+    "url": "https://github.com/StackOneHQ"
+  },
+  "homepage": "https://github.com/StackOneHQ/powerful-plugins",
+  "repository": "https://github.com/StackOneHQ/powerful-plugins",
+  "interface": {
+    "displayName": "Chart Recover",
+    "shortDescription": "Recover hidden-axis chart values from visible geometry and explicit evidence, with local analysis, synthetic…",
+    "longDescription": "Recover hidden-axis chart values from visible geometry and explicit evidence, with local analysis, synthetic evaluations and reviewable uncertainty.",
+    "developerName": "StackOne",
+    "category": "Engineering",
+    "capabilities": [
+      "Interactive"
+    ],
+    "websiteURL": "https://github.com/StackOneHQ/powerful-plugins",
+    "defaultPrompt": [
+      "Use Chart Recover to run this workflow."
+    ]
+  },
+  "license": "MIT",
+  "keywords": [
+    "charts",
+    "data-extraction",
+    "evidence",
+    "evaluation",
+    "ocr"
+  ],
+  "skills": "./.codex/skills/"
+}
