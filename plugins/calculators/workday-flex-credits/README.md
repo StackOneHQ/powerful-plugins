@@ -34,9 +34,7 @@ In Claude Cowork, open **Customize**, then **Plugins**, select **Add marketplace
 
 In Microsoft 365 Copilot Cowork, the forecast installs as a skill:
 
-1. Download the skill as a zip from
-   <https://www.stackone.com/downloads/workday-flex-credits-skill.zip>, or build it from a clone
-   of this repository:
+1. Build the skill as a zip from a clone of this repository:
 
    ```bash
    git archive --format=zip -o workday-flex-credits-skill.zip \
