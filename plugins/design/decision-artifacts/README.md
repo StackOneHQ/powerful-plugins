@@ -27,6 +27,14 @@ The default is an editorial decision brief built around **simple at rest, exhaus
 - no more than two levels of disclosure
 - source, confidence rationale, verification state, and last-checked context for consequential claims
 
+For a meeting, the same decision spine becomes a short deck: the decision slide first, one
+claim per slide, and every supporting record in the appendix or speaker notes. In Claude, it
+uses the Slides template, so people can edit, comment and ask Claude to revise before presenting.
+
+In a Claude artifact, the skill can also record the chosen option on the page, pull live data
+through declared connectors with a clear state when a viewer has no access, and, when you ask
+for it, add a labelled control that acts on the decision, such as filing the follow-up ticket.
+
 For a guided explanation, the skill can trace one example through a mechanism,
 keep a baseline beside an adjustable scenario, and deliver a complete static text
 equivalent. The diagram, step labels and result share one model so changing an
@@ -70,6 +78,14 @@ Turn this investigation into a shareable decision artifact.
 
 ```text
 Explain this change to nontechnical readers. Use a technical side panel for proof.
+```
+
+```text
+Turn this vendor comparison into a six-slide deck for Thursday's review. Put the evidence in the appendix.
+```
+
+```text
+Make a decide-mode artifact for the team. Record who picked which option, and add a button that files the follow-up ticket once we choose.
 ```
 
 ```text
