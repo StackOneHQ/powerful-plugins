@@ -1,6 +1,6 @@
 {
   "name": "workday-flex-credits",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Forecasts Workday Flex Credit use and cost month by month for AI agents and integrations, from your Platform Consumption Console, order form or estimates, and writes a spreadsheet and a report.",
   "author": {
     "name": "StackOne",

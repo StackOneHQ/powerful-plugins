@@ -41,6 +41,12 @@ For example, `/plugin install tufte-viz@powerful-plugins` or
 `codex plugin add tufte-viz@powerful-plugins`. In Claude Code, `/plugin` on its own lets you
 browse the catalog.
 
+In Claude Cowork, open **Customize**, then **Plugins**, select **Add marketplace** and enter
+`StackOneHQ/powerful-plugins`. The plugins then show up in the list, ready to install.
+
+`workday-flex-credits` also runs in Microsoft 365 Copilot Cowork as an uploaded skill; its
+[README](plugins/calculators/workday-flex-credits/README.md#installation) has the steps.
+
 ## Plugins
 
 | Plugin | Category | What it does |

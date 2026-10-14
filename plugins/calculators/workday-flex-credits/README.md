@@ -29,6 +29,26 @@ codex plugin marketplace add StackOneHQ/powerful-plugins
 codex plugin add workday-flex-credits@powerful-plugins
 ```
 
+In Claude Cowork, open **Customize**, then **Plugins**, select **Add marketplace** and enter
+`StackOneHQ/powerful-plugins`. Then find Workday Flex Credits and select **Install**.
+
+In Microsoft 365 Copilot Cowork, the forecast installs as a skill:
+
+1. Download the skill as a zip from
+   <https://www.stackone.com/downloads/workday-flex-credits-skill.zip>, or build it from a clone
+   of this repository:
+
+   ```bash
+   git archive --format=zip -o workday-flex-credits-skill.zip \
+     HEAD:plugins/calculators/workday-flex-credits/skills/flex-credit-forecast
+   ```
+
+2. In Cowork, select **+**, then **Customize**, and open the **Skills** tab.
+3. Next to **Add**, select the arrow, then **Upload skill**, and choose the zip.
+
+Copilot Cowork has no browser, so share a Console export or your order form instead of reading
+the Console live.
+
 ## Features
 
 | Type | Name | Description |
@@ -75,8 +95,8 @@ first-year calls against your allowance and the top questions for Workday.
 
 ## Data handling
 
-The forecast files are written only to ./flex-credit-forecast/ on your machine, and the
-scripts make no network calls. Anything Claude reads, including your order form and Console
+The forecast files are written only to a ./flex-credit-forecast/ folder in your workspace,
+and the scripts make no network calls. Anything your assistant reads, including your order form and Console
 pages, is processed by your AI provider under your account's terms, like any other
 conversation.
 
@@ -106,7 +126,8 @@ never followed. It looks for files only where you point it.
 
 - Python 3.9 or later. No packages to install.
 - Optional: a browser extension for reading the Console, such as Claude in Chrome in Claude
-  Code or the Chrome plugin in Codex. Without one, paste values or share an export.
+  Code or the Chrome plugin in Codex. Without one, and always in Copilot Cowork, paste values or
+  share an export.
 - Reading the Platform Consumption Console needs the "Management Dashboard: Platform
   Consumption Console" security domain in Workday.
 
