@@ -448,7 +448,7 @@ class ReviewFixTests(unittest.TestCase):
         self.assertIn("Always include this row", flat)
         self.assertIn("Open your reply with the privacy line", flat)
         text = " ".join((skill / "SKILL.md").read_text().replace("> ", "").split())
-        self.assertIn("The forecast files are written only to ./flex-credit-forecast/ on your machine", text)
+        self.assertIn("The forecast files are written only to a ./flex-credit-forecast/ folder in your workspace", text)
         self.assertIn("first shows anything read from a contract", text)
 
     def test_no_bytecode_written_beside_the_scripts(self) -> None:

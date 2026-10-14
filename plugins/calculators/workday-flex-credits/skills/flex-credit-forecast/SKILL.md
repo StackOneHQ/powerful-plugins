@@ -60,8 +60,8 @@ Assumed. Record where each value came from in the `sources` block of `input.json
 Say this once per conversation: at the top of the reply that first shows anything read from a
 contract, order form or export, and before opening the Console.
 
-> The forecast files are written only to ./flex-credit-forecast/ on your machine, and the
-> scripts make no network calls. Anything Claude reads, including your order form and Console
+> The forecast files are written only to a ./flex-credit-forecast/ folder in your workspace,
+> and the scripts make no network calls. Anything Claude reads, including your order form and Console
 > pages, is processed by your AI provider under your account's terms, like any other
 > conversation.
 
