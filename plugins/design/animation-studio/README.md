@@ -1,12 +1,13 @@
 # Animation Studio
 
-Create web animations, interactive visuals, scroll-driven 3D explainers and short videos with the Web Animations API, Motion (motion.dev), anime.js, Three.js and Remotion. It picks the lightest library that does the job, follows your project's design tokens, and routes the build to a specialist agent.
+Create web animations, interactive explanations and short videos with SVG, Canvas, the Web Animations API, Motion (motion.dev), anime.js, Three.js and Remotion. It picks the lightest tools that do the job, follows your project's design tokens, and routes the build to the relevant skill or specialist agent.
 
 ## What it does
 
 - **Ideates** animation concepts from rough specs or vague descriptions
 - **Decides** which library fits (WAAPI for vanilla scripts, Motion for React, anime.js for SVG and scrubbable timelines, Remotion for video) and what each costs the page in bytes
 - **Generates** production-ready animation code that respects `prefers-reduced-motion`, keeps idle motion quiet and never shifts the page layout
+- **Explains** systems and mechanisms through Inspect, Follow, Operate and Compare modes: one source-grounded model drives the scene, readouts and captions as the reader changes inputs
 - **Builds** scroll-driven "exploded machine" explainers that take a system apart component by component, as a CAD-like line drawing by default (graphite for a dark brand), or a blueprint, patent, assembly-manual, graphite, hologram, clay or reflective 3D look
 - **Creates** marketing and product videos with Remotion
 - **Teaches** concepts with narrated educational videos, measured audio timing, captions and transcripts
@@ -28,8 +29,9 @@ codex plugin add animation-studio@powerful-plugins
 | Skill | Purpose |
 |-------|---------|
 | `animation-studio` | Entry point: decision matrix, page cost table, default timing and easing, idle-motion and layout rules, routing to the agents |
+| `explain-machine` | Interactive explanations from a URL, repository, docs or short brief. Choose Inspect, Follow, Operate or Compare to answer a specific question; use a sourced worked example and a shared model for motion, readouts and captions. SVG, HTML, Canvas or 3D according to the subject |
 | `educational-explainer` | Source-grounded lessons with worked examples, synchronized narration, captions, transcript and a local WAV/timeline checker |
-| `exploded-machine` | Explain a system, product or architecture component by component on scroll, as an accurate exploded drawing in the style of the animejs.com homepage. The subject is drawn as a form you pick (an engine, a pipe run, a tube, a rack, a lens...), with each component a part that form really has. Eight styles share one scroll state: Technical (a CAD-like line drawing on a 2D canvas, the default, with Graphite for a subject whose site is dark), Blueprint, Patent, Assembly manual, Graphite, Hologram, Clay and Realistic (reflective Three.js 3D); Cutaway and X-ray show what is inside a component. A housing, a definition panel, input and output chips, or a beam carrying an example through are optional layers. Needs only a subject: a URL, a repo path or one sentence |
+| `exploded-machine` | Existing entry point and detailed Inspect recipe for scroll-driven exploded drawings. Preserves Technical, Blueprint, Patent, Assembly manual, Graphite, Hologram, Clay and Realistic styles, Cutaway and X-ray, and optional housing, definition panel, input/output chips and example flow |
 
 ## Agents
 
@@ -44,13 +46,21 @@ codex plugin add animation-studio@powerful-plugins
 
 ```
 /animation-studio:animation-studio <animation brief>
+/animation-studio:explain-machine <subject, URL or repo path>
 /animation-studio:exploded-machine <subject, URL or repo path>
 /animation-studio:educational-explainer <concept and source material>
 ```
 
-In Codex, use `$animation-studio:animation-studio` and `$animation-studio:exploded-machine`. The
+In Codex, use `$animation-studio:explain-machine` for an interactive explanation.
+`$animation-studio:exploded-machine` continues to produce detailed exploded drawings. The
 four agents are available there through the `$animation-studio:animation-studio-specialists` skill.
 Use `$animation-studio:educational-explainer` in Codex for a narrated lesson.
+
+Explain Machine chooses the useful modes for the question; it does not require four separate
+views. Physical analogies are labeled, illustrative values stay distinguishable from sourced
+facts, and controls exercise the same model that produces the visual state. Local artifacts
+and checks need no additional approval. Publishing, sending, spending, new dependencies and
+external services require authorization. The skill adds no runtime dependency or hosted service.
 
 Educational narration can use an installed local speech engine. Check whether it
 needs a model download before promising offline use. The plugin installs no speech
@@ -62,11 +72,13 @@ Or just describe what you want:
 - "Make the hero section feel alive"
 - "Add floating cards to the integrations grid"
 - "Explain our request pipeline as a scroll animation"
+- "Let me change an input and see how this mechanism responds"
+- "Compare two cache policies with the same request sequence"
 - "Create a 15s product demo video"
 
 ## Brand and tokens
 
-The plugin carries no brand. It reads colours, fonts and motion curves from your project's design tokens or brand guide, and asks when there are none. The timing and easing values in `docs/BRAND-ANIMATION.md` are defaults you can override.
+The plugin carries no brand. It reads colours, fonts and motion curves from your project's design tokens or brand guide, and uses a readable neutral treatment when there are none. The timing and easing values in `docs/BRAND-ANIMATION.md` are defaults you can override.
 
 ## Works well with
 
@@ -81,8 +93,9 @@ Optional, all installable from this marketplace:
 
 | Library | npm | Use case |
 |---------|-----|----------|
+| SVG and Canvas | built in | Inspectable mechanisms and model-driven interactive explanations |
 | Web Animations API | built in | Fades, staggers and sequenced reveals with zero bytes |
 | [Motion](https://motion.dev) | `motion` | React component animations (hover, scroll, layout) |
 | [anime.js](https://animejs.com) | `animejs` | Vanilla JS animations (SVG, timelines, stagger) |
-| [Three.js](https://threejs.org) | `three` | WebGL for the exploded-machine Clay and Realistic styles |
+| [Three.js](https://threejs.org) | `three` | Explanations where volume or viewpoint matters; exploded-machine Clay and Realistic styles |
 | [Remotion](https://remotion.dev) | `remotion` | Programmatic video rendering (MP4/WebM) |
