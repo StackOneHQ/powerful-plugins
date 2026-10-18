@@ -149,6 +149,18 @@
       "category": "Productivity"
     },
     {
+      "name": "workday-flex-credits",
+      "source": {
+        "source": "local",
+        "path": "./plugins/calculators/workday-flex-credits"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Calculators"
+    },
+    {
       "name": "agent-browser",
       "source": {
         "source": "url",
