@@ -17,12 +17,12 @@ Moving content to the second layer is not permission to drop it. A selection ope
 - "Copy my answers" copies a prompt-ready list of every decision with its choice and note, and says which are unanswered.
 - Write one document at a time per decision, only on a reader action, and coalesce typing into one write per pause.
 - Render viewer-written text with `textContent`, never `innerHTML`.
-- Give every control a stable `id` so values survive a republish.
+- Keep decision ids stable and rebuild every control from the stored answers on load, so values survive a republish.
 
 ## Sheet
 
 - A right-side sheet on wide screens; full-screen on small ones.
-- An accessible name, a visible close control, Escape to close, focus moved in on open and returned to the trigger on close.
+- An accessible name, a visible close control, Escape to close, focus moved in on open and returned to the trigger on close. Closing saves any pending note first.
 - The obscured page isn't interactive while a modal sheet is open.
 - A closed sheet is hidden with `[hidden]` and the page's CSS keeps `[hidden] { display: none !important; }`, so a `display: flex` rule can't leave an invisible sheet catching clicks.
 

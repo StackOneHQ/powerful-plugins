@@ -45,7 +45,7 @@ Show ordered steps with scrolling, a stepper or previous/next with a visible out
 
 ## Motion on review pages
 
-When the page exists to compare motion (animations, transitions, video cuts), previews autoplay or loop, respecting reduced motion. A site's own rules about motion above the fold apply to the site, not to the review page.
+When the page exists to compare motion (animations, transitions, video cuts), previews may autoplay, but anything that moves for more than 5 seconds gets a pause control, and reduced motion shows a still frame with a play button. A site's own rules about motion above the fold apply to the site, not to the review page.
 
 ## Custom taste
 

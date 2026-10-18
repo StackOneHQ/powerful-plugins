@@ -6,7 +6,7 @@ Read only the section for your output surface. Keep the decision spine and evide
 
 The Artifact tool, `artifact-design` and `artifact-capabilities` own the page contract (format, title, theming, CSP, runtime capabilities). Follow them; this section only adds what decision pages need.
 
-- **Answers.** Declare the `db` capability and store one document per decision id in a `decisions` collection, `{choice, note, updated_at}`. Read it back with ArtifactData `list` before asking or acting. After the first publish, one read of the collection confirms the store answers.
+- **Answers.** Declare the `db` capability and store one document per decision id in a `decisions` collection, `{choice, note, updated_at}`. Read it back with ArtifactData `list` before asking or acting. Persistence is untested until a reader's answer has been read back; say so at hand-off. When several people answer, keep one document per decision and viewer, with `db` rules so each writes only their own; answers under `data/users/` are private even from the owner, so Claude can't read them.
 - **Updates.** Republish the same file path to keep the URL. After compaction or a reset, pass the artifact `url` explicitly; a publish by path alone can create a second page.
 - **Hooks.** When a file-edit hook is configured, edit the file and then publish; a publish that carries `edits` is refused.
 - **Media.** 15 MB per file, 64 MiB per publish, 256 MiB per version. Transcode first, spread large sets over several publishes or use the asset store, and give changed media a new file name so caches don't serve the old one.
@@ -26,14 +26,15 @@ Use the Sites capability for a shareable full-page site; the visualization capab
 - Start with a focused first preview and use the platform's standard components.
 - Review content, calculations, labels and interaction before publishing. Every deployment URL is a production URL.
 - Deploy only when the user asked for a shareable result and it has been reviewed.
-- Sites can't read live data at the time of writing: use a dated snapshot and show its source and refresh time.
+- Check whether the site can load live data for its viewers; where it can't, use a dated snapshot and show its source and refresh time.
+- If the site has no storage the agent can read, answers come back through "Copy my answers": ask the reader to paste them, and don't act until they do.
 - Test the deployed URL from the intended visitor's access level before sharing; the in-app preview doesn't prove the deployed result.
 
 Official references: [creating and managing ChatGPT Sites](https://help.openai.com/en/articles/20001339) and [ChatGPT Sites guidance](https://openai.com/academy/chatgpt-sites/).
 
 ## Self-contained HTML
 
-With no artifact or site surface, write one focused HTML file with inline assets, no build step unless the interaction needs one, and say it's a local preview, not a hosted URL. Answers fall back to "Copy my answers".
+With no artifact or site surface, write one focused HTML file with inline assets, no build step unless the interaction needs one, and say it's a local preview, not a hosted URL. Answers fall back to "Copy my answers": ask the reader to paste them back, and don't act until they do.
 
 ## Existing product or design system
 

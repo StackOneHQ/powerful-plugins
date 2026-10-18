@@ -27,7 +27,7 @@ The default is an editorial decision page built around **simple at rest, exhaust
 - tabs or collapsed sections for history, such as previous runs and past answers
 - about 300 words of prose at rest, and no more than two levels of disclosure
 - one living page per topic, republished in place
-- source, verification state, and last-checked time for consequential claims
+- source, confidence rationale, verification state, and last-checked time for consequential claims
 
 For a guided explanation, the skill can trace one example through a mechanism,
 keep a baseline beside an adjustable scenario, and deliver a complete static text

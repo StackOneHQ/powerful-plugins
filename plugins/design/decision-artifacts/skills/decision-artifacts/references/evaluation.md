@@ -7,7 +7,7 @@ Evaluate the result as a decision tool, not as a screenshot.
 The artifact fails if any answer is no:
 
 - Is the main conclusion or current state accurate, and is every volatile fact re-checked with its time?
-- Does the first screen show what needs the reader, in order, and nothing that Claude could do itself?
+- Does the first screen show what needs the reader, in order, each with what done looks like, and nothing that Claude could do itself?
 - Do recommendations and timelines respect the user's standing rulings and stated scope?
 - Can the reader record an answer on every open decision, and can Claude read it back?
 - Are observation, inference, assumption, recommendation, delivery and verification kept distinct?
@@ -49,4 +49,4 @@ Before a major release, run the skill against at least two structurally differen
 3. A living status view showing done, in progress, blocked, left, and deliberately not doing.
 4. A sequenced plan where each step explains its effect and what to report back.
 
-For each run: use real or clearly marked sample data; inspect the first screen before interacting; open every detail path and follow every link; record an answer and read it back; test copy controls against the exact copied value; test keyboard order, focus return, Escape and a 390 px viewport; compare displayed status with the source after rendering; and run one deletion pass without removing uncertainty, risk or evidence. Record the prompt, mode and taste, output URL, evidence limits, interaction results and failures fixed.
+For each run: use real or clearly marked sample data; inspect the first screen before interacting; open every detail path and follow every link; record an answer and read it back; test copy controls against the exact copied value; test keyboard order, focus return, Escape and a 390 px viewport; compare displayed status with the source after rendering; test the shared page from the intended viewer's access level; and run one deletion pass without removing uncertainty, risk, evidence or requested detail. Record the prompt, mode and taste, output URL, evidence limits, interaction results and failures fixed.

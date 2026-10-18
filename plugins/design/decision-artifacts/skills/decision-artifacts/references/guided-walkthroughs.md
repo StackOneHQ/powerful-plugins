@@ -34,8 +34,8 @@ look reasonable. Limit a numeric demonstration before its computation overflows.
 
 ## Keep the answer available without interaction
 
-Include a complete static trace of the baseline in ordinary HTML, in a collapsed
-section so it stays out of the at-rest budget, or in a companion text file. It
+Include a complete static trace of the baseline in ordinary HTML after the
+interactive view (it doesn't count toward the at-rest budget), or in a companion text file. It
 must contain the actual steps, outcome and qualifications, not a
 message telling the reader to enable JavaScript. Keep it available for printing,
 screen readers and readers who prefer text. Dynamic updates should not force a

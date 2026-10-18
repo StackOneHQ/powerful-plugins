@@ -11,7 +11,7 @@ For each prominent claim:
 | Claim | The exact statement the artifact makes |
 | Kind | Observation, inference, assumption or recommendation |
 | Evidence | The minimum proof that supports it |
-| Source | A named link, file, query, test, meeting or document, never "the conversation" |
+| Source | A named link, file, query, test, meeting or document, a user ruling with its date, or a stored answer by id; never "the conversation" |
 | Confidence | High, medium, low or unknown, with a short reason |
 | Verification | One value from the verification column below |
 | Last checked | UTC time, taken from tool output, when the claim can change |
