@@ -40,9 +40,13 @@ Use exactly these verification values on the page; a badge never says anything t
 - **Named sources.** When the user named sources (a scanner, a dashboard, a document), cover each one or say why not.
 - **Single-source product claims.** A claim from one positioning or planning document is "Checked in source", not settled. Cross-check the live product or docs before removing a capability from copy.
 
-## Confidence
+## Likelihood and confidence
 
-Words and reasons, not invented percentages.
+These are two different statements; never put both in one clause.
+
+**Likelihood** is how probable an outcome is. Take the term from one scale and show its band on first use: almost no chance (under 5%), very unlikely (5 to 20%), unlikely (20 to 45%), roughly even (45 to 55%), likely (55 to 80%), very likely (80 to 95%), almost certain (over 95%). "May", "could" and "real possibility" are not estimates.
+
+**Confidence** rates the evidence, in words and reasons, never invented percentages, in its own badge or sentence:
 
 - **High:** direct, current evidence covers the claim's scope
 - **Medium:** relevant but incomplete, indirect or somewhat stale

@@ -22,7 +22,8 @@ The default is an editorial decision page built around **simple at rest, exhaust
 - a "Needs you" block first: only what the reader must decide or do, in order
 - the conclusion and next action, with the update time and what the page covers
 - before/after views wherever a change can be shown: charts, number pairs, screenshots, mockups
-- a working table with the reader's choice and note on every decision, saved on the page
+- proposed and unverified values drawn differently from measured ones, and likelihood stated apart from confidence
+- a working table with the reader's choice and note on every decision, saved on the page, with save state, Undo for Approve all and a "Your answers" review list
 - complete evidence, sources, alternatives, and technical detail in a side sheet
 - tabs or collapsed sections for history, such as previous runs and past answers
 - about 300 words of prose at rest, and no more than two levels of disclosure

@@ -4,6 +4,14 @@ Explain a process or decision by following one example from input to outcome. Us
 when the reader needs to understand an order, state transition, calculation or
 conditional branch. An ordinary explanation does not need an interactive page.
 
+## Name the parts, then step up
+
+Name the parts before the diagram: a key with each component in eight words or fewer.
+After the worked case, state the general rule and show where the case sits among all
+cases. Explain why it works this way, including constraints and rejected alternatives;
+steps belong to `act` and specs to the sheet. For a reader who owns the system, lead
+with what changed and collapse the trace.
+
 ## Keep one trace consistent
 
 Choose a concrete example from the source, or label invented values as illustrative.
@@ -35,7 +43,8 @@ look reasonable. Limit a numeric demonstration before its computation overflows.
 ## Keep the answer available without interaction
 
 Include a complete static trace of the baseline in ordinary HTML after the
-interactive view (it doesn't count toward the at-rest budget), or in a companion text file. It
+interactive view (it counts toward the prose budget), or in a companion text file
+when it would exceed the budget. It
 must contain the actual steps, outcome and qualifications, not a
 message telling the reader to enable JavaScript. Keep it available for printing,
 screen readers and readers who prefer text. Dynamic updates should not force a
