@@ -44,7 +44,7 @@ Use exactly these verification values on the page; a badge never says anything t
 
 These are two different statements; never put both in one clause.
 
-**Likelihood** is how probable an outcome is. Take the term from one scale and show its band on first use: almost no chance (under 5%), very unlikely (5 to 20%), unlikely (20 to 45%), roughly even (45 to 55%), likely (55 to 80%), very likely (80 to 95%), almost certain (over 95%). "May", "could" and "real possibility" are not estimates.
+**Likelihood** is how probable an outcome is. Take the term from one scale and show its band on first use: almost no chance (under 5%), very unlikely (5 to under 20%), unlikely (20 to under 45%), roughly even (45 to 55%), likely (over 55 to 80%), very likely (over 80 to 95%), almost certain (over 95%). "May", "could" and "real possibility" are not estimates.
 
 **Confidence** rates the evidence, in words and reasons, never invented percentages, in its own badge or sentence:
 

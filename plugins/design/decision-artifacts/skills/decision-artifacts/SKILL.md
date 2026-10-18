@@ -45,7 +45,7 @@ Read one only for the concern you're applying; if it's missing, lead with the po
 
 ## Verify and hand off
 
-Check facts before polish, then run the checks in [references/evaluation.md](references/evaluation.md). Look at the page once before publishing; after publishing, save a test answer, read it back and delete it. Click through every path only when the user asks or reports a bug, and say which paths weren't exercised. Hand off the URL, what's open for the reader, and any material unverified limit.
+Check facts before polish, then run the checks in [references/evaluation.md](references/evaluation.md). Look at the page once before publishing; after publishing, save a test answer under a throwaway id, read it back and delete it. Click through every path only when the user asks or reports a bug, and say which paths weren't exercised. Hand off the URL, what's open for the reader, and any material unverified limit.
 
 ## After the answers
 

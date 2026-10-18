@@ -4,7 +4,7 @@ Taste changes visual grammar, not truth or decision structure. Precedence: expli
 
 ## Editorial, default
 
-For broad audiences, decision briefs and shareable reports. In `artifact-design`'s terms this is the utilitarian treatment for a UI, not its editorial one: no aesthetic risk, no hero.
+For broad audiences, decision briefs and shareable reports. For a Claude artifact, `artifact-design`'s utilitarian treatment for a UI fits better than its editorial one.
 
 - A conclusion-led headline
 - A restrained palette with one semantic accent

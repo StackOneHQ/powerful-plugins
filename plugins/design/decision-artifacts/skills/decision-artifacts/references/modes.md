@@ -17,7 +17,7 @@ Lead with the recommendation, the decision owner when known, why now, and the st
 Show:
 
 - options compared on the criteria that change the decision, each with its strongest case and its worst consequence; "keep current" is always one of them when it exists
-- at most four genuinely distinct options on the main surface, none beaten on every criterion; dropped ones get a line each in the sheet. When the options are visual (a page, an asset, copy in context, a placement), render each one
+- at most four genuinely distinct options on the main surface, none beaten on every criterion except "keep current", which stays as the baseline; dropped ones get a line each in the sheet. When the options are visual (a page, an asset, copy in context, a placement), render each one
 - what happens if nobody decides, and by when
 - costs, dependencies and reversibility; the assumption the recommendation rests on, and the signal that would reopen it
 - **Next steps in order**: owner, dependency, what done looks like, and the line to report back

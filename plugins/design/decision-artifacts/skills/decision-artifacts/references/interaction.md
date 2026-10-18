@@ -31,4 +31,4 @@ Before/after layout is in [modes.md](modes.md); charts and number pairs in [visu
 - Lay out for 320 px with no horizontal page scroll. Wide tables scroll in their own container or become stacked labelled rows, using a container query on the table's wrapper so they also stack when the sheet narrows them.
 - Choice, note and close controls are at least 24 × 24 px (44 on touch). A sticky answer bar gets matching `scroll-padding` so it never hides the focused control.
 - Prefer widely available native features (`<dialog>`, `inert`, `:has()`, container queries, popover); use others only inside `@supports`, as decoration.
-- No Print button or download link, since neither works inside the artifact frame. Link live destinations rather than PRs, and repeat critical links in the chat hand-off.
+- No Print button or plain download link, since neither works inside the artifact frame; for a requested export, use the `downloads` capability's save control. Link live destinations rather than PRs, and repeat critical links in the chat hand-off.

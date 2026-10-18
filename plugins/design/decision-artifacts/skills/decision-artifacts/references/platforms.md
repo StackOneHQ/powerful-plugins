@@ -15,7 +15,7 @@ The Artifact tool, `artifact-design` and `artifact-capabilities` own the page co
 ### Checking the page
 
 - Look once before publishing (a preview, or one screenshot of the local file), fix what it shows, and publish; no screenshot-and-probe loop.
-- After publishing, save a test answer with ArtifactData, read it back, then delete it.
+- After publishing, save a test answer under a throwaway id (`probe-<time>`, never a real decision id) with ArtifactData, read it back, then delete only that document.
 - The publish skeleton adds the charset meta. Keep `[hidden] { display: none !important; }` in the page's own style so a local look matches the live page.
 - Parse every inline script and data block before publishing; a syntax error leaves the tables empty.
 - Browser extensions usually can't reach inside the artifact frame. When a full click-through is asked for, run it on the local file in a real browser at desktop and 320 px, and say the live frame wasn't exercised. An animated chart that renders empty there may be throttled, not broken.

@@ -8,7 +8,7 @@ Measured values are solid and filled. Proposed, projected or unverified values a
 
 ## Ranges, not whiskers
 
-Draw an estimate as a point with an interval band, or as dots for discrete outcomes ("14 of 20 runs saved more than 100 h"), not as a bar with error whiskers. With no range known, print "single run, no range" beside the number.
+Draw an estimate as a point with an interval band, or as dots for discrete outcomes ("14 of 20 runs saved more than 100 h"), not as a bar with error whiskers. With no range known, print "range unavailable" beside the number, or "single run, no range" when the source confirms one run.
 
 ## The deciding number
 
@@ -20,7 +20,7 @@ Each figure's caption is one sentence with its number, linked to the evidence re
 
 ## Markup
 
-A `<figure>` holding an SVG with `role="img"` and a short name, a `<figcaption>`, and the values in a real table (the working table counts if it holds them). Add a one-line "how to read" for anything other than bars or lines. Hover is never the only way to read a value.
+A `<figure>` holding an SVG with `role="img"` and a short name in `aria-label` or a `<title>`, a `<figcaption>`, and the values in a real table (the working table counts if it holds them). Add a one-line "how to read" for anything other than bars or lines. Hover is never the only way to read a value.
 
 ## Which view
 
