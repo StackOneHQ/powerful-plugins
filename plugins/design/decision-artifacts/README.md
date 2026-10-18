@@ -1,6 +1,6 @@
 # Decision Artifacts
 
-Create concise, evidence-backed, interactive artifacts that help people understand a model's findings and make a decision.
+Build interactive decision pages: what needs the reader comes first, options and changes are shown before and after, the reader's answers are saved on the page so the agent can read them back, and the evidence sits in side panels.
 
 The plugin separates two choices that are often mixed together:
 
@@ -17,15 +17,18 @@ They can also name another installed writing, brand, or design skill. That skill
 
 ## Default output
 
-The default is an editorial decision brief built around **simple at rest, exhaustive on demand**:
+The default is an editorial decision page built around **simple at rest, exhaustive on demand**:
 
-- conclusion and required action first
-- generous use of purposeful charts, diagrams, sequences, timelines, and before/after views
-- concise nontechnical overview
-- selectable rows, marks, nodes, and steps
-- complete evidence, nuance, sources, and technical detail in a side sheet
-- no more than two levels of disclosure
-- source, confidence rationale, verification state, and last-checked context for consequential claims
+- a "Needs you" block first: only what the reader must decide or do, in order
+- the conclusion and next action, with the update time and what the page covers
+- before/after views wherever a change can be shown: charts, number pairs, screenshots, mockups
+- proposed and unverified values drawn differently from measured ones, and likelihood stated apart from confidence
+- a working table with the reader's choice and note on every decision, saved on the page, with save state, Undo for Approve all and a "Your answers" review list
+- complete evidence, sources, alternatives, and technical detail in a side sheet
+- tabs or collapsed sections for history, such as previous runs and past answers
+- about 300 words of prose at rest, and no more than two levels of disclosure
+- one living page per topic, republished in place
+- source, confidence rationale, verification state, and last-checked time for consequential claims
 
 For a guided explanation, the skill can trace one example through a mechanism,
 keep a baseline beside an adjustable scenario, and deliver a complete static text
@@ -65,7 +68,7 @@ codex plugin add decision-artifacts@powerful-plugins
 ## Example requests
 
 ```text
-Turn this investigation into a shareable decision artifact.
+Give me a decision artifact for these findings so I can pick on each one.
 ```
 
 ```text
@@ -78,4 +81,8 @@ Build a track-mode artifact showing what is done, left, blocked, and deliberatel
 
 ```text
 Create an explore-mode site where the reader can change the assumptions. Use our brand skill for the visual style.
+```
+
+```text
+Is the decision page up to date? Refresh it with what changed.
 ```
