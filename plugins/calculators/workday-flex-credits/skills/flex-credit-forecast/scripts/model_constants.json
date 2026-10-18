@@ -1,0 +1,2960 @@
+{
+  "constants": {
+    "version": "2026-10-09-r2",
+    "rate_card_date": "2026-10-09",
+    "api_credits_per_call": 0.006,
+    "api_billable_from": "2027-02",
+    "default_price_per_credit": 0.1,
+    "bands": [
+      {
+        "min_employees": 100000,
+        "label": "100,000+",
+        "allowance_calls": 6500000,
+        "complimentary_credits": 200000
+      },
+      {
+        "min_employees": 30000,
+        "label": "30,000 to 99,999",
+        "allowance_calls": 6000000,
+        "complimentary_credits": 120000
+      },
+      {
+        "min_employees": 10000,
+        "label": "10,000 to 29,999",
+        "allowance_calls": 4500000,
+        "complimentary_credits": 60000
+      },
+      {
+        "min_employees": 3500,
+        "label": "3,500 to 9,999",
+        "allowance_calls": 3500000,
+        "complimentary_credits": 30000
+      },
+      {
+        "min_employees": 0,
+        "label": "Under 3,500",
+        "allowance_calls": 2500000,
+        "complimentary_credits": 15000
+      }
+    ],
+    "sku_uplifts": {
+      "student": {
+        "label": "Student",
+        "uplift": 1.5
+      },
+      "procurement": {
+        "label": "Procurement",
+        "uplift": 1.0
+      },
+      "accounting_center": {
+        "label": "Accounting Center",
+        "uplift": 1.0
+      },
+      "extend": {
+        "label": "Extend",
+        "uplift": 0.5
+      },
+      "prism": {
+        "label": "Prism Analytics",
+        "uplift": 0.15
+      },
+      "financials": {
+        "label": "Financials",
+        "uplift": 0.15
+      }
+    },
+    "integration_patterns": {
+      "efficient": {
+        "label": "Efficient: changes only, every 15 minutes, weekly full sync at 999 per page",
+        "formula": "35040 + 52 * ceil(N / 999)",
+        "runs_per_year": 35040,
+        "weekly_full_syncs": 52,
+        "full_sync_page_size": 999
+      },
+      "typical": {
+        "label": "Typical: hourly full pull at 100 per page",
+        "formula": "8760 * ceil(N / 100)",
+        "runs_per_year": 8760,
+        "page_size": 100
+      },
+      "heavy": {
+        "label": "Heavy: full compare every 5 minutes at 100 per page",
+        "formula": "105120 * ceil(N / 100)",
+        "runs_per_year": 105120,
+        "page_size": 100
+      }
+    },
+    "ssa_credits_per_action": 1,
+    "workday_skills": {
+      "recruiting_fetch": {
+        "label": "Recruiting Agent: Fetch",
+        "unit": "requisition",
+        "credits_per_unit": 750
+      },
+      "talent_mobility": {
+        "label": "Talent Mobility Agent",
+        "unit": "requisition",
+        "credits_per_unit": 750
+      },
+      "contract_negotiation": {
+        "label": "Contract Negotiation Agent",
+        "unit": "document",
+        "credits_per_unit": 500
+      },
+      "financial_audit": {
+        "label": "Financial Audit Agent",
+        "unit": "sample",
+        "credits_per_unit": 60
+      },
+      "revenue_contract": {
+        "label": "Revenue Contract Agent",
+        "unit": "contract",
+        "credits_per_unit": 25
+      },
+      "payroll_qa": {
+        "label": "Payroll Agent: Q&A",
+        "unit": "request",
+        "credits_per_unit": 10
+      },
+      "core_reporting": {
+        "label": "Core Reporting Agent",
+        "unit": "request",
+        "credits_per_unit": 8
+      },
+      "recruiting_spotlight": {
+        "label": "Recruiting Agent: Spotlight",
+        "unit": "resume",
+        "credits_per_unit": 6
+      },
+      "contract_intelligence": {
+        "label": "Contract Intelligence Agent",
+        "unit": "document",
+        "credits_per_unit": 5
+      }
+    },
+    "agent_paths": {
+      "api": {
+        "label": "Workday APIs, directly or through a connector or MCP server that calls them",
+        "meter": "api"
+      },
+      "tools_external": {
+        "label": "Workday's Agent-Ready Tools (Workday-hosted MCP tools) used by an agent outside Workday",
+        "requires_sku": "extend",
+        "meter": "tools",
+        "base_per_100": 10,
+        "advanced_per_100": 50,
+        "note": "non-Custom Agent rate; reading non-Custom = external is ours"
+      },
+      "extend_custom": {
+        "label": "Custom agent built in Workday Extend Professional",
+        "requires_sku": "extend",
+        "assumption": "one task = one invocation; every Workday call = one Agent-Ready Tool call at the custom rate",
+        "meter": "tools+invocation",
+        "base_per_100": 5,
+        "advanced_per_100": 25,
+        "invocation_credits": {
+          "base": 1,
+          "standard": 2,
+          "premium": 3
+        },
+        "model_included": true
+      }
+    },
+    "read_formats": {
+      "full_soap": {
+        "label": "Full SOAP responses",
+        "tokens_per_call": 14207,
+        "web": true
+      },
+      "rest_detail": {
+        "label": "REST detail responses",
+        "tokens_per_call": 1300,
+        "web": true
+      },
+      "lean": {
+        "label": "Reports (RaaS) or lean JSON",
+        "tokens_per_call": 205,
+        "web": true
+      },
+      "soap_raw_full": {
+        "label": "Raw SOAP, every response group",
+        "tokens_per_call": 33153,
+        "web": false
+      },
+      "soap_trimmed": {
+        "label": "SOAP with trimmed response groups",
+        "tokens_per_call": 6370,
+        "web": false
+      },
+      "rest_list_item": {
+        "label": "REST list item",
+        "tokens_per_call": 490,
+        "web": false
+      },
+      "lean_json": {
+        "label": "Lean JSON, 13 fields",
+        "tokens_per_call": 92,
+        "web": false
+      }
+    },
+    "defaults": {
+      "employees": 10000,
+      "price_per_credit": 0.1,
+      "ssa_actions_per_employee_month": 0,
+      "calls_per_task": 4,
+      "read_format": "rest_detail",
+      "path": "api",
+      "advanced_share": 0.1,
+      "model_tier": "standard",
+      "llm_price_per_m_tokens": 3.0,
+      "context_rereads": 1.0,
+      "policy_signed": true,
+      "purchased_credits": 0
+    },
+    "ranges": {
+      "employees": [
+        100,
+        500000,
+        10000
+      ],
+      "price_per_credit": [
+        0.005,
+        0.5,
+        0.1
+      ],
+      "integration_calls_per_year": [
+        0,
+        500000000,
+        0
+      ],
+      "integration_count": [
+        0,
+        50,
+        0
+      ],
+      "ssa_actions_per_employee_month": [
+        0,
+        20,
+        0
+      ],
+      "skill_volume_per_year": [
+        0,
+        100000,
+        0
+      ],
+      "tasks_per_month": [
+        0,
+        10000000,
+        0
+      ],
+      "calls_per_task": [
+        1,
+        50,
+        4
+      ],
+      "advanced_share": [
+        0,
+        1,
+        0.1
+      ],
+      "llm_price_per_m_tokens": [
+        0,
+        100,
+        3.0
+      ],
+      "context_rereads": [
+        1,
+        5,
+        1.0
+      ],
+      "purchased_credits": [
+        0,
+        100000000,
+        0
+      ]
+    },
+    "price_bands": [
+      {
+        "id": "up_to_0.02",
+        "max": 0.02
+      },
+      {
+        "id": "0.02_to_0.06",
+        "max": 0.06
+      },
+      {
+        "id": "over_0.06",
+        "max": null
+      }
+    ],
+    "price_range_note": {
+      "low": 0.01,
+      "high": 0.1
+    },
+    "forecast_defaults": {
+      "months": 12,
+      "complimentary_reset": "jan1",
+      "allowance_counts_during_grace": true,
+      "range_multipliers": {
+        "low": 0.5,
+        "high": 2.0
+      }
+    },
+    "tolerance": {
+      "credits": 0.01,
+      "usd": 0.01,
+      "calls": 0.5,
+      "ratio": 1e-06
+    },
+    "sources": [
+      {
+        "id": "rate_card",
+        "label": "Workday Flex Credits rate card, 9 Oct 2026",
+        "url": "https://www.workday.com/content/dam/web/en-us/documents/legal/flex-credits-rate-card.pdf"
+      },
+      {
+        "id": "fc_policy",
+        "label": "Workday Flex Credits Policy, 8 Oct 2026",
+        "url": "https://www.workday.com/content/dam/web/en-us/documents/legal/flex-credits-policy.pdf"
+      },
+      {
+        "id": "comp_policy",
+        "label": "Workday Complimentary Flex Credits Policy, 21 May 2026",
+        "url": "https://www.workday.com/content/dam/web/en-us/documents/legal/complimentary-flex-credits-policy.pdf"
+      },
+      {
+        "id": "prereqs",
+        "label": "Workday Agent and Platform SKU prerequisites, 8 Oct 2026",
+        "url": "https://www.workday.com/content/dam/web/en-us/documents/legal/agent-platform-prereqs.pdf"
+      },
+      {
+        "id": "console",
+        "label": "Workday admin guide: Platform Consumption Console",
+        "url": "https://doc.workday.com/admin-guide/en-us/workday-ai/platform-consumption-console/concept--product-consumption-console.html"
+      },
+      {
+        "id": "api_reports",
+        "label": "Workday admin guide: API Activity Reports",
+        "url": "https://doc.workday.com/admin-guide/en-us/workday-ai/platform-consumption-console/reference--api-activity-reports.html"
+      },
+      {
+        "id": "incubane",
+        "label": "Incubane: Workday Flex Credits explained",
+        "url": "https://www.incubane.com/insights/workday-flex-credits-explained"
+      },
+      {
+        "id": "redress",
+        "label": "Redress Compliance research note on Flex Credits and platform entitlements",
+        "url": "https://redresscompliance.com/assets/docs/research-notes/workday-flex-credits-platform-entitlement-clock.pdf"
+      },
+      {
+        "id": "commit",
+        "label": "Commit Consulting: Workday Flex Credits",
+        "url": "https://commitconsulting.com/blog/workday-flex-credits"
+      },
+      {
+        "id": "i8cloud",
+        "label": "i8CLOUD: Workday Flex Credits and platform entitlements",
+        "url": "https://www.i8cloudconsulting.com/blog/workday-flex-credits-platform-entitlements"
+      }
+    ]
+  },
+  "presets": {
+    "workday_agents": {
+      "label": "Using Workday's agents",
+      "input": {
+        "employees": 10000,
+        "skus": [],
+        "price_per_credit": 0.1,
+        "integrations": {
+          "mode": "estimate",
+          "calls_per_year": null,
+          "counts": {
+            "efficient": 3,
+            "typical": 2,
+            "heavy": 0
+          }
+        },
+        "ssa_actions_per_employee_month": 2,
+        "skills": [
+          {
+            "skill": "recruiting_fetch",
+            "volume_per_year": 100
+          }
+        ],
+        "agents": [
+          {
+            "tasks_per_month": 0,
+            "calls_per_task": 4,
+            "path": "api",
+            "read_format": "rest_detail",
+            "advanced_share": 0.1,
+            "model_tier": "standard"
+          }
+        ],
+        "advanced": {
+          "purchased_credits": 0,
+          "policy_signed": true,
+          "llm_price_per_m_tokens": 3.0,
+          "context_rereads": 1.0,
+          "tool_calls_also_metered_as_api": false,
+          "allowance_override": null,
+          "complimentary_override": null
+        }
+      }
+    },
+    "build": {
+      "label": "Building your own agents",
+      "input": {
+        "employees": 10000,
+        "skus": [],
+        "price_per_credit": 0.1,
+        "integrations": {
+          "mode": "estimate",
+          "calls_per_year": null,
+          "counts": {
+            "efficient": 3,
+            "typical": 2,
+            "heavy": 0
+          }
+        },
+        "ssa_actions_per_employee_month": 0,
+        "skills": [],
+        "agents": [
+          {
+            "tasks_per_month": 20000,
+            "calls_per_task": 4,
+            "path": "api",
+            "read_format": "rest_detail",
+            "advanced_share": 0.1,
+            "model_tier": "standard"
+          }
+        ],
+        "advanced": {
+          "purchased_credits": 0,
+          "policy_signed": true,
+          "llm_price_per_m_tokens": 3.0,
+          "context_rereads": 1.0,
+          "tool_calls_also_metered_as_api": false,
+          "allowance_override": null,
+          "complimentary_override": null
+        }
+      }
+    },
+    "buy": {
+      "label": "Buying third-party agents",
+      "input": {
+        "employees": 10000,
+        "skus": [],
+        "price_per_credit": 0.1,
+        "integrations": {
+          "mode": "estimate",
+          "calls_per_year": null,
+          "counts": {
+            "efficient": 3,
+            "typical": 2,
+            "heavy": 0
+          }
+        },
+        "ssa_actions_per_employee_month": 0,
+        "skills": [],
+        "agents": [
+          {
+            "tasks_per_month": 20000,
+            "calls_per_task": 5,
+            "path": "tools_external",
+            "read_format": "rest_detail",
+            "advanced_share": 0.1,
+            "model_tier": "standard"
+          }
+        ],
+        "advanced": {
+          "purchased_credits": 0,
+          "policy_signed": true,
+          "llm_price_per_m_tokens": 3.0,
+          "context_rereads": 1.0,
+          "tool_calls_also_metered_as_api": false,
+          "allowance_override": null,
+          "complimentary_override": null
+        }
+      }
+    },
+    "integrations": {
+      "label": "Integrations calling Workday",
+      "input": {
+        "employees": 10000,
+        "skus": [],
+        "price_per_credit": 0.1,
+        "integrations": {
+          "mode": "estimate",
+          "calls_per_year": null,
+          "counts": {
+            "efficient": 4,
+            "typical": 4,
+            "heavy": 1
+          }
+        },
+        "ssa_actions_per_employee_month": 0,
+        "skills": [],
+        "agents": [
+          {
+            "tasks_per_month": 0,
+            "calls_per_task": 4,
+            "path": "api",
+            "read_format": "rest_detail",
+            "advanced_share": 0.1,
+            "model_tier": "standard"
+          }
+        ],
+        "advanced": {
+          "purchased_credits": 0,
+          "policy_signed": true,
+          "llm_price_per_m_tokens": 3.0,
+          "context_rereads": 1.0,
+          "tool_calls_also_metered_as_api": false,
+          "allowance_override": null,
+          "complimentary_override": null
+        }
+      }
+    }
+  },
+  "vectors": [
+    {
+      "id": "preset_workday_agents",
+      "note": "Web preset: Using Workday's agents",
+      "input": {
+        "employees": 10000,
+        "skus": [],
+        "price_per_credit": 0.1,
+        "integrations": {
+          "mode": "estimate",
+          "calls_per_year": null,
+          "counts": {
+            "efficient": 3,
+            "typical": 2,
+            "heavy": 0
+          }
+        },
+        "ssa_actions_per_employee_month": 2,
+        "skills": [
+          {
+            "skill": "recruiting_fetch",
+            "volume_per_year": 100
+          }
+        ],
+        "agents": [
+          {
+            "tasks_per_month": 0,
+            "calls_per_task": 4,
+            "path": "api",
+            "read_format": "rest_detail",
+            "advanced_share": 0.1,
+            "model_tier": "standard"
+          }
+        ],
+        "advanced": {
+          "purchased_credits": 0,
+          "policy_signed": true,
+          "llm_price_per_m_tokens": 3.0,
+          "context_rereads": 1.0,
+          "tool_calls_also_metered_as_api": false,
+          "allowance_override": null,
+          "complimentary_override": null
+        }
+      },
+      "expected": {
+        "band_label": "10,000 to 29,999",
+        "extend_implied": false,
+        "allowance_calls": 4500000,
+        "complimentary_credits": 60000,
+        "pool_credits": 60000.0,
+        "integration_calls": 1858836.0,
+        "agent_api_calls": 0.0,
+        "total_api_calls": 1858836.0,
+        "allowance_left_calls": 2641164.0,
+        "over_allowance_calls": 0.0,
+        "shortfall_credits": 255000.0,
+        "shortfall_usd": 25500.0,
+        "usage_value_usd": 31500.0,
+        "token_cost_usd": 0.0,
+        "agent_workday_calls": 0.0,
+        "largest_driver": "workday_agents_ssa",
+        "headline_state": "to_buy",
+        "price_band": "over_0.06",
+        "credits": {
+          "api_overage": 0.0,
+          "workday_agents_ssa": 240000.0,
+          "workday_agents_skills": 75000.0,
+          "agent_tool_calls": 0.0,
+          "agent_invocations": 0.0,
+          "total": 315000.0
+        },
+        "allowance_used_ratio": 0.413075,
+        "pool_months_of_cover": 2.285714
+      }
+    },
+    {
+      "id": "preset_build",
+      "note": "Web preset: Building your own agents",
+      "input": {
+        "employees": 10000,
+        "skus": [],
+        "price_per_credit": 0.1,
+        "integrations": {
+          "mode": "estimate",
+          "calls_per_year": null,
+          "counts": {
+            "efficient": 3,
+            "typical": 2,
+            "heavy": 0
+          }
+        },
+        "ssa_actions_per_employee_month": 0,
+        "skills": [],
+        "agents": [
+          {
+            "tasks_per_month": 20000,
+            "calls_per_task": 4,
+            "path": "api",
+            "read_format": "rest_detail",
+            "advanced_share": 0.1,
+            "model_tier": "standard"
+          }
+        ],
+        "advanced": {
+          "purchased_credits": 0,
+          "policy_signed": true,
+          "llm_price_per_m_tokens": 3.0,
+          "context_rereads": 1.0,
+          "tool_calls_also_metered_as_api": false,
+          "allowance_override": null,
+          "complimentary_override": null
+        }
+      },
+      "expected": {
+        "band_label": "10,000 to 29,999",
+        "extend_implied": false,
+        "allowance_calls": 4500000,
+        "complimentary_credits": 60000,
+        "pool_credits": 60000.0,
+        "integration_calls": 1858836.0,
+        "agent_api_calls": 960000.0,
+        "total_api_calls": 2818836.0,
+        "allowance_left_calls": 1681164.0,
+        "over_allowance_calls": 0.0,
+        "shortfall_credits": 0.0,
+        "shortfall_usd": 0.0,
+        "usage_value_usd": 0.0,
+        "token_cost_usd": 3744.0,
+        "agent_workday_calls": 960000.0,
+        "largest_driver": null,
+        "headline_state": "inside_allowance_agent",
+        "price_band": "over_0.06",
+        "credits": {
+          "api_overage": 0.0,
+          "workday_agents_ssa": 0.0,
+          "workday_agents_skills": 0.0,
+          "agent_tool_calls": 0.0,
+          "agent_invocations": 0.0,
+          "total": 0.0
+        },
+        "allowance_used_ratio": 0.626408,
+        "pool_months_of_cover": null
+      }
+    },
+    {
+      "id": "preset_buy",
+      "note": "Web preset: Buying third-party agents",
+      "input": {
+        "employees": 10000,
+        "skus": [],
+        "price_per_credit": 0.1,
+        "integrations": {
+          "mode": "estimate",
+          "calls_per_year": null,
+          "counts": {
+            "efficient": 3,
+            "typical": 2,
+            "heavy": 0
+          }
+        },
+        "ssa_actions_per_employee_month": 0,
+        "skills": [],
+        "agents": [
+          {
+            "tasks_per_month": 20000,
+            "calls_per_task": 5,
+            "path": "tools_external",
+            "read_format": "rest_detail",
+            "advanced_share": 0.1,
+            "model_tier": "standard"
+          }
+        ],
+        "advanced": {
+          "purchased_credits": 0,
+          "policy_signed": true,
+          "llm_price_per_m_tokens": 3.0,
+          "context_rereads": 1.0,
+          "tool_calls_also_metered_as_api": false,
+          "allowance_override": null,
+          "complimentary_override": null
+        }
+      },
+      "expected": {
+        "band_label": "10,000 to 29,999",
+        "extend_implied": true,
+        "allowance_calls": 6750000.0,
+        "complimentary_credits": 60000,
+        "pool_credits": 60000.0,
+        "integration_calls": 1858836.0,
+        "agent_api_calls": 0.0,
+        "total_api_calls": 1858836.0,
+        "allowance_left_calls": 4891164.0,
+        "over_allowance_calls": 0.0,
+        "shortfall_credits": 108000.0,
+        "shortfall_usd": 10800.0,
+        "usage_value_usd": 16800.0,
+        "token_cost_usd": 4680.0,
+        "agent_workday_calls": 1200000.0,
+        "largest_driver": "agent_tool_calls",
+        "headline_state": "to_buy",
+        "price_band": "over_0.06",
+        "credits": {
+          "api_overage": 0.0,
+          "workday_agents_ssa": 0.0,
+          "workday_agents_skills": 0.0,
+          "agent_tool_calls": 168000.0,
+          "agent_invocations": 0.0,
+          "total": 168000.0
+        },
+        "allowance_used_ratio": 0.275383,
+        "pool_months_of_cover": 4.285714
+      }
+    },
+    {
+      "id": "preset_integrations",
+      "note": "Web preset: Integrations calling Workday",
+      "input": {
+        "employees": 10000,
+        "skus": [],
+        "price_per_credit": 0.1,
+        "integrations": {
+          "mode": "estimate",
+          "calls_per_year": null,
+          "counts": {
+            "efficient": 4,
+            "typical": 4,
+            "heavy": 1
+          }
+        },
+        "ssa_actions_per_employee_month": 0,
+        "skills": [],
+        "agents": [
+          {
+            "tasks_per_month": 0,
+            "calls_per_task": 4,
+            "path": "api",
+            "read_format": "rest_detail",
+            "advanced_share": 0.1,
+            "model_tier": "standard"
+          }
+        ],
+        "advanced": {
+          "purchased_credits": 0,
+          "policy_signed": true,
+          "llm_price_per_m_tokens": 3.0,
+          "context_rereads": 1.0,
+          "tool_calls_also_metered_as_api": false,
+          "allowance_override": null,
+          "complimentary_override": null
+        }
+      },
+      "expected": {
+        "band_label": "10,000 to 29,999",
+        "extend_implied": false,
+        "allowance_calls": 4500000,
+        "complimentary_credits": 60000,
+        "pool_credits": 60000.0,
+        "integration_calls": 14158448.0,
+        "agent_api_calls": 0.0,
+        "total_api_calls": 14158448.0,
+        "allowance_left_calls": 0.0,
+        "over_allowance_calls": 9658448.0,
+        "shortfall_credits": 0.0,
+        "shortfall_usd": 0.0,
+        "usage_value_usd": 5795.0688,
+        "token_cost_usd": 0.0,
+        "agent_workday_calls": 0.0,
+        "largest_driver": "api_overage",
+        "headline_state": "covered",
+        "price_band": "over_0.06",
+        "credits": {
+          "api_overage": 57950.688,
+          "workday_agents_ssa": 0.0,
+          "workday_agents_skills": 0.0,
+          "agent_tool_calls": 0.0,
+          "agent_invocations": 0.0,
+          "total": 57950.688
+        },
+        "allowance_used_ratio": 3.146322,
+        "pool_months_of_cover": 12.424356
+      }
+    },
+    {
+      "id": "brief_example_a",
+      "note": "Research brief section 5, example A",
+      "input": {
+        "employees": 1000,
+        "skus": [],
+        "price_per_credit": 0.1,
+        "integrations": {
+          "mode": "measured",
+          "calls_per_year": 1200000,
+          "counts": null
+        },
+        "ssa_actions_per_employee_month": 2,
+        "skills": [],
+        "agents": [
+          {
+            "tasks_per_month": 2000,
+            "calls_per_task": 4,
+            "path": "api",
+            "read_format": "full_soap",
+            "advanced_share": 0.1,
+            "model_tier": "standard"
+          }
+        ],
+        "advanced": {
+          "purchased_credits": 0,
+          "policy_signed": true,
+          "llm_price_per_m_tokens": 3.0,
+          "context_rereads": 1.0,
+          "tool_calls_also_metered_as_api": false,
+          "allowance_override": null,
+          "complimentary_override": null
+        }
+      },
+      "expected": {
+        "band_label": "Under 3,500",
+        "extend_implied": false,
+        "allowance_calls": 2500000,
+        "complimentary_credits": 15000,
+        "pool_credits": 15000.0,
+        "integration_calls": 1200000.0,
+        "agent_api_calls": 96000.0,
+        "total_api_calls": 1296000.0,
+        "allowance_left_calls": 1204000.0,
+        "over_allowance_calls": 0.0,
+        "shortfall_credits": 9000.0,
+        "shortfall_usd": 900.0,
+        "usage_value_usd": 2400.0,
+        "token_cost_usd": 4091.616,
+        "agent_workday_calls": 96000.0,
+        "largest_driver": "workday_agents_ssa",
+        "headline_state": "to_buy",
+        "price_band": "over_0.06",
+        "credits": {
+          "api_overage": 0.0,
+          "workday_agents_ssa": 24000.0,
+          "workday_agents_skills": 0.0,
+          "agent_tool_calls": 0.0,
+          "agent_invocations": 0.0,
+          "total": 24000.0
+        },
+        "allowance_used_ratio": 0.5184,
+        "pool_months_of_cover": 7.5
+      }
+    },
+    {
+      "id": "brief_example_b",
+      "note": "Research brief section 5, example B",
+      "input": {
+        "employees": 10000,
+        "skus": [
+          "extend"
+        ],
+        "price_per_credit": 0.1,
+        "integrations": {
+          "mode": "measured",
+          "calls_per_year": 9000000,
+          "counts": null
+        },
+        "ssa_actions_per_employee_month": 2,
+        "skills": [
+          {
+            "skill": "recruiting_fetch",
+            "volume_per_year": 100
+          }
+        ],
+        "agents": [
+          {
+            "tasks_per_month": 20000,
+            "calls_per_task": 4,
+            "path": "api",
+            "read_format": "full_soap",
+            "advanced_share": 0.1,
+            "model_tier": "standard"
+          }
+        ],
+        "advanced": {
+          "purchased_credits": 0,
+          "policy_signed": true,
+          "llm_price_per_m_tokens": 3.0,
+          "context_rereads": 1.0,
+          "tool_calls_also_metered_as_api": false,
+          "allowance_override": null,
+          "complimentary_override": null
+        }
+      },
+      "expected": {
+        "band_label": "10,000 to 29,999",
+        "extend_implied": false,
+        "allowance_calls": 6750000.0,
+        "complimentary_credits": 60000,
+        "pool_credits": 60000.0,
+        "integration_calls": 9000000.0,
+        "agent_api_calls": 960000.0,
+        "total_api_calls": 9960000.0,
+        "allowance_left_calls": 0.0,
+        "over_allowance_calls": 3210000.0,
+        "shortfall_credits": 274260.0,
+        "shortfall_usd": 27426.0,
+        "usage_value_usd": 33426.0,
+        "token_cost_usd": 40916.16,
+        "agent_workday_calls": 960000.0,
+        "largest_driver": "workday_agents_ssa",
+        "headline_state": "to_buy",
+        "price_band": "over_0.06",
+        "credits": {
+          "api_overage": 19260.0,
+          "workday_agents_ssa": 240000.0,
+          "workday_agents_skills": 75000.0,
+          "agent_tool_calls": 0.0,
+          "agent_invocations": 0.0,
+          "total": 334260.0
+        },
+        "allowance_used_ratio": 1.475556,
+        "pool_months_of_cover": 2.154012
+      }
+    },
+    {
+      "id": "brief_example_c",
+      "note": "Research brief example C; Extend uplift now implied (+50%): E 10.8M, API overage 55,200",
+      "input": {
+        "employees": 50000,
+        "skus": [
+          "financials",
+          "prism"
+        ],
+        "price_per_credit": 0.1,
+        "integrations": {
+          "mode": "measured",
+          "calls_per_year": 20000000,
+          "counts": null
+        },
+        "ssa_actions_per_employee_month": 2,
+        "skills": [],
+        "agents": [
+          {
+            "tasks_per_month": 40000,
+            "calls_per_task": 5,
+            "path": "tools_external",
+            "read_format": "rest_detail",
+            "advanced_share": 0.0,
+            "model_tier": "standard"
+          }
+        ],
+        "advanced": {
+          "purchased_credits": 0,
+          "policy_signed": true,
+          "llm_price_per_m_tokens": 3.0,
+          "context_rereads": 1.0,
+          "tool_calls_also_metered_as_api": false,
+          "allowance_override": null,
+          "complimentary_override": null
+        }
+      },
+      "expected": {
+        "band_label": "30,000 to 99,999",
+        "extend_implied": true,
+        "allowance_calls": 10800000.0,
+        "complimentary_credits": 120000,
+        "pool_credits": 120000.0,
+        "integration_calls": 20000000.0,
+        "agent_api_calls": 0.0,
+        "total_api_calls": 20000000.0,
+        "allowance_left_calls": 0.0,
+        "over_allowance_calls": 9200000.0,
+        "shortfall_credits": 1375200.0,
+        "shortfall_usd": 137520.0,
+        "usage_value_usd": 149520.0,
+        "token_cost_usd": 9360.0,
+        "agent_workday_calls": 2400000.0,
+        "largest_driver": "workday_agents_ssa",
+        "headline_state": "to_buy",
+        "price_band": "over_0.06",
+        "credits": {
+          "api_overage": 55200.0,
+          "workday_agents_ssa": 1200000.0,
+          "workday_agents_skills": 0.0,
+          "agent_tool_calls": 240000.0,
+          "agent_invocations": 0.0,
+          "total": 1495200.0
+        },
+        "allowance_used_ratio": 1.851852,
+        "pool_months_of_cover": 0.963082
+      }
+    },
+    {
+      "id": "extend_custom_agent",
+      "note": "Extend custom agent, standard tier, tokens included",
+      "input": {
+        "employees": 10000,
+        "skus": [
+          "extend"
+        ],
+        "price_per_credit": 0.1,
+        "integrations": {
+          "mode": "measured",
+          "calls_per_year": 2000000,
+          "counts": null
+        },
+        "ssa_actions_per_employee_month": 0,
+        "skills": [],
+        "agents": [
+          {
+            "tasks_per_month": 5000,
+            "calls_per_task": 3,
+            "path": "extend_custom",
+            "read_format": "full_soap",
+            "advanced_share": 0.1,
+            "model_tier": "standard"
+          }
+        ],
+        "advanced": {
+          "purchased_credits": 0,
+          "policy_signed": true,
+          "llm_price_per_m_tokens": 3.0,
+          "context_rereads": 1.0,
+          "tool_calls_also_metered_as_api": false,
+          "allowance_override": null,
+          "complimentary_override": null
+        }
+      },
+      "expected": {
+        "band_label": "10,000 to 29,999",
+        "extend_implied": false,
+        "allowance_calls": 6750000.0,
+        "complimentary_credits": 60000,
+        "pool_credits": 60000.0,
+        "integration_calls": 2000000.0,
+        "agent_api_calls": 0.0,
+        "total_api_calls": 2000000.0,
+        "allowance_left_calls": 4750000.0,
+        "over_allowance_calls": 0.0,
+        "shortfall_credits": 72600.0,
+        "shortfall_usd": 7260.0,
+        "usage_value_usd": 13260.0,
+        "token_cost_usd": 0.0,
+        "agent_workday_calls": 180000.0,
+        "largest_driver": "agent_invocations",
+        "headline_state": "to_buy",
+        "price_band": "over_0.06",
+        "credits": {
+          "api_overage": 0.0,
+          "workday_agents_ssa": 0.0,
+          "workday_agents_skills": 0.0,
+          "agent_tool_calls": 12600.0,
+          "agent_invocations": 120000.0,
+          "total": 132600.0
+        },
+        "allowance_used_ratio": 0.296296,
+        "pool_months_of_cover": 5.429864
+      }
+    },
+    {
+      "id": "integrations_unsigned",
+      "note": "Policy not signed: API overage is zero",
+      "input": {
+        "employees": 10000,
+        "skus": [],
+        "price_per_credit": 0.1,
+        "integrations": {
+          "mode": "estimate",
+          "calls_per_year": null,
+          "counts": {
+            "efficient": 4,
+            "typical": 4,
+            "heavy": 1
+          }
+        },
+        "ssa_actions_per_employee_month": 0,
+        "skills": [],
+        "agents": [
+          {
+            "tasks_per_month": 0,
+            "calls_per_task": 4,
+            "path": "api",
+            "read_format": "rest_detail",
+            "advanced_share": 0.1,
+            "model_tier": "standard"
+          }
+        ],
+        "advanced": {
+          "purchased_credits": 0,
+          "policy_signed": false,
+          "llm_price_per_m_tokens": 3.0,
+          "context_rereads": 1.0,
+          "tool_calls_also_metered_as_api": false,
+          "allowance_override": null,
+          "complimentary_override": null
+        }
+      },
+      "expected": {
+        "band_label": "10,000 to 29,999",
+        "extend_implied": false,
+        "allowance_calls": 4500000,
+        "complimentary_credits": 60000,
+        "pool_credits": 60000.0,
+        "integration_calls": 14158448.0,
+        "agent_api_calls": 0.0,
+        "total_api_calls": 14158448.0,
+        "allowance_left_calls": 0.0,
+        "over_allowance_calls": 9658448.0,
+        "shortfall_credits": 0.0,
+        "shortfall_usd": 0.0,
+        "usage_value_usd": 0.0,
+        "token_cost_usd": 0.0,
+        "agent_workday_calls": 0.0,
+        "largest_driver": null,
+        "headline_state": "zero",
+        "price_band": "over_0.06",
+        "credits": {
+          "api_overage": 0.0,
+          "workday_agents_ssa": 0.0,
+          "workday_agents_skills": 0.0,
+          "agent_tool_calls": 0.0,
+          "agent_invocations": 0.0,
+          "total": 0.0
+        },
+        "allowance_used_ratio": 3.146322,
+        "pool_months_of_cover": null
+      }
+    },
+    {
+      "id": "band_edge_3500_student",
+      "note": "Band edge N=3,500, Student +150%, purchased credits, $0.05",
+      "input": {
+        "employees": 3500,
+        "skus": [
+          "student"
+        ],
+        "price_per_credit": 0.05,
+        "integrations": {
+          "mode": "estimate",
+          "calls_per_year": null,
+          "counts": {
+            "efficient": 0,
+            "typical": 0,
+            "heavy": 1
+          }
+        },
+        "ssa_actions_per_employee_month": 3,
+        "skills": [],
+        "agents": [
+          {
+            "tasks_per_month": 0,
+            "calls_per_task": 4,
+            "path": "api",
+            "read_format": "rest_detail",
+            "advanced_share": 0.1,
+            "model_tier": "standard"
+          }
+        ],
+        "advanced": {
+          "purchased_credits": 50000,
+          "policy_signed": true,
+          "llm_price_per_m_tokens": 3.0,
+          "context_rereads": 1.0,
+          "tool_calls_also_metered_as_api": false,
+          "allowance_override": null,
+          "complimentary_override": null
+        }
+      },
+      "expected": {
+        "band_label": "3,500 to 9,999",
+        "extend_implied": false,
+        "allowance_calls": 8750000.0,
+        "complimentary_credits": 30000,
+        "pool_credits": 80000.0,
+        "integration_calls": 3679200.0,
+        "agent_api_calls": 0.0,
+        "total_api_calls": 3679200.0,
+        "allowance_left_calls": 5070800.0,
+        "over_allowance_calls": 0.0,
+        "shortfall_credits": 46000.0,
+        "shortfall_usd": 2300.0,
+        "usage_value_usd": 6300.0,
+        "token_cost_usd": 0.0,
+        "agent_workday_calls": 0.0,
+        "largest_driver": "workday_agents_ssa",
+        "headline_state": "to_buy",
+        "price_band": "0.02_to_0.06",
+        "credits": {
+          "api_overage": 0.0,
+          "workday_agents_ssa": 126000.0,
+          "workday_agents_skills": 0.0,
+          "agent_tool_calls": 0.0,
+          "agent_invocations": 0.0,
+          "total": 126000.0
+        },
+        "allowance_used_ratio": 0.42048,
+        "pool_months_of_cover": 7.619048
+      }
+    },
+    {
+      "id": "double_meter_flags",
+      "note": "Tools also on API meter, implied Extend, LLM $5/M, rereads 1.5, N=99,999",
+      "input": {
+        "employees": 99999,
+        "skus": [
+          "procurement",
+          "accounting_center"
+        ],
+        "price_per_credit": 0.1,
+        "integrations": {
+          "mode": "measured",
+          "calls_per_year": 20500000,
+          "counts": null
+        },
+        "ssa_actions_per_employee_month": 1,
+        "skills": [],
+        "agents": [
+          {
+            "tasks_per_month": 10000,
+            "calls_per_task": 6,
+            "path": "tools_external",
+            "read_format": "soap_trimmed",
+            "advanced_share": 0.25,
+            "model_tier": "standard"
+          }
+        ],
+        "advanced": {
+          "purchased_credits": 0,
+          "policy_signed": true,
+          "llm_price_per_m_tokens": 5.0,
+          "context_rereads": 1.5,
+          "tool_calls_also_metered_as_api": true,
+          "allowance_override": null,
+          "complimentary_override": null
+        }
+      },
+      "expected": {
+        "band_label": "30,000 to 99,999",
+        "extend_implied": true,
+        "allowance_calls": 21000000.0,
+        "complimentary_credits": 120000,
+        "pool_credits": 120000.0,
+        "integration_calls": 20500000.0,
+        "agent_api_calls": 720000.0,
+        "total_api_calls": 21220000.0,
+        "allowance_left_calls": 0.0,
+        "over_allowance_calls": 220000.0,
+        "shortfall_credits": 1225308.0,
+        "shortfall_usd": 122530.8,
+        "usage_value_usd": 134530.8,
+        "token_cost_usd": 34398.0,
+        "agent_workday_calls": 720000.0,
+        "largest_driver": "workday_agents_ssa",
+        "headline_state": "to_buy",
+        "price_band": "over_0.06",
+        "credits": {
+          "api_overage": 1320.0,
+          "workday_agents_ssa": 1199988.0,
+          "workday_agents_skills": 0.0,
+          "agent_tool_calls": 144000.0,
+          "agent_invocations": 0.0,
+          "total": 1345308.0
+        },
+        "allowance_used_ratio": 1.010476,
+        "pool_months_of_cover": 1.070387
+      }
+    },
+    {
+      "id": "preset_build_as_tools_external",
+      "note": "Path comparison row: build preset on tools_external",
+      "input": {
+        "employees": 10000,
+        "skus": [],
+        "price_per_credit": 0.1,
+        "integrations": {
+          "mode": "estimate",
+          "calls_per_year": null,
+          "counts": {
+            "efficient": 3,
+            "typical": 2,
+            "heavy": 0
+          }
+        },
+        "ssa_actions_per_employee_month": 0,
+        "skills": [],
+        "agents": [
+          {
+            "tasks_per_month": 20000,
+            "calls_per_task": 4,
+            "path": "tools_external",
+            "read_format": "rest_detail",
+            "advanced_share": 0.1,
+            "model_tier": "standard"
+          }
+        ],
+        "advanced": {
+          "purchased_credits": 0,
+          "policy_signed": true,
+          "llm_price_per_m_tokens": 3.0,
+          "context_rereads": 1.0,
+          "tool_calls_also_metered_as_api": false,
+          "allowance_override": null,
+          "complimentary_override": null
+        }
+      },
+      "expected": {
+        "band_label": "10,000 to 29,999",
+        "extend_implied": true,
+        "allowance_calls": 6750000.0,
+        "complimentary_credits": 60000,
+        "pool_credits": 60000.0,
+        "integration_calls": 1858836.0,
+        "agent_api_calls": 0.0,
+        "total_api_calls": 1858836.0,
+        "allowance_left_calls": 4891164.0,
+        "over_allowance_calls": 0.0,
+        "shortfall_credits": 74400.0,
+        "shortfall_usd": 7440.0,
+        "usage_value_usd": 13440.0,
+        "token_cost_usd": 3744.0,
+        "agent_workday_calls": 960000.0,
+        "largest_driver": "agent_tool_calls",
+        "headline_state": "to_buy",
+        "price_band": "over_0.06",
+        "credits": {
+          "api_overage": 0.0,
+          "workday_agents_ssa": 0.0,
+          "workday_agents_skills": 0.0,
+          "agent_tool_calls": 134400.0,
+          "agent_invocations": 0.0,
+          "total": 134400.0
+        },
+        "allowance_used_ratio": 0.275383,
+        "pool_months_of_cover": 5.357143
+      }
+    },
+    {
+      "id": "preset_build_as_extend_custom",
+      "note": "Path comparison row: build preset on extend_custom",
+      "input": {
+        "employees": 10000,
+        "skus": [],
+        "price_per_credit": 0.1,
+        "integrations": {
+          "mode": "estimate",
+          "calls_per_year": null,
+          "counts": {
+            "efficient": 3,
+            "typical": 2,
+            "heavy": 0
+          }
+        },
+        "ssa_actions_per_employee_month": 0,
+        "skills": [],
+        "agents": [
+          {
+            "tasks_per_month": 20000,
+            "calls_per_task": 4,
+            "path": "extend_custom",
+            "read_format": "rest_detail",
+            "advanced_share": 0.1,
+            "model_tier": "standard"
+          }
+        ],
+        "advanced": {
+          "purchased_credits": 0,
+          "policy_signed": true,
+          "llm_price_per_m_tokens": 3.0,
+          "context_rereads": 1.0,
+          "tool_calls_also_metered_as_api": false,
+          "allowance_override": null,
+          "complimentary_override": null
+        }
+      },
+      "expected": {
+        "band_label": "10,000 to 29,999",
+        "extend_implied": true,
+        "allowance_calls": 6750000.0,
+        "complimentary_credits": 60000,
+        "pool_credits": 60000.0,
+        "integration_calls": 1858836.0,
+        "agent_api_calls": 0.0,
+        "total_api_calls": 1858836.0,
+        "allowance_left_calls": 4891164.0,
+        "over_allowance_calls": 0.0,
+        "shortfall_credits": 487200.0,
+        "shortfall_usd": 48720.0,
+        "usage_value_usd": 54720.0,
+        "token_cost_usd": 0.0,
+        "agent_workday_calls": 960000.0,
+        "largest_driver": "agent_invocations",
+        "headline_state": "to_buy",
+        "price_band": "over_0.06",
+        "credits": {
+          "api_overage": 0.0,
+          "workday_agents_ssa": 0.0,
+          "workday_agents_skills": 0.0,
+          "agent_tool_calls": 67200.0,
+          "agent_invocations": 480000.0,
+          "total": 547200.0
+        },
+        "allowance_used_ratio": 0.275383,
+        "pool_months_of_cover": 1.315789
+      }
+    },
+    {
+      "id": "preset_build_lean",
+      "note": "Lean-read token comparison for the build preset",
+      "input": {
+        "employees": 10000,
+        "skus": [],
+        "price_per_credit": 0.1,
+        "integrations": {
+          "mode": "estimate",
+          "calls_per_year": null,
+          "counts": {
+            "efficient": 3,
+            "typical": 2,
+            "heavy": 0
+          }
+        },
+        "ssa_actions_per_employee_month": 0,
+        "skills": [],
+        "agents": [
+          {
+            "tasks_per_month": 20000,
+            "calls_per_task": 4,
+            "path": "api",
+            "read_format": "lean",
+            "advanced_share": 0.1,
+            "model_tier": "standard"
+          }
+        ],
+        "advanced": {
+          "purchased_credits": 0,
+          "policy_signed": true,
+          "llm_price_per_m_tokens": 3.0,
+          "context_rereads": 1.0,
+          "tool_calls_also_metered_as_api": false,
+          "allowance_override": null,
+          "complimentary_override": null
+        }
+      },
+      "expected": {
+        "band_label": "10,000 to 29,999",
+        "extend_implied": false,
+        "allowance_calls": 4500000,
+        "complimentary_credits": 60000,
+        "pool_credits": 60000.0,
+        "integration_calls": 1858836.0,
+        "agent_api_calls": 960000.0,
+        "total_api_calls": 2818836.0,
+        "allowance_left_calls": 1681164.0,
+        "over_allowance_calls": 0.0,
+        "shortfall_credits": 0.0,
+        "shortfall_usd": 0.0,
+        "usage_value_usd": 0.0,
+        "token_cost_usd": 590.4,
+        "agent_workday_calls": 960000.0,
+        "largest_driver": null,
+        "headline_state": "inside_allowance_agent",
+        "price_band": "over_0.06",
+        "credits": {
+          "api_overage": 0.0,
+          "workday_agents_ssa": 0.0,
+          "workday_agents_skills": 0.0,
+          "agent_tool_calls": 0.0,
+          "agent_invocations": 0.0,
+          "total": 0.0
+        },
+        "allowance_used_ratio": 0.626408,
+        "pool_months_of_cover": null
+      }
+    },
+    {
+      "id": "console_overrides",
+      "note": "Console values: allowance 3M, complimentary 0 (0 is respected, not treated as unset)",
+      "input": {
+        "employees": 10000,
+        "skus": [],
+        "price_per_credit": 0.1,
+        "integrations": {
+          "mode": "estimate",
+          "calls_per_year": null,
+          "counts": {
+            "efficient": 3,
+            "typical": 2,
+            "heavy": 0
+          }
+        },
+        "ssa_actions_per_employee_month": 2,
+        "skills": [
+          {
+            "skill": "recruiting_fetch",
+            "volume_per_year": 100
+          }
+        ],
+        "agents": [
+          {
+            "tasks_per_month": 0,
+            "calls_per_task": 4,
+            "path": "api",
+            "read_format": "rest_detail",
+            "advanced_share": 0.1,
+            "model_tier": "standard"
+          }
+        ],
+        "advanced": {
+          "purchased_credits": 0,
+          "policy_signed": true,
+          "llm_price_per_m_tokens": 3.0,
+          "context_rereads": 1.0,
+          "tool_calls_also_metered_as_api": false,
+          "allowance_override": 3000000,
+          "complimentary_override": 0
+        }
+      },
+      "expected": {
+        "band_label": "10,000 to 29,999",
+        "extend_implied": false,
+        "allowance_calls": 3000000,
+        "complimentary_credits": 0,
+        "pool_credits": 0.0,
+        "integration_calls": 1858836.0,
+        "agent_api_calls": 0.0,
+        "total_api_calls": 1858836.0,
+        "allowance_left_calls": 1141164.0,
+        "over_allowance_calls": 0.0,
+        "shortfall_credits": 315000.0,
+        "shortfall_usd": 31500.0,
+        "usage_value_usd": 31500.0,
+        "token_cost_usd": 0.0,
+        "agent_workday_calls": 0.0,
+        "largest_driver": "workday_agents_ssa",
+        "headline_state": "to_buy",
+        "price_band": "over_0.06",
+        "credits": {
+          "api_overage": 0.0,
+          "workday_agents_ssa": 240000.0,
+          "workday_agents_skills": 75000.0,
+          "agent_tool_calls": 0.0,
+          "agent_invocations": 0.0,
+          "total": 315000.0
+        },
+        "allowance_used_ratio": 0.619612,
+        "pool_months_of_cover": 0.0
+      }
+    },
+    {
+      "id": "allowance_zero",
+      "note": "Allowance 0: every call is over; used ratio is null",
+      "input": {
+        "employees": 10000,
+        "skus": [],
+        "price_per_credit": 0.1,
+        "integrations": {
+          "mode": "estimate",
+          "calls_per_year": null,
+          "counts": {
+            "efficient": 3,
+            "typical": 2,
+            "heavy": 0
+          }
+        },
+        "ssa_actions_per_employee_month": 0,
+        "skills": [],
+        "agents": [
+          {
+            "tasks_per_month": 0,
+            "calls_per_task": 4,
+            "path": "api",
+            "read_format": "rest_detail",
+            "advanced_share": 0.1,
+            "model_tier": "standard"
+          }
+        ],
+        "advanced": {
+          "purchased_credits": 0,
+          "policy_signed": true,
+          "llm_price_per_m_tokens": 3.0,
+          "context_rereads": 1.0,
+          "tool_calls_also_metered_as_api": false,
+          "allowance_override": 0,
+          "complimentary_override": null
+        }
+      },
+      "expected": {
+        "band_label": "10,000 to 29,999",
+        "extend_implied": false,
+        "allowance_calls": 0,
+        "complimentary_credits": 60000,
+        "pool_credits": 60000.0,
+        "integration_calls": 1858836.0,
+        "agent_api_calls": 0.0,
+        "total_api_calls": 1858836.0,
+        "allowance_left_calls": 0.0,
+        "over_allowance_calls": 1858836.0,
+        "shortfall_credits": 0.0,
+        "shortfall_usd": 0.0,
+        "usage_value_usd": 1115.3016,
+        "token_cost_usd": 0.0,
+        "agent_workday_calls": 0.0,
+        "largest_driver": "api_overage",
+        "headline_state": "covered",
+        "price_band": "over_0.06",
+        "credits": {
+          "api_overage": 11153.016,
+          "workday_agents_ssa": 0.0,
+          "workday_agents_skills": 0.0,
+          "agent_tool_calls": 0.0,
+          "agent_invocations": 0.0,
+          "total": 11153.016
+        },
+        "allowance_used_ratio": null,
+        "pool_months_of_cover": 64.556529
+      }
+    },
+    {
+      "id": "sanitize_bad_input",
+      "note": "sanitize(): nulls and junk -> defaults, out of range -> clamped",
+      "input": {
+        "employees": null,
+        "skus": [
+          "extend",
+          "bogus"
+        ],
+        "price_per_credit": "abc",
+        "integrations": {
+          "mode": "estimate",
+          "counts": {
+            "efficient": -3,
+            "typical": null,
+            "heavy": 2
+          }
+        },
+        "ssa_actions_per_employee_month": 99,
+        "skills": [
+          {
+            "skill": "nope",
+            "volume_per_year": 5
+          }
+        ],
+        "agents": [
+          {
+            "tasks_per_month": null,
+            "calls_per_task": 0,
+            "path": "warp",
+            "read_format": "x",
+            "advanced_share": 7,
+            "model_tier": "ultra"
+          }
+        ],
+        "advanced": {
+          "policy_signed": "yes"
+        }
+      },
+      "expected": {
+        "band_label": "10,000 to 29,999",
+        "extend_implied": false,
+        "allowance_calls": 6750000.0,
+        "complimentary_credits": 60000,
+        "pool_credits": 60000,
+        "integration_calls": 21024000.0,
+        "agent_api_calls": 0.0,
+        "total_api_calls": 21024000.0,
+        "allowance_left_calls": 0.0,
+        "over_allowance_calls": 14274000.0,
+        "shortfall_credits": 2425644.0,
+        "shortfall_usd": 242564.4,
+        "usage_value_usd": 248564.4,
+        "token_cost_usd": 0.0,
+        "agent_workday_calls": 0.0,
+        "largest_driver": "workday_agents_ssa",
+        "headline_state": "to_buy",
+        "price_band": "over_0.06",
+        "credits": {
+          "api_overage": 85644.0,
+          "workday_agents_ssa": 2400000.0,
+          "workday_agents_skills": 0.0,
+          "agent_tool_calls": 0.0,
+          "agent_invocations": 0.0,
+          "total": 2485644.0
+        },
+        "allowance_used_ratio": 3.114667,
+        "pool_months_of_cover": 0.289663
+      }
+    },
+    {
+      "id": "zero_need",
+      "note": "Nothing metered",
+      "input": {
+        "employees": 2000,
+        "skus": [],
+        "price_per_credit": 0.1,
+        "integrations": {
+          "mode": "estimate",
+          "calls_per_year": null,
+          "counts": {
+            "efficient": 0,
+            "typical": 0,
+            "heavy": 0
+          }
+        },
+        "ssa_actions_per_employee_month": 0,
+        "skills": [],
+        "agents": [
+          {
+            "tasks_per_month": 0,
+            "calls_per_task": 4,
+            "path": "api",
+            "read_format": "rest_detail",
+            "advanced_share": 0.1,
+            "model_tier": "standard"
+          }
+        ],
+        "advanced": {
+          "purchased_credits": 0,
+          "policy_signed": true,
+          "llm_price_per_m_tokens": 3.0,
+          "context_rereads": 1.0,
+          "tool_calls_also_metered_as_api": false,
+          "allowance_override": null,
+          "complimentary_override": null
+        }
+      },
+      "expected": {
+        "band_label": "Under 3,500",
+        "extend_implied": false,
+        "allowance_calls": 2500000,
+        "complimentary_credits": 15000,
+        "pool_credits": 15000.0,
+        "integration_calls": 0.0,
+        "agent_api_calls": 0.0,
+        "total_api_calls": 0.0,
+        "allowance_left_calls": 2500000.0,
+        "over_allowance_calls": 0.0,
+        "shortfall_credits": 0.0,
+        "shortfall_usd": 0.0,
+        "usage_value_usd": 0.0,
+        "token_cost_usd": 0.0,
+        "agent_workday_calls": 0.0,
+        "largest_driver": null,
+        "headline_state": "zero",
+        "price_band": "over_0.06",
+        "credits": {
+          "api_overage": 0.0,
+          "workday_agents_ssa": 0.0,
+          "workday_agents_skills": 0.0,
+          "agent_tool_calls": 0.0,
+          "agent_invocations": 0.0,
+          "total": 0.0
+        },
+        "allowance_used_ratio": 0.0,
+        "pool_months_of_cover": null
+      }
+    },
+    {
+      "id": "forecast_mixed_36m",
+      "note": "Monthly forecast: grace Nov-Jan counts toward allowance, 1 Jan resets, packages, growth",
+      "input": {
+        "employees": 10000,
+        "skus": [],
+        "price_per_credit": 0.1,
+        "integrations": {
+          "mode": "estimate",
+          "calls_per_year": null,
+          "counts": {
+            "efficient": 4,
+            "typical": 4,
+            "heavy": 1
+          }
+        },
+        "ssa_actions_per_employee_month": 2,
+        "skills": [],
+        "agents": [
+          {
+            "tasks_per_month": 20000,
+            "calls_per_task": 4,
+            "path": "api",
+            "read_format": "rest_detail",
+            "advanced_share": 0.1,
+            "model_tier": "standard"
+          }
+        ],
+        "advanced": {
+          "purchased_credits": 0,
+          "policy_signed": true,
+          "llm_price_per_m_tokens": 3.0,
+          "context_rereads": 1.0,
+          "tool_calls_also_metered_as_api": false,
+          "allowance_override": null,
+          "complimentary_override": null
+        },
+        "forecast": {
+          "start": "2026-11",
+          "months": 36,
+          "growth": {
+            "integrations": 0.1,
+            "agents": 0.5,
+            "workday_agents": 0.2
+          },
+          "purchased_packages": [
+            {
+              "credits": 100000,
+              "from": "2026-11",
+              "to": "2027-10"
+            },
+            {
+              "credits": 200000,
+              "from": "2027-11",
+              "to": "2028-10"
+            }
+          ],
+          "complimentary_assumed_after": "2027-11"
+        }
+      },
+      "expected_forecast": {
+        "months": [
+          {
+            "month": "2026-11",
+            "api_calls": 1259870.6667,
+            "api_credits": 0.0,
+            "other_credits": 20000.0,
+            "credits_needed": 20000.0,
+            "from_complimentary": 10000.0,
+            "from_purchased": 10000.0,
+            "to_buy": 0.0,
+            "complimentary_left": 0.0,
+            "purchased_left": 90000.0,
+            "token_cost_usd": 312.0,
+            "flags": [
+              "grace",
+              "allowance_year_start"
+            ]
+          },
+          {
+            "month": "2026-12",
+            "api_calls": 1259870.6667,
+            "api_credits": 0.0,
+            "other_credits": 20000.0,
+            "credits_needed": 20000.0,
+            "from_complimentary": 0.0,
+            "from_purchased": 20000.0,
+            "to_buy": 0.0,
+            "complimentary_left": 0.0,
+            "purchased_left": 70000.0,
+            "token_cost_usd": 312.0,
+            "flags": [
+              "grace"
+            ]
+          },
+          {
+            "month": "2027-01",
+            "api_calls": 1259870.6667,
+            "api_credits": 0.0,
+            "other_credits": 20000.0,
+            "credits_needed": 20000.0,
+            "from_complimentary": 0.0,
+            "from_purchased": 20000.0,
+            "to_buy": 0.0,
+            "complimentary_left": 60000.0,
+            "purchased_left": 50000.0,
+            "token_cost_usd": 312.0,
+            "flags": [
+              "grace",
+              "complimentary_reset"
+            ]
+          },
+          {
+            "month": "2027-02",
+            "api_calls": 1259870.6667,
+            "api_credits": 3236.896,
+            "other_credits": 20000.0,
+            "credits_needed": 23236.896,
+            "from_complimentary": 0.0,
+            "from_purchased": 23236.896,
+            "to_buy": 0.0,
+            "complimentary_left": 60000.0,
+            "purchased_left": 26763.104,
+            "token_cost_usd": 312.0,
+            "flags": []
+          },
+          {
+            "month": "2027-03",
+            "api_calls": 1259870.6667,
+            "api_credits": 7559.224,
+            "other_credits": 20000.0,
+            "credits_needed": 27559.224,
+            "from_complimentary": 796.12,
+            "from_purchased": 26763.104,
+            "to_buy": 0.0,
+            "complimentary_left": 59203.88,
+            "purchased_left": 0.0,
+            "token_cost_usd": 312.0,
+            "flags": []
+          },
+          {
+            "month": "2027-04",
+            "api_calls": 1259870.6667,
+            "api_credits": 7559.224,
+            "other_credits": 20000.0,
+            "credits_needed": 27559.224,
+            "from_complimentary": 27559.224,
+            "from_purchased": 0.0,
+            "to_buy": 0.0,
+            "complimentary_left": 31644.656,
+            "purchased_left": 0.0,
+            "token_cost_usd": 312.0,
+            "flags": []
+          },
+          {
+            "month": "2027-05",
+            "api_calls": 1259870.6667,
+            "api_credits": 7559.224,
+            "other_credits": 20000.0,
+            "credits_needed": 27559.224,
+            "from_complimentary": 27559.224,
+            "from_purchased": 0.0,
+            "to_buy": 0.0,
+            "complimentary_left": 4085.432,
+            "purchased_left": 0.0,
+            "token_cost_usd": 312.0,
+            "flags": []
+          },
+          {
+            "month": "2027-06",
+            "api_calls": 1259870.6667,
+            "api_credits": 7559.224,
+            "other_credits": 20000.0,
+            "credits_needed": 27559.224,
+            "from_complimentary": 4085.432,
+            "from_purchased": 0.0,
+            "to_buy": 23473.792,
+            "complimentary_left": 0.0,
+            "purchased_left": 0.0,
+            "token_cost_usd": 312.0,
+            "flags": []
+          },
+          {
+            "month": "2027-07",
+            "api_calls": 1259870.6667,
+            "api_credits": 7559.224,
+            "other_credits": 20000.0,
+            "credits_needed": 27559.224,
+            "from_complimentary": 0.0,
+            "from_purchased": 0.0,
+            "to_buy": 27559.224,
+            "complimentary_left": 0.0,
+            "purchased_left": 0.0,
+            "token_cost_usd": 312.0,
+            "flags": []
+          },
+          {
+            "month": "2027-08",
+            "api_calls": 1259870.6667,
+            "api_credits": 7559.224,
+            "other_credits": 20000.0,
+            "credits_needed": 27559.224,
+            "from_complimentary": 0.0,
+            "from_purchased": 0.0,
+            "to_buy": 27559.224,
+            "complimentary_left": 0.0,
+            "purchased_left": 0.0,
+            "token_cost_usd": 312.0,
+            "flags": []
+          },
+          {
+            "month": "2027-09",
+            "api_calls": 1259870.6667,
+            "api_credits": 7559.224,
+            "other_credits": 20000.0,
+            "credits_needed": 27559.224,
+            "from_complimentary": 0.0,
+            "from_purchased": 0.0,
+            "to_buy": 27559.224,
+            "complimentary_left": 0.0,
+            "purchased_left": 0.0,
+            "token_cost_usd": 312.0,
+            "flags": []
+          },
+          {
+            "month": "2027-10",
+            "api_calls": 1259870.6667,
+            "api_credits": 7559.224,
+            "other_credits": 20000.0,
+            "credits_needed": 27559.224,
+            "from_complimentary": 0.0,
+            "from_purchased": 0.0,
+            "to_buy": 27559.224,
+            "complimentary_left": 0.0,
+            "purchased_left": 0.0,
+            "token_cost_usd": 312.0,
+            "flags": []
+          },
+          {
+            "month": "2027-11",
+            "api_calls": 1417857.7333,
+            "api_credits": 0.0,
+            "other_credits": 24000.0,
+            "credits_needed": 24000.0,
+            "from_complimentary": 0.0,
+            "from_purchased": 24000.0,
+            "to_buy": 0.0,
+            "complimentary_left": 0.0,
+            "purchased_left": 176000.0,
+            "token_cost_usd": 468.0,
+            "flags": [
+              "complimentary_assumed",
+              "allowance_year_start"
+            ]
+          },
+          {
+            "month": "2027-12",
+            "api_calls": 1417857.7333,
+            "api_credits": 0.0,
+            "other_credits": 24000.0,
+            "credits_needed": 24000.0,
+            "from_complimentary": 0.0,
+            "from_purchased": 24000.0,
+            "to_buy": 0.0,
+            "complimentary_left": 0.0,
+            "purchased_left": 152000.0,
+            "token_cost_usd": 468.0,
+            "flags": [
+              "complimentary_assumed"
+            ]
+          },
+          {
+            "month": "2028-01",
+            "api_calls": 1417857.7333,
+            "api_credits": 0.0,
+            "other_credits": 24000.0,
+            "credits_needed": 24000.0,
+            "from_complimentary": 0.0,
+            "from_purchased": 24000.0,
+            "to_buy": 0.0,
+            "complimentary_left": 60000.0,
+            "purchased_left": 128000.0,
+            "token_cost_usd": 468.0,
+            "flags": [
+              "complimentary_reset",
+              "complimentary_assumed"
+            ]
+          },
+          {
+            "month": "2028-02",
+            "api_calls": 1417857.7333,
+            "api_credits": 7028.5856,
+            "other_credits": 24000.0,
+            "credits_needed": 31028.5856,
+            "from_complimentary": 0.0,
+            "from_purchased": 31028.5856,
+            "to_buy": 0.0,
+            "complimentary_left": 60000.0,
+            "purchased_left": 96971.4144,
+            "token_cost_usd": 468.0,
+            "flags": [
+              "complimentary_assumed"
+            ]
+          },
+          {
+            "month": "2028-03",
+            "api_calls": 1417857.7333,
+            "api_credits": 8507.1464,
+            "other_credits": 24000.0,
+            "credits_needed": 32507.1464,
+            "from_complimentary": 0.0,
+            "from_purchased": 32507.1464,
+            "to_buy": 0.0,
+            "complimentary_left": 60000.0,
+            "purchased_left": 64464.268,
+            "token_cost_usd": 468.0,
+            "flags": [
+              "complimentary_assumed"
+            ]
+          },
+          {
+            "month": "2028-04",
+            "api_calls": 1417857.7333,
+            "api_credits": 8507.1464,
+            "other_credits": 24000.0,
+            "credits_needed": 32507.1464,
+            "from_complimentary": 0.0,
+            "from_purchased": 32507.1464,
+            "to_buy": 0.0,
+            "complimentary_left": 60000.0,
+            "purchased_left": 31957.1216,
+            "token_cost_usd": 468.0,
+            "flags": [
+              "complimentary_assumed"
+            ]
+          },
+          {
+            "month": "2028-05",
+            "api_calls": 1417857.7333,
+            "api_credits": 8507.1464,
+            "other_credits": 24000.0,
+            "credits_needed": 32507.1464,
+            "from_complimentary": 550.0248,
+            "from_purchased": 31957.1216,
+            "to_buy": 0.0,
+            "complimentary_left": 59449.9752,
+            "purchased_left": 0.0,
+            "token_cost_usd": 468.0,
+            "flags": [
+              "complimentary_assumed"
+            ]
+          },
+          {
+            "month": "2028-06",
+            "api_calls": 1417857.7333,
+            "api_credits": 8507.1464,
+            "other_credits": 24000.0,
+            "credits_needed": 32507.1464,
+            "from_complimentary": 32507.1464,
+            "from_purchased": 0.0,
+            "to_buy": 0.0,
+            "complimentary_left": 26942.8288,
+            "purchased_left": 0.0,
+            "token_cost_usd": 468.0,
+            "flags": [
+              "complimentary_assumed"
+            ]
+          },
+          {
+            "month": "2028-07",
+            "api_calls": 1417857.7333,
+            "api_credits": 8507.1464,
+            "other_credits": 24000.0,
+            "credits_needed": 32507.1464,
+            "from_complimentary": 26942.8288,
+            "from_purchased": 0.0,
+            "to_buy": 5564.3176,
+            "complimentary_left": 0.0,
+            "purchased_left": 0.0,
+            "token_cost_usd": 468.0,
+            "flags": [
+              "complimentary_assumed"
+            ]
+          },
+          {
+            "month": "2028-08",
+            "api_calls": 1417857.7333,
+            "api_credits": 8507.1464,
+            "other_credits": 24000.0,
+            "credits_needed": 32507.1464,
+            "from_complimentary": 0.0,
+            "from_purchased": 0.0,
+            "to_buy": 32507.1464,
+            "complimentary_left": 0.0,
+            "purchased_left": 0.0,
+            "token_cost_usd": 468.0,
+            "flags": [
+              "complimentary_assumed"
+            ]
+          },
+          {
+            "month": "2028-09",
+            "api_calls": 1417857.7333,
+            "api_credits": 8507.1464,
+            "other_credits": 24000.0,
+            "credits_needed": 32507.1464,
+            "from_complimentary": 0.0,
+            "from_purchased": 0.0,
+            "to_buy": 32507.1464,
+            "complimentary_left": 0.0,
+            "purchased_left": 0.0,
+            "token_cost_usd": 468.0,
+            "flags": [
+              "complimentary_assumed"
+            ]
+          },
+          {
+            "month": "2028-10",
+            "api_calls": 1417857.7333,
+            "api_credits": 8507.1464,
+            "other_credits": 24000.0,
+            "credits_needed": 32507.1464,
+            "from_complimentary": 0.0,
+            "from_purchased": 0.0,
+            "to_buy": 32507.1464,
+            "complimentary_left": 0.0,
+            "purchased_left": 0.0,
+            "token_cost_usd": 468.0,
+            "flags": [
+              "complimentary_assumed"
+            ]
+          },
+          {
+            "month": "2028-11",
+            "api_calls": 1607643.5067,
+            "api_credits": 0.0,
+            "other_credits": 28800.0,
+            "credits_needed": 28800.0,
+            "from_complimentary": 0.0,
+            "from_purchased": 0.0,
+            "to_buy": 28800.0,
+            "complimentary_left": 0.0,
+            "purchased_left": 0,
+            "token_cost_usd": 702.0,
+            "flags": [
+              "complimentary_assumed",
+              "allowance_year_start"
+            ]
+          },
+          {
+            "month": "2028-12",
+            "api_calls": 1607643.5067,
+            "api_credits": 0.0,
+            "other_credits": 28800.0,
+            "credits_needed": 28800.0,
+            "from_complimentary": 0.0,
+            "from_purchased": 0.0,
+            "to_buy": 28800.0,
+            "complimentary_left": 0.0,
+            "purchased_left": 0,
+            "token_cost_usd": 702.0,
+            "flags": [
+              "complimentary_assumed"
+            ]
+          },
+          {
+            "month": "2029-01",
+            "api_calls": 1607643.5067,
+            "api_credits": 1937.5831,
+            "other_credits": 28800.0,
+            "credits_needed": 30737.5831,
+            "from_complimentary": 30737.5831,
+            "from_purchased": 0.0,
+            "to_buy": 0.0,
+            "complimentary_left": 29262.4169,
+            "purchased_left": 0,
+            "token_cost_usd": 702.0,
+            "flags": [
+              "complimentary_reset",
+              "complimentary_assumed"
+            ]
+          },
+          {
+            "month": "2029-02",
+            "api_calls": 1607643.5067,
+            "api_credits": 9645.861,
+            "other_credits": 28800.0,
+            "credits_needed": 38445.861,
+            "from_complimentary": 29262.4169,
+            "from_purchased": 0.0,
+            "to_buy": 9183.4442,
+            "complimentary_left": 0.0,
+            "purchased_left": 0,
+            "token_cost_usd": 702.0,
+            "flags": [
+              "complimentary_assumed"
+            ]
+          },
+          {
+            "month": "2029-03",
+            "api_calls": 1607643.5067,
+            "api_credits": 9645.861,
+            "other_credits": 28800.0,
+            "credits_needed": 38445.861,
+            "from_complimentary": 0.0,
+            "from_purchased": 0.0,
+            "to_buy": 38445.861,
+            "complimentary_left": 0.0,
+            "purchased_left": 0,
+            "token_cost_usd": 702.0,
+            "flags": [
+              "complimentary_assumed"
+            ]
+          },
+          {
+            "month": "2029-04",
+            "api_calls": 1607643.5067,
+            "api_credits": 9645.861,
+            "other_credits": 28800.0,
+            "credits_needed": 38445.861,
+            "from_complimentary": 0.0,
+            "from_purchased": 0.0,
+            "to_buy": 38445.861,
+            "complimentary_left": 0.0,
+            "purchased_left": 0,
+            "token_cost_usd": 702.0,
+            "flags": [
+              "complimentary_assumed"
+            ]
+          },
+          {
+            "month": "2029-05",
+            "api_calls": 1607643.5067,
+            "api_credits": 9645.861,
+            "other_credits": 28800.0,
+            "credits_needed": 38445.861,
+            "from_complimentary": 0.0,
+            "from_purchased": 0.0,
+            "to_buy": 38445.861,
+            "complimentary_left": 0.0,
+            "purchased_left": 0,
+            "token_cost_usd": 702.0,
+            "flags": [
+              "complimentary_assumed"
+            ]
+          },
+          {
+            "month": "2029-06",
+            "api_calls": 1607643.5067,
+            "api_credits": 9645.861,
+            "other_credits": 28800.0,
+            "credits_needed": 38445.861,
+            "from_complimentary": 0.0,
+            "from_purchased": 0.0,
+            "to_buy": 38445.861,
+            "complimentary_left": 0.0,
+            "purchased_left": 0,
+            "token_cost_usd": 702.0,
+            "flags": [
+              "complimentary_assumed"
+            ]
+          },
+          {
+            "month": "2029-07",
+            "api_calls": 1607643.5067,
+            "api_credits": 9645.861,
+            "other_credits": 28800.0,
+            "credits_needed": 38445.861,
+            "from_complimentary": 0.0,
+            "from_purchased": 0.0,
+            "to_buy": 38445.861,
+            "complimentary_left": 0.0,
+            "purchased_left": 0,
+            "token_cost_usd": 702.0,
+            "flags": [
+              "complimentary_assumed"
+            ]
+          },
+          {
+            "month": "2029-08",
+            "api_calls": 1607643.5067,
+            "api_credits": 9645.861,
+            "other_credits": 28800.0,
+            "credits_needed": 38445.861,
+            "from_complimentary": 0.0,
+            "from_purchased": 0.0,
+            "to_buy": 38445.861,
+            "complimentary_left": 0.0,
+            "purchased_left": 0,
+            "token_cost_usd": 702.0,
+            "flags": [
+              "complimentary_assumed"
+            ]
+          },
+          {
+            "month": "2029-09",
+            "api_calls": 1607643.5067,
+            "api_credits": 9645.861,
+            "other_credits": 28800.0,
+            "credits_needed": 38445.861,
+            "from_complimentary": 0.0,
+            "from_purchased": 0.0,
+            "to_buy": 38445.861,
+            "complimentary_left": 0.0,
+            "purchased_left": 0,
+            "token_cost_usd": 702.0,
+            "flags": [
+              "complimentary_assumed"
+            ]
+          },
+          {
+            "month": "2029-10",
+            "api_calls": 1607643.5067,
+            "api_credits": 9645.861,
+            "other_credits": 28800.0,
+            "credits_needed": 38445.861,
+            "from_complimentary": 0.0,
+            "from_purchased": 0.0,
+            "to_buy": 38445.861,
+            "complimentary_left": 0.0,
+            "purchased_left": 0,
+            "token_cost_usd": 702.0,
+            "flags": [
+              "complimentary_assumed"
+            ]
+          }
+        ],
+        "years": [
+          {
+            "year": 1,
+            "from": "2026-11",
+            "to": "2027-10",
+            "api_credits": 63710.688,
+            "credits_needed": 303710.688,
+            "to_buy": 133710.688,
+            "to_buy_usd": 13371.0688,
+            "token_cost_usd": 3744.0
+          },
+          {
+            "year": 2,
+            "from": "2027-11",
+            "to": "2028-10",
+            "api_credits": 75085.7568,
+            "credits_needed": 363085.7568,
+            "to_buy": 103085.7568,
+            "to_buy_usd": 10308.5757,
+            "token_cost_usd": 5616.0
+          },
+          {
+            "year": 3,
+            "from": "2028-11",
+            "to": "2029-10",
+            "api_credits": 88750.3325,
+            "credits_needed": 434350.3325,
+            "to_buy": 374350.3325,
+            "to_buy_usd": 37435.0332,
+            "token_cost_usd": 8424.0
+          }
+        ],
+        "totals": {
+          "credits_needed": 1101146.7773,
+          "to_buy": 611146.7773,
+          "to_buy_usd": 61114.6777,
+          "token_cost_usd": 17784.0
+        },
+        "free_credits_run_out": "2027-06",
+        "extend_implied": false,
+        "range": {
+          "low": {
+            "credits_needed": 510073.3886,
+            "to_buy": 114875.1662
+          },
+          "high": {
+            "credits_needed": 2264938.2106,
+            "to_buy": 1774938.2106
+          }
+        }
+      }
+    },
+    {
+      "id": "forecast_mixed_12m_allowance_from_feb",
+      "note": "Allowance only counts from Feb 2027",
+      "input": {
+        "employees": 10000,
+        "skus": [],
+        "price_per_credit": 0.1,
+        "integrations": {
+          "mode": "estimate",
+          "calls_per_year": null,
+          "counts": {
+            "efficient": 4,
+            "typical": 4,
+            "heavy": 1
+          }
+        },
+        "ssa_actions_per_employee_month": 2,
+        "skills": [],
+        "agents": [
+          {
+            "tasks_per_month": 20000,
+            "calls_per_task": 4,
+            "path": "api",
+            "read_format": "rest_detail",
+            "advanced_share": 0.1,
+            "model_tier": "standard"
+          }
+        ],
+        "advanced": {
+          "purchased_credits": 0,
+          "policy_signed": true,
+          "llm_price_per_m_tokens": 3.0,
+          "context_rereads": 1.0,
+          "tool_calls_also_metered_as_api": false,
+          "allowance_override": null,
+          "complimentary_override": null
+        },
+        "forecast": {
+          "start": "2026-11",
+          "months": 12,
+          "allowance_counts_during_grace": false
+        }
+      },
+      "expected_forecast": {
+        "months": [
+          {
+            "month": "2026-11",
+            "api_calls": 1259870.6667,
+            "api_credits": 0.0,
+            "other_credits": 20000.0,
+            "credits_needed": 20000.0,
+            "from_complimentary": 10000.0,
+            "from_purchased": 0.0,
+            "to_buy": 10000.0,
+            "complimentary_left": 0.0,
+            "purchased_left": 0,
+            "token_cost_usd": 312.0,
+            "flags": [
+              "grace",
+              "allowance_year_start"
+            ]
+          },
+          {
+            "month": "2026-12",
+            "api_calls": 1259870.6667,
+            "api_credits": 0.0,
+            "other_credits": 20000.0,
+            "credits_needed": 20000.0,
+            "from_complimentary": 0.0,
+            "from_purchased": 0.0,
+            "to_buy": 20000.0,
+            "complimentary_left": 0.0,
+            "purchased_left": 0,
+            "token_cost_usd": 312.0,
+            "flags": [
+              "grace"
+            ]
+          },
+          {
+            "month": "2027-01",
+            "api_calls": 1259870.6667,
+            "api_credits": 0.0,
+            "other_credits": 20000.0,
+            "credits_needed": 20000.0,
+            "from_complimentary": 20000.0,
+            "from_purchased": 0.0,
+            "to_buy": 0.0,
+            "complimentary_left": 40000.0,
+            "purchased_left": 0,
+            "token_cost_usd": 312.0,
+            "flags": [
+              "grace",
+              "complimentary_reset"
+            ]
+          },
+          {
+            "month": "2027-02",
+            "api_calls": 1259870.6667,
+            "api_credits": 0.0,
+            "other_credits": 20000.0,
+            "credits_needed": 20000.0,
+            "from_complimentary": 20000.0,
+            "from_purchased": 0.0,
+            "to_buy": 0.0,
+            "complimentary_left": 20000.0,
+            "purchased_left": 0,
+            "token_cost_usd": 312.0,
+            "flags": []
+          },
+          {
+            "month": "2027-03",
+            "api_calls": 1259870.6667,
+            "api_credits": 0.0,
+            "other_credits": 20000.0,
+            "credits_needed": 20000.0,
+            "from_complimentary": 20000.0,
+            "from_purchased": 0.0,
+            "to_buy": 0.0,
+            "complimentary_left": 0.0,
+            "purchased_left": 0,
+            "token_cost_usd": 312.0,
+            "flags": []
+          },
+          {
+            "month": "2027-04",
+            "api_calls": 1259870.6667,
+            "api_credits": 0.0,
+            "other_credits": 20000.0,
+            "credits_needed": 20000.0,
+            "from_complimentary": 0.0,
+            "from_purchased": 0.0,
+            "to_buy": 20000.0,
+            "complimentary_left": 0.0,
+            "purchased_left": 0,
+            "token_cost_usd": 312.0,
+            "flags": []
+          },
+          {
+            "month": "2027-05",
+            "api_calls": 1259870.6667,
+            "api_credits": 3236.896,
+            "other_credits": 20000.0,
+            "credits_needed": 23236.896,
+            "from_complimentary": 0.0,
+            "from_purchased": 0.0,
+            "to_buy": 23236.896,
+            "complimentary_left": 0.0,
+            "purchased_left": 0,
+            "token_cost_usd": 312.0,
+            "flags": []
+          },
+          {
+            "month": "2027-06",
+            "api_calls": 1259870.6667,
+            "api_credits": 7559.224,
+            "other_credits": 20000.0,
+            "credits_needed": 27559.224,
+            "from_complimentary": 0.0,
+            "from_purchased": 0.0,
+            "to_buy": 27559.224,
+            "complimentary_left": 0.0,
+            "purchased_left": 0,
+            "token_cost_usd": 312.0,
+            "flags": []
+          },
+          {
+            "month": "2027-07",
+            "api_calls": 1259870.6667,
+            "api_credits": 7559.224,
+            "other_credits": 20000.0,
+            "credits_needed": 27559.224,
+            "from_complimentary": 0.0,
+            "from_purchased": 0.0,
+            "to_buy": 27559.224,
+            "complimentary_left": 0.0,
+            "purchased_left": 0,
+            "token_cost_usd": 312.0,
+            "flags": []
+          },
+          {
+            "month": "2027-08",
+            "api_calls": 1259870.6667,
+            "api_credits": 7559.224,
+            "other_credits": 20000.0,
+            "credits_needed": 27559.224,
+            "from_complimentary": 0.0,
+            "from_purchased": 0.0,
+            "to_buy": 27559.224,
+            "complimentary_left": 0.0,
+            "purchased_left": 0,
+            "token_cost_usd": 312.0,
+            "flags": []
+          },
+          {
+            "month": "2027-09",
+            "api_calls": 1259870.6667,
+            "api_credits": 7559.224,
+            "other_credits": 20000.0,
+            "credits_needed": 27559.224,
+            "from_complimentary": 0.0,
+            "from_purchased": 0.0,
+            "to_buy": 27559.224,
+            "complimentary_left": 0.0,
+            "purchased_left": 0,
+            "token_cost_usd": 312.0,
+            "flags": []
+          },
+          {
+            "month": "2027-10",
+            "api_calls": 1259870.6667,
+            "api_credits": 7559.224,
+            "other_credits": 20000.0,
+            "credits_needed": 27559.224,
+            "from_complimentary": 0.0,
+            "from_purchased": 0.0,
+            "to_buy": 27559.224,
+            "complimentary_left": 0.0,
+            "purchased_left": 0,
+            "token_cost_usd": 312.0,
+            "flags": []
+          }
+        ],
+        "years": [
+          {
+            "year": 1,
+            "from": "2026-11",
+            "to": "2027-10",
+            "api_credits": 41033.016,
+            "credits_needed": 281033.016,
+            "to_buy": 211033.016,
+            "to_buy_usd": 21103.3016,
+            "token_cost_usd": 3744.0
+          }
+        ],
+        "totals": {
+          "credits_needed": 281033.016,
+          "to_buy": 211033.016,
+          "to_buy_usd": 21103.3016,
+          "token_cost_usd": 3744.0
+        },
+        "free_credits_run_out": "2026-11",
+        "extend_implied": false,
+        "range": {
+          "low": {
+            "credits_needed": 127016.508,
+            "to_buy": 57016.508
+          },
+          "high": {
+            "credits_needed": 589066.032,
+            "to_buy": 519066.032
+          }
+        }
+      }
+    },
+    {
+      "id": "forecast_workday_agents_anniversary",
+      "note": "No Jan reset; matches the annual model's shortfall",
+      "input": {
+        "employees": 10000,
+        "skus": [],
+        "price_per_credit": 0.1,
+        "integrations": {
+          "mode": "estimate",
+          "calls_per_year": null,
+          "counts": {
+            "efficient": 3,
+            "typical": 2,
+            "heavy": 0
+          }
+        },
+        "ssa_actions_per_employee_month": 2,
+        "skills": [
+          {
+            "skill": "recruiting_fetch",
+            "volume_per_year": 100
+          }
+        ],
+        "agents": [
+          {
+            "tasks_per_month": 0,
+            "calls_per_task": 4,
+            "path": "api",
+            "read_format": "rest_detail",
+            "advanced_share": 0.1,
+            "model_tier": "standard"
+          }
+        ],
+        "advanced": {
+          "purchased_credits": 0,
+          "policy_signed": true,
+          "llm_price_per_m_tokens": 3.0,
+          "context_rereads": 1.0,
+          "tool_calls_also_metered_as_api": false,
+          "allowance_override": null,
+          "complimentary_override": null
+        },
+        "forecast": {
+          "start": "2027-02",
+          "months": 12,
+          "complimentary_reset": "start_anniversary",
+          "opening_complimentary": 60000
+        }
+      },
+      "expected_forecast": {
+        "months": [
+          {
+            "month": "2027-02",
+            "api_calls": 154903.0,
+            "api_credits": 0.0,
+            "other_credits": 26250.0,
+            "credits_needed": 26250.0,
+            "from_complimentary": 26250.0,
+            "from_purchased": 0.0,
+            "to_buy": 0.0,
+            "complimentary_left": 33750.0,
+            "purchased_left": 0,
+            "token_cost_usd": 0.0,
+            "flags": [
+              "allowance_year_start"
+            ]
+          },
+          {
+            "month": "2027-03",
+            "api_calls": 154903.0,
+            "api_credits": 0.0,
+            "other_credits": 26250.0,
+            "credits_needed": 26250.0,
+            "from_complimentary": 26250.0,
+            "from_purchased": 0.0,
+            "to_buy": 0.0,
+            "complimentary_left": 7500.0,
+            "purchased_left": 0,
+            "token_cost_usd": 0.0,
+            "flags": []
+          },
+          {
+            "month": "2027-04",
+            "api_calls": 154903.0,
+            "api_credits": 0.0,
+            "other_credits": 26250.0,
+            "credits_needed": 26250.0,
+            "from_complimentary": 7500.0,
+            "from_purchased": 0.0,
+            "to_buy": 18750.0,
+            "complimentary_left": 0.0,
+            "purchased_left": 0,
+            "token_cost_usd": 0.0,
+            "flags": []
+          },
+          {
+            "month": "2027-05",
+            "api_calls": 154903.0,
+            "api_credits": 0.0,
+            "other_credits": 26250.0,
+            "credits_needed": 26250.0,
+            "from_complimentary": 0.0,
+            "from_purchased": 0.0,
+            "to_buy": 26250.0,
+            "complimentary_left": 0.0,
+            "purchased_left": 0,
+            "token_cost_usd": 0.0,
+            "flags": []
+          },
+          {
+            "month": "2027-06",
+            "api_calls": 154903.0,
+            "api_credits": 0.0,
+            "other_credits": 26250.0,
+            "credits_needed": 26250.0,
+            "from_complimentary": 0.0,
+            "from_purchased": 0.0,
+            "to_buy": 26250.0,
+            "complimentary_left": 0.0,
+            "purchased_left": 0,
+            "token_cost_usd": 0.0,
+            "flags": []
+          },
+          {
+            "month": "2027-07",
+            "api_calls": 154903.0,
+            "api_credits": 0.0,
+            "other_credits": 26250.0,
+            "credits_needed": 26250.0,
+            "from_complimentary": 0.0,
+            "from_purchased": 0.0,
+            "to_buy": 26250.0,
+            "complimentary_left": 0.0,
+            "purchased_left": 0,
+            "token_cost_usd": 0.0,
+            "flags": []
+          },
+          {
+            "month": "2027-08",
+            "api_calls": 154903.0,
+            "api_credits": 0.0,
+            "other_credits": 26250.0,
+            "credits_needed": 26250.0,
+            "from_complimentary": 0.0,
+            "from_purchased": 0.0,
+            "to_buy": 26250.0,
+            "complimentary_left": 0.0,
+            "purchased_left": 0,
+            "token_cost_usd": 0.0,
+            "flags": []
+          },
+          {
+            "month": "2027-09",
+            "api_calls": 154903.0,
+            "api_credits": 0.0,
+            "other_credits": 26250.0,
+            "credits_needed": 26250.0,
+            "from_complimentary": 0.0,
+            "from_purchased": 0.0,
+            "to_buy": 26250.0,
+            "complimentary_left": 0.0,
+            "purchased_left": 0,
+            "token_cost_usd": 0.0,
+            "flags": []
+          },
+          {
+            "month": "2027-10",
+            "api_calls": 154903.0,
+            "api_credits": 0.0,
+            "other_credits": 26250.0,
+            "credits_needed": 26250.0,
+            "from_complimentary": 0.0,
+            "from_purchased": 0.0,
+            "to_buy": 26250.0,
+            "complimentary_left": 0.0,
+            "purchased_left": 0,
+            "token_cost_usd": 0.0,
+            "flags": []
+          },
+          {
+            "month": "2027-11",
+            "api_calls": 154903.0,
+            "api_credits": 0.0,
+            "other_credits": 26250.0,
+            "credits_needed": 26250.0,
+            "from_complimentary": 0.0,
+            "from_purchased": 0.0,
+            "to_buy": 26250.0,
+            "complimentary_left": 0.0,
+            "purchased_left": 0,
+            "token_cost_usd": 0.0,
+            "flags": []
+          },
+          {
+            "month": "2027-12",
+            "api_calls": 154903.0,
+            "api_credits": 0.0,
+            "other_credits": 26250.0,
+            "credits_needed": 26250.0,
+            "from_complimentary": 0.0,
+            "from_purchased": 0.0,
+            "to_buy": 26250.0,
+            "complimentary_left": 0.0,
+            "purchased_left": 0,
+            "token_cost_usd": 0.0,
+            "flags": []
+          },
+          {
+            "month": "2028-01",
+            "api_calls": 154903.0,
+            "api_credits": 0.0,
+            "other_credits": 26250.0,
+            "credits_needed": 26250.0,
+            "from_complimentary": 0.0,
+            "from_purchased": 0.0,
+            "to_buy": 26250.0,
+            "complimentary_left": 0.0,
+            "purchased_left": 0,
+            "token_cost_usd": 0.0,
+            "flags": []
+          }
+        ],
+        "years": [
+          {
+            "year": 1,
+            "from": "2027-02",
+            "to": "2028-01",
+            "api_credits": 0.0,
+            "credits_needed": 315000.0,
+            "to_buy": 255000.0,
+            "to_buy_usd": 25500.0,
+            "token_cost_usd": 0.0
+          }
+        ],
+        "totals": {
+          "credits_needed": 315000.0,
+          "to_buy": 255000.0,
+          "to_buy_usd": 25500.0,
+          "token_cost_usd": 0.0
+        },
+        "free_credits_run_out": "2027-04",
+        "extend_implied": false,
+        "range": {
+          "low": {
+            "credits_needed": 157500.0,
+            "to_buy": 97500.0
+          },
+          "high": {
+            "credits_needed": 630000.0,
+            "to_buy": 570000.0
+          }
+        }
+      }
+    }
+  ]
+}
