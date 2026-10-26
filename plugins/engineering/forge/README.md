@@ -16,8 +16,8 @@ codex plugin add forge@powerful-plugins
 ```
 
 Forge pairs with [`spark`](../spark/), which picks the best next addition to a change and offers to
-build it. Once it has built one, spark runs forge on the result when forge is installed, and
-reports the forge pass as skipped when it is not. Each plugin works without the other.
+build it. Once it has built one and its tests pass, spark runs forge on the result when forge
+is installed, and reports the forge pass as skipped when it is not. Each plugin works without the other.
 
 ## Skills
 
@@ -72,8 +72,9 @@ findings each, or `skip`), verifies every finding against the tree itself, then
 audits its own output for missing coverage, overlap, over-abstraction, schema
 gaps, and priority ordering before reporting ranked findings.
 
-Results come as a **visual report**: a private artifact where the host has an `Artifact` tool,
-otherwise a self-contained HTML file in the scratchpad. It shows a coverage strip, top
+A whole-codebase or multi-codebase audit, or a current-scope audit with more than a handful of
+findings, comes with a **visual report**: a private artifact where the host has an `Artifact`
+tool, otherwise a self-contained HTML file in the scratchpad. It shows a coverage strip, top
 slices, ranked finding cards with file:line evidence, the full subsystem
 inventory including skips, and a dependency graph where findings block each
 other. The markdown report stays the record; the page is what gets shared into
