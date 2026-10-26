@@ -47,7 +47,7 @@ Invoke with `/forge` or phrases like:
 - "critique this design"
 - "deslop this" / "remove the AI slop from this branch"
 
-Forge is a rewrite, not a review. Pointed at code with an imperative ("forge this", "unslop the PR"), it rewrites the change and runs a loop: measure the slop, read the surrounding code, rewrite, **re-check the lines it wrote itself**, prove the tests behave identically, and repeat until a pass changes nothing. Asked a question ("is this the best way?"), it answers with each finding and the concrete rewrite, and applies nothing. Given a plan, it returns the revised plan.
+Forge is a rewrite, not a review. Pointed at code with an imperative ("forge this", "unslop the PR"), it rewrites the change and runs a loop: measure the slop, read the surrounding code, rewrite, **re-check the lines it wrote itself**, prove the tests behave identically, and repeat until a pass changes nothing. A named PR is checked out in its own worktree, so your branch and uncommitted work stay as they were. Asked a question ("is it forged?", "is this the best way?"), it answers with each finding and the concrete rewrite, and applies nothing. Given a plan, it returns the revised plan.
 
 The rewrite applies eight moves in order: delete, reuse what already exists, collapse single-use abstractions, call actions instead of watching state, trust the types, name it, make wrong states unrepresentable, and only then comment. Comments follow a contract: a constraint the code cannot express or a contract the signature hides, two lines by default, every claim checked against the code. Duplicates and slop are fixed in the same pass, never deferred as follow-ups.
 

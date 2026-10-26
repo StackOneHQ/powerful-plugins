@@ -128,7 +128,7 @@ class SlopMeterTests(unittest.TestCase):
         self.assertEqual(r.meter()["totals"]["addedComments"], 1)
 
     def test_a_moved_doc_block_brings_its_delimiters(self) -> None:
-        doc = "/**\n * Callers rely on this staying sorted.\n * Keep it that way.\n */\n"
+        doc = "/**\n * Callers rely on this staying sorted.\n *\n * Keep it that way.\n */\n"
         r = self.repo({"a.ts": doc + "export const a = 1;\n", "b.ts": "export const b = 2;\n"})
         r.write({"a.ts": "export const a = 1;\n", "b.ts": doc + "export const b = 2;\n"})
         totals = r.meter()["totals"]
@@ -138,6 +138,27 @@ class SlopMeterTests(unittest.TestCase):
         r = self.repo({"b.ts": "export const b = 2;\n"})
         r.write({"b.ts": "/**\n * A new note.\n */\nexport const b = 2;\n"})
         self.assertEqual(r.meter()["totals"]["addedComments"], 3)
+
+    def test_a_new_doc_block_does_not_match_a_removed_blocks_delimiters(self) -> None:
+        code = "export const a = 1;\nexport const b = 2;\n"
+        r = self.repo({"b.ts": "/**\n * Old note here.\n */\n" + code + "export const c = 3;\n"})
+        r.write({"b.ts": code + "/**\n * A new note.\n */\nexport const c = 3;\n"})
+        totals = r.meter()["totals"]
+        self.assertEqual((totals["addedComments"], totals["longestCommentBlock"]), (3, 3))
+
+    def test_new_wordless_comment_lines_beside_a_moved_comment_are_new(self) -> None:
+        note = "// Callers rely on this staying sorted.\n"
+        table = "// 0 | 1 | 2 | 3\n// ---+---+---+---\n// 1 | 2 | 3 | 4\n"
+        r = self.repo({"a.ts": note + "export const a = 1;\n", "b.ts": "export const b = 2;\n"})
+        r.write({"a.ts": "export const a = 1;\n", "b.ts": note + table + "export const b = 2;\n"})
+        totals = r.meter()["totals"]
+        self.assertEqual((totals["addedComments"], totals["longestCommentBlock"]), (3, 3))
+
+    def test_a_reindented_wordless_comment_is_not_new(self) -> None:
+        table = ["// 0 | 1", "// --+--", "// 1 | 2"]
+        r = self.repo({"a.ts": "".join(f"{t}\n" for t in table) + "export const a = 1;\n"})
+        r.write({"a.ts": "".join(f"  {t}\n" for t in table) + "export const a = 1;\n"})
+        self.assertEqual(r.meter()["totals"]["addedComments"], 0)
 
     def test_a_comment_echoed_as_string_data_still_matches_its_move(self) -> None:
         note = "// Callers rely on this staying sorted.\n"
