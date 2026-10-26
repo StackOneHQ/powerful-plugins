@@ -1,6 +1,6 @@
 ---
 name: spark
-description: This skill should be used when the user invokes "/spark" or asks "what's the best thing you could add to this PR/project?", "what single feature would make this better?", "what's the most impactful next move?", or "what would you add to this branch/codebase?". Generates the single smartest, most innovative and high-value addition to the current PR/branch or project, then offers to implement it.
+description: "Finds the single smartest, highest-value addition to the current PR, branch or project, presents it, and offers to build it. Use on \"/spark\", \"what is the best thing you could add to this PR?\", \"what single feature would make this better?\", \"what is the most impactful next move?\", \"what would you add to this codebase?\"."
 invoke: spark
 ---
 
