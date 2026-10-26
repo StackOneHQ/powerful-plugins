@@ -37,7 +37,7 @@ Every forge on code runs this loop. The re-check in step 4 is the part that matt
 
 Exit only when all hold: a full pass over your own diff found nothing to change; none of the meter's counts (comment lines, longest comment block, type escapes, `try` blocks, optional chains, nullish defaults, risky regexes) is higher than before; every copy it lists is gone or reported as unfinished; the tests match.
 
-**Handing forge to a subagent.** A subagent runs the loop only if its prompt spells it out; "forge-quality" alone skips the meter. Write: "Load the forge skill from the spark plugin and run its loop on <branch> against <base>. Report meter before → after, tests, and anything unfinished." Quote each subagent's meter line in your own report.
+**Handing forge to a subagent.** A subagent runs the loop only if its prompt spells it out; "forge-quality" alone skips the meter. Write: "Load the forge skill from the forge plugin and run its loop on <branch> against <base>. Report meter before → after, tests, and anything unfinished." Quote each subagent's meter line in your own report.
 
 ## The moves
 

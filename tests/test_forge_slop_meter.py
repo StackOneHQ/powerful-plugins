@@ -7,7 +7,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-METER = Path(__file__).resolve().parents[1] / "plugins" / "engineering" / "spark" / "scripts" / "slop-meter.mjs"
+METER = Path(__file__).resolve().parents[1] / "plugins" / "engineering" / "forge" / "scripts" / "slop-meter.mjs"
 
 
 def git(repo: Path, *args: str) -> None:

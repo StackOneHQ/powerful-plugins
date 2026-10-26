@@ -122,18 +122,34 @@
       }
     },
     {
+      "name": "forge",
+      "source": "./plugins/engineering/forge",
+      "description": "Rewrite code, a diff, a PR or a plan into its simplest, sturdiest form, strip AI-written slop, and run read-only simplification audits across a codebase.",
+      "category": "engineering",
+      "tags": [
+        "code-quality",
+        "design-review",
+        "refactoring",
+        "ai-slop",
+        "audit"
+      ],
+      "version": "1.0.0",
+      "author": {
+        "name": "StackOne",
+        "url": "https://github.com/StackOneHQ"
+      }
+    },
+    {
       "name": "spark",
       "source": "./plugins/engineering/spark",
-      "description": "Find the most useful next addition to a change, pressure-test plans and implementations, and run read-only simplification audits across a codebase.",
+      "description": "Find the single most useful next addition to a PR, branch or project, then build it.",
       "category": "engineering",
       "tags": [
         "ideation",
-        "design-review",
-        "code-quality",
-        "audit",
-        "refactoring"
+        "productivity",
+        "pr-review"
       ],
-      "version": "1.4.0",
+      "version": "2.0.0",
       "author": {
         "name": "StackOne",
         "url": "https://github.com/StackOneHQ"

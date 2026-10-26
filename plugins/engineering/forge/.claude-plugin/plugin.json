@@ -1,0 +1,21 @@
+{
+  "name": "forge",
+  "version": "1.0.0",
+  "description": "Rewrites code, a diff, a PR or a plan into its simplest, sturdiest form and strips AI-written slop, with a slop meter to prove it. Audit runs a read-only simplification audit across whole codebases.",
+  "author": {
+    "name": "StackOne",
+    "url": "https://github.com/StackOneHQ"
+  },
+  "homepage": "https://github.com/StackOneHQ/powerful-plugins",
+  "repository": "https://github.com/StackOneHQ/powerful-plugins",
+  "license": "MIT",
+  "keywords": [
+    "code-quality",
+    "design-review",
+    "refactoring",
+    "ai-slop",
+    "deslop",
+    "audit",
+    "engineering"
+  ]
+}
