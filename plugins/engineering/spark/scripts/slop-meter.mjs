@@ -210,20 +210,29 @@ const patchOf = (file) => {
   return hunks;
 };
 
+const put = (pool, key) => pool.set(key, (pool.get(key) ?? 0) + 1);
+const take = (pool, key) => {
+  const left = pool.get(key);
+  if (left) pool.set(key, left - 1);
+  return Boolean(left);
+};
+const removedPool = (hunks) => {
+  const pool = new Map();
+  for (const { sign, text } of hunks.flat()) if (sign === '-') put(pool, squash(text));
+  return pool;
+};
 // A line that moved or was re-indented shows up as both removed and added; count only what is new.
 // Comment blocks are counted within one hunk, over new lines only.
-const additionsOf = (hunks, isProseAt) => {
-  const pool = new Map();
-  for (const { sign, text } of hunks.flat()) if (sign === '-') { const key = squash(text); pool.set(key, (pool.get(key) ?? 0) + 1); }
+const additionsOf = (hunks, isProseAt, movedComments) => {
+  const pool = removedPool(hunks);
   const added = [];
   let longestCommentBlock = 0;
   for (const hunk of hunks) {
     let run = 0;
     for (const { sign, text, ln } of hunk) {
       if (sign !== '+') continue;
-      const left = pool.get(squash(text));
-      if (left) { pool.set(squash(text), left - 1); run = 0; continue; }
-      const prose = isProseAt(ln);
+      const prose = isProseAt(ln), key = squash(text);
+      if (take(pool, key) || (prose && take(movedComments, key))) { run = 0; continue; }
       added.push({ text, prose, ln });
       run = prose ? run + 1 : 0;
       longestCommentBlock = Math.max(longestCommentBlock, run);
@@ -361,19 +370,30 @@ const reuseOf = (file, added, lexed) => {
 const ESCAPES = /\bas any\b|\bas unknown as\b|:\s*any\b/g;
 // A test builds a partial fixture with `{ ... } as unknown as T`; there that double cast is the idiom.
 const TEST_ESCAPES = /\bas any\b|:\s*any\b/g;
-const rows = files.map((file) => {
-  const hunks = patchOf(file);
+// Comment status comes from the whole file, so a line inside a docstring counts as prose. Each side
+// uses its own path's syntax, since a rename can change the extension.
+const inputs = files.map((file) => {
   const baseText = showAt(base, basePathOf(file));
-  // Comment status comes from the whole file, so a line inside a docstring counts as prose. Each side
-  // uses its own path's syntax, since a rename can change the extension.
-  const headLexed = scan(file, headText(file)), baseLexed = scan(basePathOf(file), baseText);
+  return { file, hunks: patchOf(file), baseText, headLexed: scan(file, headText(file)), baseLexed: scan(basePathOf(file), baseText) };
+});
+// A comment moved to another file, or kept through a rewrite git no longer pairs as a rename, is
+// removed in one file and added in another. A delimiter like `/**` matches any comment, so it never counts.
+const HAS_LETTER = /\p{L}/u;
+const movedComments = new Map();
+for (const { hunks, baseLexed } of inputs) {
+  const pool = removedPool(hunks), baseProse = proseOf(baseLexed);
+  for (const { sign, text } of hunks.flat()) if (sign === '+') take(pool, squash(text));
+  for (const { sign, text, ln } of hunks.flat()) if (sign === '-' && baseProse[ln - 1] && HAS_LETTER.test(text) && take(pool, squash(text))) put(movedComments, squash(text));
+}
+
+const rows = inputs.map(({ file, hunks, baseText, headLexed, baseLexed }) => {
   const headProse = proseOf(headLexed);
   const lines = hunks.flat();
   // Pattern counts read only code: `as any` in a comment is prose about code, and one in a string or a
   // regex is data. `@ts-ignore` is the exception: it is a directive only where it opens a comment.
   const sideOf = (sign, key) => lines.filter((l) => l.sign === sign).map((l) => (sign === '+' ? headLexed : baseLexed)[l.ln - 1]?.[key] ?? '');
   const netCount = (re, key = 'code') => Math.max(0, count(sideOf('+', key), re) - count(sideOf('-', key), re));
-  const { added: addedLines, longestCommentBlock } = additionsOf(hunks, (ln) => headProse[ln - 1] ?? false);
+  const { added: addedLines, longestCommentBlock } = additionsOf(hunks, (ln) => headProse[ln - 1] ?? false, movedComments);
 
   const addedNonBlank = addedLines.filter((l) => l.text.trim());
   const addedComments = addedNonBlank.filter((l) => l.prose).map((l) => l.text);

@@ -106,6 +106,27 @@ class SlopMeterTests(unittest.TestCase):
         totals = r.meter()["totals"]
         self.assertEqual((totals["optionalChains"], totals["nullishDefaults"]), (1, 1))
 
+    def test_comments_carried_into_a_rewritten_rename_are_not_new(self) -> None:
+        comments = "".join(f"// The resource indicator rule number {i} still holds.\n" for i in range(9))
+        old_code = "".join(f"export const oldValue{i} = normalizeResource({i});\n" for i in range(30))
+        new_code = "".join(f"export const tokenValue{i} = resolveTokenResource({i}, true);\n" for i in range(30))
+        r = self.repo({"src/resource-normalize.ts": comments + old_code})
+        git(r.path, "mv", "src/resource-normalize.ts", "src/token-resource.ts")
+        r.write({"src/token-resource.ts": comments + "// One new note.\n" + new_code})
+        totals = r.meter()["totals"]
+        self.assertEqual((totals["addedComments"], totals["longestCommentBlock"]), (1, 1))
+
+    def test_a_comment_moved_to_another_file_is_not_new(self) -> None:
+        r = self.repo({"a.ts": "// Callers rely on this staying sorted.\n// Do it.\nexport const a = 1;\n", "b.ts": "export const b = 2;\n"})
+        r.write({"a.ts": "export const a = 1;\n", "b.ts": "// Callers rely on this staying sorted.\n// Do it.\nexport const b = 2;\n"})
+        self.assertEqual(r.meter()["totals"]["addedComments"], 0)
+
+    def test_a_moved_comment_offsets_only_one_copy(self) -> None:
+        r = self.repo({"a.ts": "// Callers rely on this staying sorted.\nexport const a = 1;\n", "b.ts": "export const b = 2;\n"})
+        note = "// Callers rely on this staying sorted.\n"
+        r.write({"a.ts": "export const a = 1;\n", "b.ts": note + "export const b = 2;\n", "c.ts": note + "export const c = 3;\n"})
+        self.assertEqual(r.meter()["totals"]["addedComments"], 1)
+
     def test_a_git_failure_is_an_error_not_an_empty_diff(self) -> None:
         r = self.repo({"a.ts": "export const a = 1;\n"})
         blob = subprocess.run(
