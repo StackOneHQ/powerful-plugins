@@ -22,7 +22,7 @@ Forge turns working code into the version a senior engineer would be proud to ha
 
 Default scope is the current branch against its base. Resolve the base; never assume `main`: `git merge-base HEAD <remote>/<default-branch>`, taking the remote whose URL is the canonical repo.
 
-When rewriting, forge edits the working tree and runs the meter, lint, typecheck and tests without asking; for a question or a plan it changes nothing. Committing and pushing stay with the user. A PR the user did not write, from a fork or another author, is the exception: installing its dependencies or running its checks runs that author's scripts with the user's permissions, so ask first, and without a yes, rewrite and report with step 5 marked as not run.
+When rewriting, forge edits the working tree and runs the meter, lint, typecheck and tests without asking; for a question or a plan it changes nothing. Committing and pushing stay with the user. A PR the user did not write, from a fork or another author, is the exception: installing its dependencies or running its checks runs that author's scripts with the user's permissions, so ask first, naming the commit you checked out. A yes covers that commit only: ask again before running anything from a newer head you fetch. Without a yes, rewrite and report with step 5 marked as not run.
 
 ## The loop
 
