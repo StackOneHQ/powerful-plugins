@@ -127,6 +127,24 @@ class SlopMeterTests(unittest.TestCase):
         r.write({"a.ts": "export const a = 1;\n", "b.ts": note + "export const b = 2;\n", "c.ts": note + "export const c = 3;\n"})
         self.assertEqual(r.meter()["totals"]["addedComments"], 1)
 
+    def test_a_moved_doc_block_brings_its_delimiters(self) -> None:
+        doc = "/**\n * Callers rely on this staying sorted.\n * Keep it that way.\n */\n"
+        r = self.repo({"a.ts": doc + "export const a = 1;\n", "b.ts": "export const b = 2;\n"})
+        r.write({"a.ts": "export const a = 1;\n", "b.ts": doc + "export const b = 2;\n"})
+        totals = r.meter()["totals"]
+        self.assertEqual((totals["addedComments"], totals["longestCommentBlock"]), (0, 0))
+
+    def test_a_new_doc_block_counts_its_delimiters(self) -> None:
+        r = self.repo({"b.ts": "export const b = 2;\n"})
+        r.write({"b.ts": "/**\n * A new note.\n */\nexport const b = 2;\n"})
+        self.assertEqual(r.meter()["totals"]["addedComments"], 3)
+
+    def test_a_comment_echoed_as_string_data_still_matches_its_move(self) -> None:
+        note = "// Callers rely on this staying sorted.\n"
+        r = self.repo({"a.ts": note + "export const a = 1;\n", "b.ts": "export const b = 2;\n"})
+        r.write({"a.ts": "export const a = 1;\nexport const t = `\n" + note + "`;\n", "b.ts": note + "export const b = 2;\n"})
+        self.assertEqual(r.meter()["totals"]["addedComments"], 0)
+
     def test_a_git_failure_is_an_error_not_an_empty_diff(self) -> None:
         r = self.repo({"a.ts": "export const a = 1;\n"})
         blob = subprocess.run(

@@ -216,23 +216,32 @@ const take = (pool, key) => {
   if (left) pool.set(key, left - 1);
   return Boolean(left);
 };
-const removedPool = (hunks) => {
+// A removed comment is matched only by an added comment, and removed code only by code, so a comment
+// that reappears as string data is still free to match its move into another file.
+const keyOf = ({ text, prose }) => `${prose ? 'c' : 'x'}${squash(text)}`;
+const removedPool = (lines) => {
   const pool = new Map();
-  for (const { sign, text } of hunks.flat()) if (sign === '-') put(pool, squash(text));
+  for (const l of lines) if (l.sign === '-') put(pool, keyOf(l));
   return pool;
 };
+const HAS_LETTER = /\p{L}/u;
 // A line that moved or was re-indented shows up as both removed and added; count only what is new.
 // Comment blocks are counted within one hunk, over new lines only.
-const additionsOf = (hunks, isProseAt, movedComments) => {
-  const pool = removedPool(hunks);
+const additionsOf = (hunks, movedComments) => {
+  const pool = removedPool(hunks.flat());
   const added = [];
   let longestCommentBlock = 0;
   for (const hunk of hunks) {
+    const lines = hunk.filter((l) => l.sign === '+').map((l) => ({ ...l, old: take(pool, keyOf(l)) || take(movedComments, keyOf(l)) }));
+    // Delimiters like `/**` and `*/` never match as moved; they move with their block when every worded line in it did.
+    for (let i = 0, j; i < lines.length; i = j + 1) {
+      for (j = i; lines[j]?.prose; j++);
+      const block = lines.slice(i, j);
+      if (block.some((l) => l.old) && !block.some((l) => !l.old && HAS_LETTER.test(l.text))) for (const l of block) l.old = true;
+    }
     let run = 0;
-    for (const { sign, text, ln } of hunk) {
-      if (sign !== '+') continue;
-      const prose = isProseAt(ln), key = squash(text);
-      if (take(pool, key) || (prose && take(movedComments, key))) { run = 0; continue; }
+    for (const { text, prose, ln, old } of lines) {
+      if (old) { run = 0; continue; }
       added.push({ text, prose, ln });
       run = prose ? run + 1 : 0;
       longestCommentBlock = Math.max(longestCommentBlock, run);
@@ -374,26 +383,27 @@ const TEST_ESCAPES = /\bas any\b|:\s*any\b/g;
 // uses its own path's syntax, since a rename can change the extension.
 const inputs = files.map((file) => {
   const baseText = showAt(base, basePathOf(file));
-  return { file, hunks: patchOf(file), baseText, headLexed: scan(file, headText(file)), baseLexed: scan(basePathOf(file), baseText) };
+  const headLexed = scan(file, headText(file)), baseLexed = scan(basePathOf(file), baseText);
+  const prose = { '+': proseOf(headLexed), '-': proseOf(baseLexed) };
+  const hunks = patchOf(file).map((hunk) => hunk.map((l) => ({ ...l, prose: prose[l.sign][l.ln - 1] ?? false })));
+  return { file, hunks, baseText, headLexed, baseLexed };
 });
 // A comment moved to another file, or kept through a rewrite git no longer pairs as a rename, is
 // removed in one file and added in another. A delimiter like `/**` matches any comment, so it never counts.
-const HAS_LETTER = /\p{L}/u;
 const movedComments = new Map();
-for (const { hunks, baseLexed } of inputs) {
-  const pool = removedPool(hunks), baseProse = proseOf(baseLexed);
-  for (const { sign, text } of hunks.flat()) if (sign === '+') take(pool, squash(text));
-  for (const { sign, text, ln } of hunks.flat()) if (sign === '-' && baseProse[ln - 1] && HAS_LETTER.test(text) && take(pool, squash(text))) put(movedComments, squash(text));
+for (const { hunks } of inputs) {
+  const lines = hunks.flat(), pool = removedPool(lines);
+  for (const l of lines) if (l.sign === '+') take(pool, keyOf(l));
+  for (const l of lines) if (l.sign === '-' && l.prose && HAS_LETTER.test(l.text) && take(pool, keyOf(l))) put(movedComments, keyOf(l));
 }
 
 const rows = inputs.map(({ file, hunks, baseText, headLexed, baseLexed }) => {
-  const headProse = proseOf(headLexed);
   const lines = hunks.flat();
   // Pattern counts read only code: `as any` in a comment is prose about code, and one in a string or a
   // regex is data. `@ts-ignore` is the exception: it is a directive only where it opens a comment.
   const sideOf = (sign, key) => lines.filter((l) => l.sign === sign).map((l) => (sign === '+' ? headLexed : baseLexed)[l.ln - 1]?.[key] ?? '');
   const netCount = (re, key = 'code') => Math.max(0, count(sideOf('+', key), re) - count(sideOf('-', key), re));
-  const { added: addedLines, longestCommentBlock } = additionsOf(hunks, (ln) => headProse[ln - 1] ?? false, movedComments);
+  const { added: addedLines, longestCommentBlock } = additionsOf(hunks, movedComments);
 
   const addedNonBlank = addedLines.filter((l) => l.text.trim());
   const addedComments = addedNonBlank.filter((l) => l.prose).map((l) => l.text);
