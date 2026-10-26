@@ -15,8 +15,9 @@ codex plugin marketplace add StackOneHQ/powerful-plugins
 codex plugin add forge@powerful-plugins
 ```
 
-Forge pairs with [`spark`](../spark/), which picks the best next addition to a change, builds it
-and then runs forge on it. Each plugin works without the other.
+Forge pairs with [`spark`](../spark/), which picks the best next addition to a change and offers to
+build it. Once it has built one, spark runs forge on the result when forge is installed, and
+reports the forge pass as skipped when it is not. Each plugin works without the other.
 
 ## Skills
 
@@ -41,7 +42,7 @@ Invoke with `/forge` or phrases like:
 - "critique this design"
 - "deslop this" / "remove the AI slop from this branch"
 
-Forge is a rewrite, not a review. Pointed at code with an imperative ("forge this", "unslop the PR"), it rewrites the change and runs a loop: measure the slop, read the surrounding code, rewrite, **re-check the lines it wrote itself**, prove the tests behave identically, and repeat until a pass changes nothing. A named PR is checked out in its own worktree, so your branch and uncommitted work stay as they were. Asked a question ("is it forged?", "is this the best way?"), it answers with each finding and the concrete rewrite, and applies nothing. Given a plan, it returns the revised plan.
+Forge is a rewrite, not a review. Pointed at code with an imperative ("forge this", "unslop the PR"), it rewrites the change and runs a loop: measure the slop, read the surrounding code, rewrite, **re-check the lines it wrote itself**, prove the tests behave identically, and repeat until a pass changes nothing. On a PR from a fork or another author it asks before installing dependencies or running checks, because those run the author's scripts; without a yes it still rewrites, and reports the test step as not run. A named PR is checked out in its own worktree, so your branch and uncommitted work stay as they were. Asked a question ("is it forged?", "is this the best way?"), it answers with each finding and the concrete rewrite, and applies nothing. Given a plan, it returns the revised plan.
 
 The rewrite applies eight moves in order: delete, reuse what already exists, collapse single-use abstractions, call actions instead of watching state, trust the types, name it, make wrong states unrepresentable, and only then comment. Comments follow a contract: a constraint the code cannot express or a contract the signature hides, two lines by default, every claim checked against the code. Duplicates and slop are fixed in the same pass, never deferred as follow-ups.
 
@@ -71,7 +72,8 @@ findings each, or `skip`), verifies every finding against the tree itself, then
 audits its own output for missing coverage, overlap, over-abstraction, schema
 gaps, and priority ordering before reporting ranked findings.
 
-Results are published as a **visual report artifact**: coverage strip, top
+Results come as a **visual report**: a private artifact where the host has an `Artifact` tool,
+otherwise a self-contained HTML file in the scratchpad. It shows a coverage strip, top
 slices, ranked finding cards with file:line evidence, the full subsystem
 inventory including skips, and a dependency graph where findings block each
 other. The markdown report stays the record; the page is what gets shared into

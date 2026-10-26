@@ -142,7 +142,7 @@
     {
       "name": "spark",
       "source": "./plugins/engineering/spark",
-      "description": "Find the single most useful next addition to a PR, branch or project, then build it.",
+      "description": "Find the single most useful next addition to a PR, branch or project, then offer to build it.",
       "category": "engineering",
       "tags": [
         "ideation",
