@@ -41,7 +41,10 @@ slop. Without forge installed, spark says the forge pass was skipped and does no
 review of its own.
 
 Spark and forge used to ship together as one plugin (`spark` 1.x, with `/spark:forge` and
-`/spark:audit`). From 2.0.0 forge and audit are `/forge:forge` and `/forge:audit`.
+`/spark:audit`). From 2.0.0 forge and audit are `/forge:forge` and `/forge:audit`. Spark 2.x
+keeps `/spark:forge` and `/spark:audit` as deprecated aliases: each one says the command has moved,
+then runs the forge plugin's skill with the same arguments, or gives the install command when forge
+is missing. The aliases will be removed in spark 3.0.0.
 
 ## Requirements
 
