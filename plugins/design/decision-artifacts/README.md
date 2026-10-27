@@ -36,6 +36,12 @@ equivalent. The diagram, step labels and result share one model so changing an
 input does not leave contradictory views. Ask: "Walk me through this retry policy
 with one example. Let me change the delay cap and show why the result changes."
 
+For a spend review, the skill builds an overview with the pace and an owner
+table, an explore tab where any bar, row or box filters every view, a tab on
+the waste the savings come from, and decisions with saving ranges. Ask: "Where
+is our cloud bill going? Let me group it by team or product and pick what to
+cut."
+
 ## Composition with other skills
 
 The plugin composes with adjacent skills instead of copying their rules.

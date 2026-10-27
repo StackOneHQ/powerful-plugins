@@ -66,3 +66,5 @@ Good primary views: status table, change timeline, findings register. Every row 
 Use when the answer depends on inputs, assumptions or scenarios.
 
 Lead with the baseline result, the inputs that most affect it, and the safe interpretation. Show controls with visible values and reset, baseline and selected scenario together, assumptions and range limits, and how the result was derived. Never hide the baseline behind interaction.
+
+A cost or usage breakdown with savings to approve follows [spend-review.md](spend-review.md).

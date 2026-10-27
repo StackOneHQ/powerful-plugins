@@ -32,6 +32,7 @@ A `<figure>` holding an SVG with `role="img"` and a short name in `aria-label` o
 | How sure, how spread out? | Point with a band, or a dot strip |
 | Which is biggest? | Ordered bar or dot |
 | What share of the whole? | One stacked bar, or a table |
+| Where does a total go, and who owns it? | Stacked bars over time by owner, a ranked list with sparklines, a treemap, per [spend-review.md](spend-review.md) |
 | In what order? | Sequence, stepper or timeline |
 | How does it work? | Flow, responsibility map or dependency graph |
 | What if the inputs change? | Scenario controls with the baseline alongside |
