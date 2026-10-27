@@ -14,8 +14,9 @@ alias-for: forge:audit
 3. If it is not available, run it from the copy of this marketplace already on disk. The forge plugin root is the first of these directories that exists:
    - `${CLAUDE_PLUGIN_ROOT}/../forge`, when spark is loaded from a marketplace folder or a plugin directory.
    - In Claude Code, `plugins/engineering/forge` under the `installLocation` that `known_marketplaces.json` lists for `powerful-plugins`. That file is in `$CLAUDE_CONFIG_DIR/plugins/`, or `~/.claude/plugins/` when the variable is unset.
+   - In Codex, `plugins/engineering/forge` under `$CODEX_HOME/.tmp/marketplaces/powerful-plugins`, or `~/.codex/.tmp/marketplaces/powerful-plugins` when the variable is unset.
 
-   Read `skills/audit/SKILL.md` in that root completely and follow it on the same request. Resolve its relative paths from that file, and treat `CLAUDE_PLUGIN_ROOT` and `PLUGIN_ROOT` in it as the forge plugin root. After the result, tell the user once that installing forge makes this permanent: `/plugin install forge@powerful-plugins`.
+   Read `skills/audit/SKILL.md` in that root completely and follow it on the same request. Resolve its relative paths from that file, and treat `CLAUDE_PLUGIN_ROOT` and `PLUGIN_ROOT` in it as the forge plugin root. After the result, tell the user once that installing forge makes this permanent: `/plugin install forge@powerful-plugins` in Claude Code, or `codex plugin add forge@powerful-plugins` in Codex.
 4. If neither directory exists, do not run the audit workflow yourself. Tell the user to install the forge plugin from the same marketplace, then run `/forge:audit`:
    - Claude Code: `/plugin install forge@powerful-plugins`
    - Codex: `codex plugin add forge@powerful-plugins`
