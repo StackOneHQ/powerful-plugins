@@ -18,6 +18,18 @@ Draw the quantity a decision turns on as position on one shared axis (dots or ba
 
 Each figure's caption is one sentence with its number, linked to the evidence record behind it. The marks alone must show the same finding: cover the caption to check. Annotate the change where it happens (delta, cause, threshold) rather than in a legend below. The series the open decision turns on takes the accent; the rest are grey and labelled directly. Views with every series, and filters, go in the sheet.
 
+## The panel leads with the data
+
+Selecting a decision shows the data behind it before the option text:
+
+- the metric the decision turns on over time, with the measurement window marked and the recommended option's projected effect drawn dashed beside the measured series
+- the breakdown that shows where the number comes from (meter, component, owner)
+- any test result as a chart, one panel per task; for a model choice, accuracy against relative cost per option
+
+Selecting the overview opens a full explore view in the panel: period, group-by, basis, stacked, lines or share, click-to-filter with removable chips, a ranked list with sparklines and change, and a hierarchy treemap. Every per-decision chart has an "Explore this" action that opens it filtered to that decision's slice.
+
+Ship the data with the page (published supporting files or inline JSON) as one tidy dataset that every view computes from. A chart that fails to draw leaves its values table or a text summary.
+
 ## Markup
 
 A `<figure>` holding an SVG with `role="img"` and a short name in `aria-label` or a `<title>`, a `<figcaption>`, and the values in a real table (the working table counts if it holds them). Add a one-line "how to read" for anything other than bars or lines. Hover is never the only way to read a value.

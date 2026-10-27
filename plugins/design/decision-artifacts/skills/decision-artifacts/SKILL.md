@@ -28,7 +28,7 @@ The page is a working interface, not a decorated report: **simple at rest, exhau
 2. **Decision strip:** conclusion or current state, why now (what changed, not background), next action, and "Updated <time> UTC" with what the page covers.
 3. **Primary visual:** before and after wherever a change can be shown: chart, number pair, screenshot or mockup.
 4. **Working surface:** the table or sequence, with the reader's choice and note on each decision row.
-5. **Detail sheet:** the exhaustive evidence, alternatives and implementation detail.
+5. **Detail sheet:** the selected item's data as charts first, then the exhaustive evidence, alternatives and implementation detail.
 
 At 320 px the first screen shows the `h1` and the first Needs-you item. Two disclosure levels at most. Tabs or collapsed sections suit peer views and history (previous runs, past answers); never hide the conclusion or an open decision. Controls, sheet and tabs: [references/interaction.md](references/interaction.md). Claude artifacts, including where answers are stored: [references/platforms.md](references/platforms.md); other surfaces: [references/other-surfaces.md](references/other-surfaces.md).
 

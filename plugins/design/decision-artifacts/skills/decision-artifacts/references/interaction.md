@@ -15,7 +15,8 @@ Every control must reduce the reader's work or support a decision; leave out any
 
 ## Sheet
 
-- At 900 px and wider the sheet is a column beside the table: the table stays usable, the selected row is marked, and the sheet has previous and next. Narrower, use `<dialog>` with `showModal()`, which makes the page inert and closes on Escape; return focus to the trigger on close.
+- Master-detail: at about 1,100 px and wider, the decision list stays on the left and a persistent panel on the right shows whatever the reader selected last. Selecting a decision row, a chart mark, a finding or a section heading drives the panel; the selected item is marked and the panel has previous and next. Narrower, the same panel opens as a `<dialog>` with `showModal()`, which makes the page inert and closes on Escape; return focus to the trigger on close.
+- The panel opens on the overview, not empty, and keeps the answer controls at its top, so choosing never means scrolling back.
 - An accessible name and a visible close control. A closed sheet is hidden with `[hidden]`, and the page's CSS keeps `[hidden] { display: none !important; }` so a `display: flex` rule can't leave an invisible sheet catching clicks.
 
 ## History, tabs and collapsed sections
