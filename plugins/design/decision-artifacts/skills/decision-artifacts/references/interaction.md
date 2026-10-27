@@ -27,6 +27,23 @@ Every control must reduce the reader's work or support a decision; leave out any
 
 Before/after layout is in [modes.md](modes.md); charts and number pairs in [visuals.md](visuals.md). A mark or node with supporting detail opens the same record as its table row.
 
+## Which component for which job
+
+Sheet, tabs, collapsed sections, segmented choice and checkboxes are above; before/after in [modes.md](modes.md); charts in [visuals.md](visuals.md).
+
+| Job | Component | Minimum |
+|---|---|---|
+| Confirm an irreversible step | An in-page `<dialog>` (`confirm()` returns false in artifacts) | Says what happens; focus returns |
+| A definition or a mark's values | Popover or tooltip | Never the only way to read a value |
+| Visual options, or one sentence each | Radio cards with previews | Whole card is the target |
+| More than six options | Select or combobox | Type to search |
+| A number: timeout, budget cap | Slider or stepper showing the value and its effect ("5 min · saves $20 to $50 a month") | Typed input too |
+| One setting applied at once | Toggle | Label says what changes |
+| An order of priority | Drag to rank | Move up and down buttons |
+| Many rows, one verdict each | Approve or reject per row, plus bulk | Undo for bulk |
+
+Show a headline number as a stat tile or number pair with a signed delta and its basis; magnitudes across rows as a table with inline bars and printed values; an item's state as a badge with icon and word; one decision-changing caveat as a single callout; active filters as removable chips. Every choice keeps its note, and the detail container keeps one name across the page.
+
 ## Platform floor
 
 - Lay out for 320 px with no horizontal page scroll. Wide tables scroll in their own container or become stacked labelled rows, using a container query on the table's wrapper so they also stack when the sheet narrows them.

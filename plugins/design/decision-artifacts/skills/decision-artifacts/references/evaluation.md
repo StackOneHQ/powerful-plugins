@@ -20,6 +20,9 @@ The artifact fails if any answer is no:
 - Does the page work at 320 px with no horizontal scroll, with targets of at least 24 px?
 - Is visible prose within the budget, with no session phrases and no mode or taste labels?
 - Are live, stored, unavailable and snapshot data states labelled accurately?
+- Does a script confirm, in light and dark at desktop and 320 px, that no text is under 14 px, text contrast is at least 4.5:1 and every mark the reader must read is at least 3:1?
+- Does each chart give its accent only to what the decision is about, from a palette the `dataviz` validator passes for each theme?
+- Does each choice use the control that fits its shape, per [interaction.md](interaction.md)?
 
 ## Reader tasks
 
