@@ -7,7 +7,8 @@
 // Each --click is run in order after the first audit (open a panel, switch a tab) and the page is
 // audited again. Exit 0 = clean, 1 = a text finding, 2 = could not check (no browser or bad input).
 // Needs the `playwright` package (1.48 or later), resolved from this script's location or the global
-// npm root; set PLAYWRIGHT_FROM_CWD=1 to use the copy in the current directory. CHROMIUM_PATH picks a browser.
+// node_modules of the Node running it; set PLAYWRIGHT_FROM_CWD=1 to use the copy in the current directory.
+// CHROMIUM_PATH picks a browser.
 // A local file is served, with the files beside it, from 127.0.0.1 for the run only, and the page may
 // reach only that server. Pass --allow-cdn when it loads libraries or fonts from the CDN hosts artifacts
 // allow: the page can then send what it reads from those files to them, so use it on pages you wrote.
@@ -18,7 +19,6 @@ import http from "node:http";
 import path from "node:path";
 import { createRequire } from "node:module";
 import { randomBytes } from "node:crypto";
-import { execFileSync } from "node:child_process";
 
 const args = process.argv.slice(2);
 const target = args.find((a, i) => !a.startsWith("--") && !["--click", "--widths"].includes(args[i - 1]));
@@ -28,13 +28,17 @@ const wi = args.indexOf("--widths");
 const widths = wi >= 0 ? args[wi + 1].split(",").map(Number) : [1440, 320];
 if (!target) { console.error("usage: audit-design-floor.mjs <page.html | URL> [--click selector]... [--widths 1440,320] [--allow-cdn]"); process.exit(2); }
 
-// A bare import doesn't search npm's global root, so that one is resolved by path.
+// A bare import doesn't search the global node_modules, so it is resolved by path. The path comes from
+// the Node binary itself, not from running npm, which would read a project .npmrc in the current directory.
+const globalRoot = process.platform === "win32"
+  ? path.join(path.dirname(process.execPath), "node_modules")
+  : path.join(path.dirname(path.dirname(process.execPath)), "lib", "node_modules");
 const fromDir = (dir) => { const req = createRequire(path.join(dir, "noop.js")); const at = req.resolve("playwright"); console.log("playwright: " + at); return req(at).chromium; };
 let chromium;
 try {
   if (process.env.PLAYWRIGHT_FROM_CWD === "1") chromium = fromDir(process.cwd());
   else try { chromium = (await import("playwright")).chromium; }
-  catch { chromium = fromDir(execFileSync("npm", ["root", "-g"], { encoding: "utf8" }).trim()); }
+  catch { chromium = fromDir(globalRoot); }
 } catch { console.error("could not check: install the playwright package (npm i -g playwright), or run from a project that has it with PLAYWRIGHT_FROM_CWD=1"); process.exit(2); }
 
 // A local page is served with the files beside it (data, scripts) from 127.0.0.1 for the run only.
