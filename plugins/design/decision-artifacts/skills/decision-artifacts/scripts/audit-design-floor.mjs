@@ -2,14 +2,16 @@
 // Design-floor audit for a decision page: every visible text node's computed size and its contrast
 // against what is actually behind it, plus chart-mark contrast, in light and dark at each width.
 //
-//   node audit-design-floor.mjs <page.html | URL> [--click "<css selector>"]... [--widths 1440,320]
+//   node audit-design-floor.mjs <page.html | URL> [--click "<css selector>"]... [--widths 1440,320] [--allow-cdn]
 //
 // Each --click is run in order after the first audit (open a panel, switch a tab) and the page is
 // audited again. Exit 0 = clean, 1 = a text finding, 2 = could not check (no browser or bad input).
 // Needs the `playwright` package, resolved from this script's location or a global install; set
 // PLAYWRIGHT_FROM_CWD=1 to use the copy in the current directory instead. CHROMIUM_PATH picks a browser.
-// A local file is served, with the files beside it, from 127.0.0.1 for the run only; the page may
-// reach that server and the CDN hosts artifacts allow, nothing else.
+// A local file is served, with the files beside it, from 127.0.0.1 for the run only, and the page may
+// reach only that server. Pass --allow-cdn when it loads libraries or fonts from the CDN hosts artifacts
+// allow: the page can then send what it reads from those files to them, so use it on pages you wrote.
+// A URL target may reach its own origin and those CDN hosts. Service workers and WebSockets are blocked.
 import fs from "node:fs";
 import http from "node:http";
 import path from "node:path";
@@ -17,11 +19,12 @@ import { createRequire } from "node:module";
 import { randomBytes } from "node:crypto";
 
 const args = process.argv.slice(2);
-const target = args.find((a, i) => !a.startsWith("--") && !(args[i - 1] || "").startsWith("--"));
+const target = args.find((a, i) => !a.startsWith("--") && !["--click", "--widths"].includes(args[i - 1]));
+const allowCdn = args.includes("--allow-cdn");
 const clicks = args.flatMap((a, i) => (a === "--click" ? [args[i + 1]] : []));
 const wi = args.indexOf("--widths");
 const widths = wi >= 0 ? args[wi + 1].split(",").map(Number) : [1440, 320];
-if (!target) { console.error("usage: audit-design-floor.mjs <page.html | URL> [--click selector]... [--widths 1440,320]"); process.exit(2); }
+if (!target) { console.error("usage: audit-design-floor.mjs <page.html | URL> [--click selector]... [--widths 1440,320] [--allow-cdn]"); process.exit(2); }
 
 let chromium;
 try {
@@ -62,44 +65,53 @@ if (!/^https?:/.test(target)) {
   url = `${origin}/${token}/`;
 }
 const ALLOWED = new Set(["cdnjs.cloudflare.com", "cdn.jsdelivr.net", "unpkg.com", "cdn.tailwindcss.com", "code.jquery.com", "fonts.googleapis.com", "fonts.gstatic.com"]);
-// Requests may go to this run's server (exact origin), the target's own origin, or an allowed CDN over https.
+// Requests may go to this run's server (exact origin) or the target's own origin, and to an allowed
+// CDN over https for a URL target or with --allow-cdn. "cdn" marks a CDN request that was refused.
 const allowed = (u) => {
   let x; try { x = new URL(u); } catch { return false; }
   if (x.protocol === "data:" || x.protocol === "blob:") return true;
-  if (origin) return x.origin === origin || (x.protocol === "https:" && ALLOWED.has(x.hostname));
-  return x.origin === new URL(target).origin || (x.protocol === "https:" && ALLOWED.has(x.hostname));
+  if (x.origin === (origin || new URL(target).origin)) return true;
+  if (x.protocol !== "https:" || !ALLOWED.has(x.hostname)) return false;
+  return !origin || allowCdn || "cdn";
 };
 const LAUNCH = ["--force-webrtc-ip-handling-policy=disable_non_proxied_udp", "--webrtc-ip-handling-policy=disable_non_proxied_udp"];
 
 const AUDIT = () => {
   const parse = (c) => { const m = (c || "").match(/rgba?\(([^)]+)\)/); if (!m) return null; const v = m[1].split(/[ ,/]+/).filter(Boolean).map(Number); return { r: v[0], g: v[1], b: v[2], a: v.length > 3 ? v[3] : 1 }; };
   const lum = (c) => { const f = (x) => { x /= 255; return x <= 0.03928 ? x / 12.92 : Math.pow((x + 0.055) / 1.055, 2.4); }; return 0.2126 * f(c.r) + 0.7152 * f(c.g) + 0.0722 * f(c.b); };
-  const over = (top, bot) => ({ r: top.r * top.a + bot.r * (1 - top.a), g: top.g * top.a + bot.g * (1 - top.a), b: top.b * top.a + bot.b * (1 - top.a), a: 1 });
-  const ratio = (a, b) => { const x = lum(a), y = lum(b); return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05); };
-  const pageBg = (el) => {
-    const stack = [];
-    for (let n = el; n && n.nodeType === 1; n = n.parentElement) {
-      if (n instanceof SVGElement && n.tagName !== "svg") continue;
-      const c = parse(getComputedStyle(n).backgroundColor);
-      if (c && c.a > 0) { stack.push(c); if (c.a >= 1) break; }
-    }
-    let base = { r: 255, g: 255, b: 255, a: 1 };
-    for (let i = stack.length - 1; i >= 0; i--) base = over(stack[i], base);
-    return base;
+  const T = { r: 0, g: 0, b: 0, a: 0 };
+  const over = (top, bot) => {
+    const a = top.a + bot.a * (1 - top.a); if (!a) return T;
+    const mix = (k) => (top[k] * top.a + bot[k] * bot.a * (1 - top.a)) / a;
+    return { r: mix("r"), g: mix("g"), b: mix("b"), a };
   };
-  // In an SVG, a filled shape painted earlier under the text's centre is part of its background.
-  const svgBg = (e, base) => {
+  const ratio = (a, b) => { const x = lum(a), y = lum(b); return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05); };
+  const num = (v) => { const n = parseFloat(v); return Number.isFinite(n) ? n : 1; };
+  const fade = (c, k) => ({ ...c, a: c.a * k });
+  // In an SVG, filled shapes painted earlier under the point are part of the background, at their own opacity.
+  const shapesUnder = (e, svg) => {
     const tb = e.getBoundingClientRect(), cx = tb.left + tb.width / 2, cy = tb.top + tb.height / 2;
-    let bg = base;
-    for (const sh of e.ownerSVGElement.querySelectorAll("rect, circle, path")) {
+    let bg = T;
+    for (const sh of svg.querySelectorAll("rect, circle, ellipse, path, polygon")) {
       if (sh === e || !(sh.compareDocumentPosition(e) & Node.DOCUMENT_POSITION_FOLLOWING)) continue;
-      const f = parse(getComputedStyle(sh).fill); if (!f || f.a === 0 || sh.getAttribute("fill") === "transparent") continue;
-      const sb = sh.getBoundingClientRect(); if (cx >= sb.left && cx <= sb.right && cy >= sb.top && cy <= sb.bottom) bg = over(f, bg);
+      const cs = getComputedStyle(sh), f = parse(cs.fill); if (!f || f.a === 0 || sh.getAttribute("fill") === "transparent") continue;
+      const sb = sh.getBoundingClientRect(); if (cx >= sb.left && cx <= sb.right && cy >= sb.top && cy <= sb.bottom) bg = over(fade(f, num(cs.fillOpacity) * num(cs.opacity)), bg);
     }
     return bg;
   };
-  // Opacity multiplies down the tree, so a faded parent fades its text and marks too.
-  const opacityOf = (e) => { let o = 1; for (let n = e; n && n.nodeType === 1; n = n.parentElement) o *= parseFloat(getComputedStyle(n).opacity); return o; };
+  // What the screen shows when `top` is painted in element e: each ancestor paints its background, then
+  // its content, and the whole group is composited at that ancestor's opacity, out to a white canvas.
+  // render(fg) against render(T) compares the text with the surface actually behind it.
+  const render = (e, top, withShapes) => {
+    let px = top;
+    for (let n = e; n && n.nodeType === 1; n = n.parentElement) {
+      const cs = getComputedStyle(n);
+      let under = n instanceof SVGElement && n.tagName !== "svg" ? T : parse(cs.backgroundColor) || T;
+      if (withShapes && n === e.ownerSVGElement) under = over(shapesUnder(e, n), under);
+      px = fade(over(px, under), num(cs.opacity));
+    }
+    return over(px, { r: 255, g: 255, b: 255, a: 1 });
+  };
   // A horizontal or vertical line has no height or width, so a mark only needs one of them.
   const visible = (e) => { const r = e.getBoundingClientRect(); if (!r.width && !r.height) return false; const cs = getComputedStyle(e); return cs.visibility !== "hidden" && cs.display !== "none" && !e.closest("[hidden]"); };
   const out = { texts: 0, small: [], low: [], weakMarks: 0, marks: 0 };
@@ -108,9 +120,9 @@ const AUDIT = () => {
     if (![...e.childNodes].some((c) => c.nodeType === 3 && c.textContent.trim()) || !visible(e)) continue;
     const cs = getComputedStyle(e), size = parseFloat(cs.fontSize), isSvg = e instanceof SVGElement;
     const fg = parse(isSvg ? cs.fill : cs.color); if (!fg) continue;
-    fg.a *= opacityOf(e);
-    const base = pageBg(e), bg = isSvg && e.ownerSVGElement ? svgBg(e, base) : base;
-    const cr = ratio(over(fg, bg), bg), large = size >= 24 || (parseInt(cs.fontWeight) >= 600 && size >= 18.66);
+    if (isSvg) fg.a *= num(cs.fillOpacity);
+    const shapes = isSvg && !!e.ownerSVGElement;
+    const cr = ratio(render(e, fg, shapes), render(e, T, shapes)), large = size >= 24 || (parseInt(cs.fontWeight) >= 600 && size >= 18.66);
     const label = e.textContent.trim().replace(/\s+/g, " ").slice(0, 40);
     out.texts++;
     if (size < 14) out.small.push(`${label} (${size}px)`);
@@ -124,9 +136,8 @@ const AUDIT = () => {
     const paint = filled ? f : s && s.a > 0 && parseFloat(cs.strokeWidth) >= 1.5 ? s : null;
     if (!paint) continue;
     out.marks++;
-    const bg = pageBg(m.ownerSVGElement || m);
-    const own = parseFloat((paint === s ? cs.strokeOpacity : cs.fillOpacity) || 1);
-    if (ratio(over({ ...paint, a: Math.min(1, paint.a * own * opacityOf(m)) }, bg), bg) < 3) out.weakMarks++;
+    const own = num(paint === s ? cs.strokeOpacity : cs.fillOpacity);
+    if (ratio(render(m, fade(paint, own), false), render(m, T, false)) < 3) out.weakMarks++;
   }
   out.small = [...new Set(out.small)]; out.low = [...new Set(out.low)];
   return out;
@@ -138,13 +149,15 @@ catch { try { browser = await chromium.launch({ channel: "chrome", args: LAUNCH 
 
 let findings = 0, unchecked = 0;
 for (const width of widths) for (const scheme of ["light", "dark"]) {
-  const page = await browser.newPage({ viewport: { width, height: 900 }, colorScheme: scheme });
+  const page = await browser.newPage({ viewport: { width, height: 900 }, colorScheme: scheme, serviceWorkers: "block" });
   const errors = []; page.on("pageerror", (e) => errors.push(e.message));
-  await page.route("**/*", (route) => (allowed(route.request().url()) ? route.continue() : route.abort()));
+  let cdnRefused = 0;
+  await page.route("**/*", (route) => { const ok = allowed(route.request().url()); if (ok === "cdn") cdnRefused++; return ok === true ? route.continue() : route.abort(); });
   if (page.routeWebSocket) await page.routeWebSocket(/.*/, (ws) => ws.close());
   const loaded = await page.goto(url, { waitUntil: "networkidle" }).then((r) => !r || r.ok(), (e) => { errors.push(String(e)); return false; });
   if (!loaded) { unchecked++; console.log(`${scheme} ${width}px: could not load the page`); if (errors.length) console.log("   " + errors[0]); await page.close(); continue; }
   await page.waitForTimeout(800);
+  if (cdnRefused) { unchecked++; console.log(`${scheme} ${width}px: could not check, ${cdnRefused} CDN request(s) refused; rerun with --allow-cdn if this is your page`); await page.close(); continue; }
   for (const step of [null, ...clicks]) {
     if (step) { const ok = await page.evaluate((s) => { const el = document.querySelector(s); if (el) el.click(); return !!el; }, step); if (!ok) { unchecked++; console.log(`${scheme} ${width}px: could not check, no element for --click ${step}`); continue; } await page.waitForTimeout(400); }
     const r = await page.evaluate(AUDIT);
