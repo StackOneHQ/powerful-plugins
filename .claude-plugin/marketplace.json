@@ -359,7 +359,7 @@
     },
     {
       "name": "chart-recover",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "description": "Recover hidden-axis chart values from visible geometry and explicit evidence, with local analysis, synthetic evaluations and reviewable uncertainty.",
       "author": {
         "name": "StackOne",
