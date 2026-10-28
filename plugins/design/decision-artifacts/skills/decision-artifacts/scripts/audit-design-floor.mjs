@@ -28,12 +28,14 @@ const wi = args.indexOf("--widths");
 const widths = wi >= 0 ? args[wi + 1].split(",").map(Number) : [1440, 320];
 if (!target) { console.error("usage: audit-design-floor.mjs <page.html | URL> [--click selector]... [--widths 1440,320] [--allow-cdn]"); process.exit(2); }
 
-// A bare import doesn't search the global node_modules, so it is resolved by path. The path comes from
-// the Node binary itself, not from running npm, which would read a project .npmrc in the current directory.
+// A bare import doesn't search the global node_modules, so it is resolved by path, worked out here
+// rather than by running npm, whose answer depends on config in the current directory.
 const globalRoot = process.platform === "win32"
-  ? path.join(path.dirname(process.execPath), "node_modules")
+  ? path.join(process.env.APPDATA || path.dirname(process.execPath), process.env.APPDATA ? "npm" : "", "node_modules")
   : path.join(path.dirname(path.dirname(process.execPath)), "lib", "node_modules");
-const fromDir = (dir) => { const req = createRequire(path.join(dir, "noop.js")); const at = req.resolve("playwright"); console.log("playwright: " + at); return req(at).chromium; };
+const fromDir = (dir) => {
+  if (dir.includes("..")) throw new Error("unexpected .. in " + dir);
+  const req = createRequire(path.join(dir, "noop.js")); const at = req.resolve("playwright"); console.log("playwright: " + at); return req(at).chromium; };
 let chromium;
 try {
   if (process.env.PLAYWRIGHT_FROM_CWD === "1") chromium = fromDir(process.cwd());
@@ -73,11 +75,14 @@ if (!/^https?:/.test(target)) {
 const ALLOWED = new Set(["cdnjs.cloudflare.com", "cdn.jsdelivr.net", "unpkg.com", "cdn.tailwindcss.com", "code.jquery.com", "fonts.googleapis.com", "fonts.gstatic.com"]);
 // Requests may go to this run's server (exact origin) or the target's own origin, and to an allowed
 // CDN over https for a URL target or with --allow-cdn. "cdn" marks a CDN request that was refused.
-const home = origin ? [origin] : [new URL(target).origin, new URL(target).origin.replace(/^http:/, "https:")];
-const allowed = (u) => {
+// An http target's https origin is allowed only for the top-level navigation, so a redirect loads.
+let home, upgrade;
+try { home = origin || new URL(target).origin; upgrade = home.replace(/^http:/, "https:"); }
+catch { console.error("could not check: invalid URL " + target); if (server) server.close(); process.exit(2); }
+const allowed = (u, topNavigation = false) => {
   let x; try { x = new URL(u.replace(/^ws(s?):/, "http$1:")); } catch { return false; }
   if (x.protocol === "data:" || x.protocol === "blob:") return true;
-  if (home.includes(x.origin)) return true;
+  if (x.origin === home || (topNavigation && x.origin === upgrade)) return true;
   if (x.protocol !== "https:" || !ALLOWED.has(x.hostname)) return false;
   return !origin || allowCdn || "cdn";
 };
@@ -161,7 +166,10 @@ for (const width of widths) for (const scheme of ["light", "dark"]) {
   if (!context.routeWebSocket) { console.error("could not check: Playwright 1.48 or later is needed to control WebSockets"); await browser.close(); if (server) server.close(); process.exit(2); }
   const refused = [];
   const refuse = (u, ok) => { refused.push(ok === "cdn" ? "CDN " + new URL(u).hostname : u.slice(0, 80)); };
-  await context.route("**/*", (route) => { const u = route.request().url(), ok = allowed(u); if (ok === true) return route.continue(); refuse(u, ok); return route.abort(); });
+  await context.route("**/*", (route) => {
+    const req = route.request(), u = req.url();
+    let top = false; try { top = req.isNavigationRequest() && !req.frame().parentFrame(); } catch {}
+    const ok = allowed(u, top); if (ok === true) return route.continue(); refuse(u, ok); return route.abort(); });
   await context.routeWebSocket(/.*/, (ws) => { const ok = allowed(ws.url()); if (ok === true) return ws.connectToServer(); refuse(ws.url(), ok); ws.close(); });
   const page = await context.newPage();
   context.on("page", (p) => { if (p !== page) { refuse(p.url() || "popup", false); p.close(); } });
@@ -177,6 +185,8 @@ for (const width of widths) for (const scheme of ["light", "dark"]) {
   }
   for (const step of [null, ...clicks]) {
     if (step) { const ok = await page.evaluate((s) => { const el = document.querySelector(s); if (el) el.click(); return !!el; }, step); if (!ok) { unchecked++; console.log(`${scheme} ${width}px: could not check, no element for --click ${step}`); continue; } await page.waitForTimeout(400); }
+    // A click that set off a refused request leaves this and later states incomplete, so stop here.
+    if (refused.length) { unchecked++; console.log(`${scheme} ${width}px: could not check after ${step}, ${refused.length} request(s) refused: ${[...new Set(refused)].slice(0, 3).join(", ")}`); break; }
     const r = await page.evaluate(AUDIT);
     findings += r.small.length + r.low.length;
     const where = `${scheme.padEnd(5)} ${String(width).padStart(4)}px ${step ? "after " + step : "on load"}`;
@@ -184,7 +194,6 @@ for (const width of widths) for (const scheme of ["light", "dark"]) {
     for (const s of r.small.slice(0, 8)) console.log("   small: " + s);
     for (const s of r.low.slice(0, 8)) console.log("   contrast: " + s);
   }
-  if (refused.length) { unchecked++; console.log(`   ${refused.length} request(s) refused during the clicks: ${[...new Set(refused)].slice(0, 3).join(", ")}`); }
   if (errors.length) console.log("   page errors: " + errors.slice(0, 3).join(" | "));
   await context.close();
 }
