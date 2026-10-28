@@ -6,17 +6,19 @@
 //
 // Each --click is run in order after the first audit (open a panel, switch a tab) and the page is
 // audited again. Exit 0 = clean, 1 = a text finding, 2 = could not check (no browser or bad input).
-// Needs the `playwright` package, resolved from this script's location or a global install; set
-// PLAYWRIGHT_FROM_CWD=1 to use the copy in the current directory instead. CHROMIUM_PATH picks a browser.
+// Needs the `playwright` package (1.48 or later), resolved from this script's location or the global
+// npm root; set PLAYWRIGHT_FROM_CWD=1 to use the copy in the current directory. CHROMIUM_PATH picks a browser.
 // A local file is served, with the files beside it, from 127.0.0.1 for the run only, and the page may
 // reach only that server. Pass --allow-cdn when it loads libraries or fonts from the CDN hosts artifacts
 // allow: the page can then send what it reads from those files to them, so use it on pages you wrote.
-// A URL target may reach its own origin and those CDN hosts. Service workers and WebSockets are blocked.
+// A URL target may reach its own origin (https too, for a redirect) and those CDN hosts. A refused
+// request or socket marks that state "could not check". Service workers and popups are blocked.
 import fs from "node:fs";
 import http from "node:http";
 import path from "node:path";
 import { createRequire } from "node:module";
 import { randomBytes } from "node:crypto";
+import { execFileSync } from "node:child_process";
 
 const args = process.argv.slice(2);
 const target = args.find((a, i) => !a.startsWith("--") && !["--click", "--widths"].includes(args[i - 1]));
@@ -26,13 +28,13 @@ const wi = args.indexOf("--widths");
 const widths = wi >= 0 ? args[wi + 1].split(",").map(Number) : [1440, 320];
 if (!target) { console.error("usage: audit-design-floor.mjs <page.html | URL> [--click selector]... [--widths 1440,320] [--allow-cdn]"); process.exit(2); }
 
+// A bare import doesn't search npm's global root, so that one is resolved by path.
+const fromDir = (dir) => { const req = createRequire(path.join(dir, "noop.js")); const at = req.resolve("playwright"); console.log("playwright: " + at); return req(at).chromium; };
 let chromium;
 try {
-  if (process.env.PLAYWRIGHT_FROM_CWD === "1") {
-    const req = createRequire(path.join(process.cwd(), "noop.js"));
-    console.log("playwright: " + req.resolve("playwright"));
-    chromium = req("playwright").chromium;
-  } else chromium = (await import("playwright")).chromium;
+  if (process.env.PLAYWRIGHT_FROM_CWD === "1") chromium = fromDir(process.cwd());
+  else try { chromium = (await import("playwright")).chromium; }
+  catch { chromium = fromDir(execFileSync("npm", ["root", "-g"], { encoding: "utf8" }).trim()); }
 } catch { console.error("could not check: install the playwright package (npm i -g playwright), or run from a project that has it with PLAYWRIGHT_FROM_CWD=1"); process.exit(2); }
 
 // A local page is served with the files beside it (data, scripts) from 127.0.0.1 for the run only.
@@ -67,14 +69,15 @@ if (!/^https?:/.test(target)) {
 const ALLOWED = new Set(["cdnjs.cloudflare.com", "cdn.jsdelivr.net", "unpkg.com", "cdn.tailwindcss.com", "code.jquery.com", "fonts.googleapis.com", "fonts.gstatic.com"]);
 // Requests may go to this run's server (exact origin) or the target's own origin, and to an allowed
 // CDN over https for a URL target or with --allow-cdn. "cdn" marks a CDN request that was refused.
+const home = origin ? [origin] : [new URL(target).origin, new URL(target).origin.replace(/^http:/, "https:")];
 const allowed = (u) => {
-  let x; try { x = new URL(u); } catch { return false; }
+  let x; try { x = new URL(u.replace(/^ws(s?):/, "http$1:")); } catch { return false; }
   if (x.protocol === "data:" || x.protocol === "blob:") return true;
-  if (x.origin === (origin || new URL(target).origin)) return true;
+  if (home.includes(x.origin)) return true;
   if (x.protocol !== "https:" || !ALLOWED.has(x.hostname)) return false;
   return !origin || allowCdn || "cdn";
 };
-const LAUNCH = ["--force-webrtc-ip-handling-policy=disable_non_proxied_udp", "--webrtc-ip-handling-policy=disable_non_proxied_udp"];
+const LAUNCH = ["--force-webrtc-ip-handling-policy=disable_non_proxied_udp", "--webrtc-ip-handling-policy=disable_non_proxied_udp", "--dns-prefetch-disable"];
 
 const AUDIT = () => {
   const parse = (c) => { const m = (c || "").match(/rgba?\(([^)]+)\)/); if (!m) return null; const v = m[1].split(/[ ,/]+/).filter(Boolean).map(Number); return { r: v[0], g: v[1], b: v[2], a: v.length > 3 ? v[3] : 1 }; };
@@ -149,15 +152,25 @@ catch { try { browser = await chromium.launch({ channel: "chrome", args: LAUNCH 
 
 let findings = 0, unchecked = 0;
 for (const width of widths) for (const scheme of ["light", "dark"]) {
-  const page = await browser.newPage({ viewport: { width, height: 900 }, colorScheme: scheme, serviceWorkers: "block" });
+  // The policy sits on the context so it covers every page in it; popups are closed as they open.
+  const context = await browser.newContext({ viewport: { width, height: 900 }, colorScheme: scheme, serviceWorkers: "block" });
+  if (!context.routeWebSocket) { console.error("could not check: Playwright 1.48 or later is needed to control WebSockets"); await browser.close(); if (server) server.close(); process.exit(2); }
+  const refused = [];
+  const refuse = (u, ok) => { refused.push(ok === "cdn" ? "CDN " + new URL(u).hostname : u.slice(0, 80)); };
+  await context.route("**/*", (route) => { const u = route.request().url(), ok = allowed(u); if (ok === true) return route.continue(); refuse(u, ok); return route.abort(); });
+  await context.routeWebSocket(/.*/, (ws) => { const ok = allowed(ws.url()); if (ok === true) return ws.connectToServer(); refuse(ws.url(), ok); ws.close(); });
+  const page = await context.newPage();
+  context.on("page", (p) => { if (p !== page) { refuse(p.url() || "popup", false); p.close(); } });
   const errors = []; page.on("pageerror", (e) => errors.push(e.message));
-  let cdnRefused = 0;
-  await page.route("**/*", (route) => { const ok = allowed(route.request().url()); if (ok === "cdn") cdnRefused++; return ok === true ? route.continue() : route.abort(); });
-  if (page.routeWebSocket) await page.routeWebSocket(/.*/, (ws) => ws.close());
   const loaded = await page.goto(url, { waitUntil: "networkidle" }).then((r) => !r || r.ok(), (e) => { errors.push(String(e)); return false; });
-  if (!loaded) { unchecked++; console.log(`${scheme} ${width}px: could not load the page`); if (errors.length) console.log("   " + errors[0]); await page.close(); continue; }
+  if (!loaded) { unchecked++; console.log(`${scheme} ${width}px: could not load the page`); if (errors.length) console.log("   " + errors[0]); await context.close(); continue; }
   await page.waitForTimeout(800);
-  if (cdnRefused) { unchecked++; console.log(`${scheme} ${width}px: could not check, ${cdnRefused} CDN request(s) refused; rerun with --allow-cdn if this is your page`); await page.close(); continue; }
+  // A refused script, style, font, data call or socket can leave the page half drawn, so it isn't audited.
+  if (refused.length) {
+    unchecked++; console.log(`${scheme} ${width}px: could not check, ${refused.length} request(s) refused: ${[...new Set(refused)].slice(0, 3).join(", ")}`);
+    if (refused.some((r) => r.startsWith("CDN "))) console.log("   rerun with --allow-cdn if this is your page");
+    await context.close(); continue;
+  }
   for (const step of [null, ...clicks]) {
     if (step) { const ok = await page.evaluate((s) => { const el = document.querySelector(s); if (el) el.click(); return !!el; }, step); if (!ok) { unchecked++; console.log(`${scheme} ${width}px: could not check, no element for --click ${step}`); continue; } await page.waitForTimeout(400); }
     const r = await page.evaluate(AUDIT);
@@ -167,8 +180,9 @@ for (const width of widths) for (const scheme of ["light", "dark"]) {
     for (const s of r.small.slice(0, 8)) console.log("   small: " + s);
     for (const s of r.low.slice(0, 8)) console.log("   contrast: " + s);
   }
+  if (refused.length) { unchecked++; console.log(`   ${refused.length} request(s) refused during the clicks: ${[...new Set(refused)].slice(0, 3).join(", ")}`); }
   if (errors.length) console.log("   page errors: " + errors.slice(0, 3).join(" | "));
-  await page.close();
+  await context.close();
 }
 await browser.close();
 if (server) server.close();
