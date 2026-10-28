@@ -13,7 +13,7 @@ Take colour, type and spacing from the project's brand or design-system skill; w
 | Colour | One accent per chart, on what the decision is about; the rest context grey. At most 4 coloured series plus Other in a stack, 3 in a scatter. No text in series colours; status colours only for status. Validate each theme's palette against its real surface; dark uses its own steps, never an inverted light palette. |
 | Marks | Cards on a neutral page plane; at most five hairline gridlines, no axis lines; rounded bar ends with a 2 px gap between stacked segments; dots ringed in the surface colour. |
 
-Measure it: a script reads every visible text node's size and contrast against its resolved background, and each mark's contrast against its canvas, in both themes at desktop and 320 px. Run the project's render-overlap gate where it has one.
+Measure it with `node scripts/audit-design-floor.mjs <page.html or URL> --click '<selector>'` from this skill (needs Playwright; `--click` opens each panel or tab in turn). It reads every visible text node's size and contrast against its resolved background and counts chart marks under 3:1, in both themes at 1440 and 320 px, and exits 1 on any text finding. Validate a categorical palette with `node <dataviz>/scripts/validate_palette.js "<hex,...>" --mode light --surface <card colour>`, then `--mode dark`. Run the project's render-overlap gate where it has one.
 
 ## Editorial, default
 

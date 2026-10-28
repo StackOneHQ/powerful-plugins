@@ -17,7 +17,7 @@ The page is a working interface, not a decorated report: **simple at rest, exhau
 
 ## Before building
 
-- Name the **job** and pick a mode (`decide`, `explain`, `act`, `track`, `explore`) from [references/modes.md](references/modes.md) and a taste (`editorial` by default, `dashboard`, `technical`, `narrative`) from [references/tastes.md](references/tastes.md). Read only the sections you use.
+- Name the **job** and pick a mode (`decide`, `explain`, `act`, `track`, `explore`) from [references/modes.md](references/modes.md) and a taste (`editorial` by default, `dashboard`, `technical`, `narrative`) from [references/tastes.md](references/tastes.md). Read only the sections you use, and `## Design floor, every taste` on every page.
 - Echo the **scope** the user named. Headline items answer it; the rest goes under "Not in scope".
 - Apply the user's **standing rulings** from this conversation and memory. A settled question leaves the page; a recommendation or timeline that contradicts a ruling is wrong.
 - Ask at most one question, only if the answer changes the page. Deliver the requested page before side fixes.

@@ -22,13 +22,13 @@ Each figure's caption is one sentence with its number, linked to the evidence re
 
 Selecting a decision shows the data behind it before the option text:
 
-- the metric the decision turns on over time, with the measurement window marked and the recommended option's projected effect drawn dashed beside the measured series
+- when the source has a history, the metric the decision turns on over time, with the measurement window marked and, where a projection can be backed, the recommended option's effect drawn dashed beside the measured series; without that data, show the evidence there is and never invent a series or a projection
 - the breakdown that shows where the number comes from (meter, component, owner)
 - any test result as a chart, one panel per task; for a model choice, accuracy against relative cost per option
 
-Selecting the overview opens a full explore view in the panel: period, group-by, basis, stacked, lines or share, click-to-filter with removable chips, a ranked list with sparklines and change, and a hierarchy treemap. Every per-decision chart has an "Explore this" action that opens it filtered to that decision's slice.
+For a cost or usage review, selecting the overview opens a full explore view in the panel: period, group-by, basis, stacked, lines or share, click-to-filter with removable chips, a ranked list with sparklines and change, and a hierarchy treemap. Every per-decision chart then has an "Explore this" action that opens it filtered to that decision's slice. On other pages the overview holds the summary and findings.
 
-Ship the data with the page (published supporting files or inline JSON) as one tidy dataset that every view computes from. A chart that fails to draw leaves its values table or a text summary.
+Ship the data with the page (published supporting files or inline JSON) as one tidy dataset that every view computes from, but only data that everyone who can open the page may see: any of them can read a published file. Where access differs by viewer, ship only the aggregates the views need, or keep the rows behind a query that runs with each viewer's own access. A chart that fails to draw leaves its values table or a text summary.
 
 ## Markup
 

@@ -20,8 +20,8 @@ The artifact fails if any answer is no:
 - Does the page work at 320 px with no horizontal scroll, with targets of at least 24 px?
 - Is visible prose within the budget, with no session phrases and no mode or taste labels?
 - Are live, stored, unavailable and snapshot data states labelled accurately?
-- Does a script confirm, in light and dark at desktop and 320 px, that no text is under 14 px, text contrast is at least 4.5:1 and every mark the reader must read is at least 3:1?
-- Does each chart give its accent only to what the decision is about, from a palette the `dataviz` validator passes for each theme?
+- Does `scripts/audit-design-floor.mjs` exit 0 for the page in light and dark at desktop and 320 px, with every panel and tab opened by `--click`, and is every mark it counts under 3:1 a context mark whose value is printed or not needed?
+- Does each chart give its accent only to what the decision is about, from a palette validated for each theme against its real surface (the `dataviz` validator where it is installed; otherwise every series at 3:1 against the surface and each adjacent pair told apart in a colour-blind simulation)?
 - Does each choice use the control that fits its shape, per [interaction.md](interaction.md)?
 
 ## Reader tasks
