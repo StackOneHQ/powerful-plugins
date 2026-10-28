@@ -28,19 +28,21 @@ const wi = args.indexOf("--widths");
 const widths = wi >= 0 ? args[wi + 1].split(",").map(Number) : [1440, 320];
 if (!target) { console.error("usage: audit-design-floor.mjs <page.html | URL> [--click selector]... [--widths 1440,320] [--allow-cdn]"); process.exit(2); }
 
-// A bare import doesn't search the global node_modules, so it is resolved by path, worked out here
-// rather than by running npm, whose answer depends on config in the current directory.
-const globalRoot = process.platform === "win32"
-  ? path.join(process.env.APPDATA || path.dirname(process.execPath), process.env.APPDATA ? "npm" : "", "node_modules")
-  : path.join(path.dirname(path.dirname(process.execPath)), "lib", "node_modules");
+// A bare import doesn't search the global node_modules, so it is resolved by path. The paths come from
+// the Node binary and the user profile rather than from running npm, whose answer depends on config in
+// the current directory. Windows npm installs global packages under %AppData%\npm by default.
+const prefixes = [process.platform === "win32" ? path.dirname(process.execPath) : path.dirname(path.dirname(process.execPath)),
+  process.platform === "win32" && process.env.APPDATA && path.join(process.env.APPDATA, "npm")].filter(Boolean);
+const globalRoots = prefixes.map((p) => (process.platform === "win32" ? path.join(p, "node_modules") : path.join(p, "lib", "node_modules")));
 const fromDir = (dir) => {
   if (dir.includes("..")) throw new Error("unexpected .. in " + dir);
   const req = createRequire(path.join(dir, "noop.js")); const at = req.resolve("playwright"); console.log("playwright: " + at); return req(at).chromium; };
+const fromGlobal = () => { for (const dir of globalRoots) { try { return fromDir(dir); } catch {} } throw new Error("playwright not found"); };
 let chromium;
 try {
   if (process.env.PLAYWRIGHT_FROM_CWD === "1") chromium = fromDir(process.cwd());
   else try { chromium = (await import("playwright")).chromium; }
-  catch { chromium = fromDir(globalRoot); }
+  catch { chromium = fromGlobal(); }
 } catch { console.error("could not check: install the playwright package (npm i -g playwright), or run from a project that has it with PLAYWRIGHT_FROM_CWD=1"); process.exit(2); }
 
 // A local page is served with the files beside it (data, scripts) from 127.0.0.1 for the run only.
@@ -184,9 +186,13 @@ for (const width of widths) for (const scheme of ["light", "dark"]) {
     await context.close(); continue;
   }
   for (const step of [null, ...clicks]) {
-    if (step) { const ok = await page.evaluate((s) => { const el = document.querySelector(s); if (el) el.click(); return !!el; }, step); if (!ok) { unchecked++; console.log(`${scheme} ${width}px: could not check, no element for --click ${step}`); continue; } await page.waitForTimeout(400); }
-    // A click that set off a refused request leaves this and later states incomplete, so stop here.
-    if (refused.length) { unchecked++; console.log(`${scheme} ${width}px: could not check after ${step}, ${refused.length} request(s) refused: ${[...new Set(refused)].slice(0, 3).join(", ")}`); break; }
+    if (step) {
+      const ok = await page.evaluate((s) => { const el = document.querySelector(s); if (el) el.click(); return !!el; }, step);
+      if (!ok) { unchecked++; console.log(`${scheme} ${width}px: could not check, no element for --click ${step}`); continue; }
+      await page.waitForTimeout(400);
+      // A request refused by this click can leave the state half drawn, so it and the later clicks aren't audited.
+      if (refused.length) { unchecked++; console.log(`${scheme} ${width}px: could not check after ${step}, ${refused.length} request(s) refused: ${[...new Set(refused)].slice(0, 3).join(", ")}`); break; }
+    }
     const r = await page.evaluate(AUDIT);
     findings += r.small.length + r.low.length;
     const where = `${scheme.padEnd(5)} ${String(width).padStart(4)}px ${step ? "after " + step : "on load"}`;
