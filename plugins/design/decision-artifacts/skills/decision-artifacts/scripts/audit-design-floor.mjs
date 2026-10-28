@@ -6,11 +6,14 @@
 //
 // Each --click is run in order after the first audit (open a panel, switch a tab) and the page is
 // audited again. Exit 0 = clean, 1 = a text finding, 2 = could not check (no browser or bad input).
-// Needs the `playwright` package; set CHROMIUM_PATH to use a specific Chromium or Chrome binary.
+// Needs the `playwright` package, resolved from this script's location or a global install; set
+// PLAYWRIGHT_FROM_CWD=1 to use the copy in the current directory instead. CHROMIUM_PATH picks a browser.
+// A local file is served, with the files beside it, from 127.0.0.1 for the run only; the page may
+// reach that server and the CDN hosts artifacts allow, nothing else.
 import fs from "node:fs";
+import http from "node:http";
 import path from "node:path";
 import { createRequire } from "node:module";
-import { pathToFileURL } from "node:url";
 
 const args = process.argv.slice(2);
 const target = args.find((a, i) => !a.startsWith("--") && !(args[i - 1] || "").startsWith("--"));
@@ -20,19 +23,35 @@ const widths = wi >= 0 ? args[wi + 1].split(",").map(Number) : [1440, 320];
 if (!target) { console.error("usage: audit-design-floor.mjs <page.html | URL> [--click selector]... [--widths 1440,320]"); process.exit(2); }
 
 let chromium;
-try { chromium = createRequire(path.join(process.cwd(), "noop.js"))("playwright").chromium; }
-catch { try { chromium = (await import("playwright")).chromium; } catch { console.error("could not check: install the playwright package (npm i -D playwright)"); process.exit(2); } }
+try {
+  if (process.env.PLAYWRIGHT_FROM_CWD === "1") {
+    const req = createRequire(path.join(process.cwd(), "noop.js"));
+    console.log("playwright: " + req.resolve("playwright"));
+    chromium = req("playwright").chromium;
+  } else chromium = (await import("playwright")).chromium;
+} catch { console.error("could not check: install the playwright package (npm i -g playwright), or run from a project that has it with PLAYWRIGHT_FROM_CWD=1"); process.exit(2); }
 
-// An artifact page is a fragment; give it the publish skeleton so it renders in standards mode.
-let url = target, wrapper = null;
+// A local page is served with the files beside it (data, scripts) from 127.0.0.1 for the run only.
+// An artifact page is a fragment, so it gets the publish skeleton to render in standards mode.
+let url = target, server = null;
 if (!/^https?:/.test(target)) {
   const file = path.resolve(target);
   if (!fs.existsSync(file)) { console.error("could not check: no such file " + file); process.exit(2); }
-  const html = fs.readFileSync(file, "utf8");
-  const page = /^\s*<!doctype/i.test(html) ? file : path.join(path.dirname(file), ".audit-" + path.basename(file));
-  if (page !== file) { wrapper = page; fs.writeFileSync(page, "<!doctype html><html><head><meta charset=utf-8><meta name=viewport content='width=device-width,initial-scale=1,viewport-fit=cover'><style>[hidden]{display:none!important}body{margin:0}</style></head><body>" + html + "</body></html>"); }
-  url = pathToFileURL(page).href;
+  const root = path.dirname(file), html = fs.readFileSync(file, "utf8");
+  const entry = /^\s*<!doctype/i.test(html) ? html : "<!doctype html><html><head><meta charset=utf-8><meta name=viewport content='width=device-width,initial-scale=1,viewport-fit=cover'><style>[hidden]{display:none!important}body{margin:0}</style></head><body>" + html + "</body></html>";
+  const types = { ".json": "application/json", ".js": "text/javascript", ".mjs": "text/javascript", ".css": "text/css", ".svg": "image/svg+xml", ".png": "image/png", ".jpg": "image/jpeg", ".webp": "image/webp", ".woff2": "font/woff2" };
+  server = http.createServer((req, res) => {
+    const rel = decodeURIComponent(new URL(req.url, "http://x").pathname).replace(/^\/+/, "");
+    if (!rel || rel === "index.html") { res.writeHead(200, { "content-type": "text/html; charset=utf-8" }); return res.end(entry); }
+    const abs = path.resolve(root, rel);
+    if (!abs.startsWith(root + path.sep) || rel.split("/").some((seg) => seg.startsWith(".")) || !fs.existsSync(abs) || !fs.statSync(abs).isFile() || fs.lstatSync(abs).isSymbolicLink()) { res.writeHead(404); return res.end(); }
+    res.writeHead(200, { "content-type": types[path.extname(abs)] || "application/octet-stream" }); fs.createReadStream(abs).pipe(res);
+  });
+  await new Promise((ok) => server.listen(0, "127.0.0.1", ok));
+  url = `http://127.0.0.1:${server.address().port}/`;
 }
+const ALLOWED = new Set(["cdnjs.cloudflare.com", "cdn.jsdelivr.net", "unpkg.com", "cdn.tailwindcss.com", "code.jquery.com", "fonts.googleapis.com", "fonts.gstatic.com"]);
+const allowed = (u) => { const h = new URL(u).hostname; return h === "127.0.0.1" || ALLOWED.has(h) || (/^https?:/.test(target) && h === new URL(target).hostname); };
 
 const AUDIT = () => {
   const parse = (c) => { const m = (c || "").match(/rgba?\(([^)]+)\)/); if (!m) return null; const v = m[1].split(/[ ,/]+/).filter(Boolean).map(Number); return { r: v[0], g: v[1], b: v[2], a: v.length > 3 ? v[3] : 1 }; };
@@ -90,13 +109,14 @@ const AUDIT = () => {
 };
 
 let browser;
-try { browser = await chromium.launch({ executablePath: process.env.CHROMIUM_PATH || undefined, args: ["--allow-file-access-from-files"] }); }
-catch { try { browser = await chromium.launch({ channel: "chrome", args: ["--allow-file-access-from-files"] }); } catch (e) { console.error("could not check: no Chromium found; run `npx playwright install chromium` or set CHROMIUM_PATH"); process.exit(2); } }
+try { browser = await chromium.launch({ executablePath: process.env.CHROMIUM_PATH || undefined }); }
+catch { try { browser = await chromium.launch({ channel: "chrome" }); } catch (e) { console.error("could not check: no Chromium found; run `npx playwright install chromium` or set CHROMIUM_PATH"); if (server) server.close(); process.exit(2); } }
 
 let findings = 0;
 for (const width of widths) for (const scheme of ["light", "dark"]) {
   const page = await browser.newPage({ viewport: { width, height: 900 }, colorScheme: scheme });
   const errors = []; page.on("pageerror", (e) => errors.push(e.message));
+  await page.route("**/*", (route) => (allowed(route.request().url()) ? route.continue() : route.abort()));
   await page.goto(url, { waitUntil: "networkidle" }).catch((e) => errors.push(String(e)));
   await page.waitForTimeout(800);
   for (const step of [null, ...clicks]) {
@@ -112,6 +132,6 @@ for (const width of widths) for (const scheme of ["light", "dark"]) {
   await page.close();
 }
 await browser.close();
-if (wrapper) fs.rmSync(wrapper, { force: true });
+if (server) server.close();
 console.log(findings ? `${findings} text finding(s). Marks under 3:1 are fine only for context marks whose values are printed or not needed.` : "Clean: no text under 14px or under contrast.");
 process.exit(findings ? 1 : 0);
