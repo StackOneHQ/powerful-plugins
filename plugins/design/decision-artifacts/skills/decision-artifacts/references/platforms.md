@@ -1,49 +1,21 @@
 # Platform routing
 
-Choose the native surface the user requested. Keep the decision spine and evidence model independent of the renderer.
-
-Platform capabilities change. Before relying on live data, storage, access control, or public sharing, check the current platform documentation and the controls visible in the user's account. The constraints below were last checked on 2026-09-21.
+This file covers Claude artifacts. For a Codex site, a local HTML file or an existing product, read [other-surfaces.md](other-surfaces.md) instead. Keep the decision spine and evidence model independent of the renderer. Platform capabilities change; these notes were last checked on 2026-10-18.
 
 ## Claude artifact
 
-Use Claude's native artifact capability when available.
+The Artifact tool, `artifact-design` and `artifact-capabilities` own the page contract; this section adds what decision pages need.
 
-- Build one self-contained page.
-- Prefer HTML, CSS, SVG, and the platform-supported component runtime.
-- Avoid backend assumptions, relative multi-page routes, and unnecessary dependencies.
-- Make the page useful at rest before adding controls.
-- Use connectors only when the requested artifact genuinely needs live viewer-specific data and the platform supports it.
-- A viewer uses their own connector access. Show a clear unavailable or access-required state when a source cannot load; do not present missing data as an empty result.
-- Treat personal and shared storage as different data scopes. Test storage only after publication when the platform requires it, and do not place sensitive source material in shared storage without explicit approval.
-- Review attached source files before sharing because a shared artifact may expose its conversation attachments.
-- Confirm the audience and distinguish a pinned version from a latest version when that choice is available and matters.
+- **Answers.** Declare the `db` capability and store one document per decision id in a `decisions` collection, `{choice, note, updated_at}`. Read it back with ArtifactData `list` before asking or acting. Until the test answer below has been read back, say persistence is untested. When several people answer, keep one document per decision and viewer with `db` rules so each writes only their own; act only on your user's answers unless told otherwise, and say whose you read. Everyone who can open the page can read shared answers; answers under `data/users/` are private even from the owner, so Claude can't read them.
+- **Updates.** Republish the same file path to keep the URL. After compaction or a reset, pass the artifact `url` explicitly; a publish by path alone can create a second page.
+- **Hooks.** When a file-edit hook is configured, edit the file and then publish; a publish that carries `edits` is refused.
+- **Media.** 15 MB per file, 64 MiB per publish, 256 MiB per version. Transcode first, spread large sets over several publishes or use the asset store, and give changed media a new file name so caches don't serve the old one.
+- **Access.** Connectors run with the viewer's own access; show an unavailable state rather than an empty result when a source can't load. Review attached files before sharing. Confirm the audience before widening access.
 
-Official references: [using Claude artifacts](https://support.claude.com/en/articles/9487310-what-are-artifacts-and-how-do-i-use-them) and [publishing and sharing artifacts](https://support.claude.com/en/articles/9547008-publish-and-share-artifacts).
+### Checking the page
 
-## Codex site
-
-Use the Sites capability for a shareable full-page site. Use the visualization capability for an in-conversation preview or dry run, not as a substitute for requested hosting.
-
-- Start with a focused first preview.
-- Use the platform's standard components for tabs, sheets, tables, and controls.
-- Review content, calculations, labels, and interaction before publishing.
-- Save a reviewed version before deployment. Every deployment URL is a production URL.
-- Do not deploy until the user has asked for a shareable or published result and the site has been reviewed.
-- Sites cannot connect directly to live data at the time of this review. Use a dated snapshot or a separately reviewed refresh workflow, and show the source and last refresh in the site.
-- Open the deployed URL in a browser and test it from the intended visitor's access level before sharing. Do not treat the in-app preview as proof of the deployed result.
-- Confirm the selected audience before publishing, especially when public access is available.
-
-Official references: [creating and managing ChatGPT Sites](https://help.openai.com/en/articles/20001339) and [ChatGPT Sites guidance](https://openai.com/academy/chatgpt-sites/).
-
-## Self-contained HTML fallback
-
-When no native artifact or site surface is available, create one focused HTML file.
-
-- Keep assets inline or local and portable.
-- Do not require a build step unless the requested interaction justifies it.
-- State that the file is a local preview, not a hosted URL.
-- Open or render it for inspection when the environment supports that.
-
-## Existing product or design system
-
-When the artifact belongs inside an existing product, follow that product's components, tokens, routes, and accessibility conventions. The built-in tastes are fallback directions, not permission to replace a design system.
+- Look once before publishing (a preview, or one screenshot of the local file), fix what it shows, and publish; no screenshot-and-probe loop.
+- After publishing, save a test answer under a throwaway id (`probe-<time>`, never a real decision id) with ArtifactData, read it back, then delete only that document.
+- The publish skeleton adds the charset meta. Keep `[hidden] { display: none !important; }` in the page's own style so a local look matches the live page.
+- Parse every inline script and data block before publishing; a syntax error leaves the tables empty.
+- Browser extensions usually can't reach inside the artifact frame. When a full click-through is asked for, run it on the local file in a real browser at desktop and 320 px, and say the live frame wasn't exercised. An animated chart that renders empty there may be throttled, not broken.
