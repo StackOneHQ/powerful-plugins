@@ -7,8 +7,10 @@ Is it a video/MP4?
   → Yes: Remotion (see the video-creator agent)
   → No: Continue...
 
-Is it a scroll-driven 3D explainer of a system or pipeline?
-  → Yes: the exploded-machine skill (Three.js + 2D canvas overlay)
+Is it an interactive explanation of a system, process or mechanism?
+  → Yes: the explain-machine skill (Inspect, Follow, Operate or Compare)
+    A detailed exploded drawing uses the existing exploded-machine Inspect recipe.
+    Choose SVG, HTML, Canvas or Three.js according to what the explanation needs.
   → No: Continue...
 
 Is it a simple fade-in on scroll?
