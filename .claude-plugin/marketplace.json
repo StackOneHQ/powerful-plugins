@@ -14,16 +14,19 @@
     {
       "name": "animation-studio",
       "source": "./plugins/design/animation-studio",
-      "description": "Plan and build web animations and short videos with Motion, anime.js and Remotion, starting from a rough spec.",
+      "description": "Create web animations, interactive system and mechanism explanations, and short videos. Explain Machine lets readers inspect, follow, operate and compare using a source-grounded model, while retaining detailed exploded drawings and narrated lessons.",
       "category": "design",
       "tags": [
         "animation",
         "motion",
         "animejs",
         "remotion",
-        "video"
+        "video",
+        "explainer",
+        "simulation",
+        "svg"
       ],
-      "version": "1.3.0",
+      "version": "1.4.0",
       "author": {
         "name": "StackOne",
         "url": "https://github.com/StackOneHQ"
