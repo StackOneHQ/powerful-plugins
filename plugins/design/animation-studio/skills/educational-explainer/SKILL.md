@@ -3,7 +3,7 @@ name: educational-explainer
 # SkillSpector inventory of the bundled checker; this grants no runtime access.
 permissions:
   - file_read
-description: Create a narrated video that teaches a mechanism, concept or procedure from supplied sources, with synchronized visuals, captions and a transcript. Use for educational video explainers or a visual lesson. For a promotional clip, use the video-creator workflow; for an interactive scroll page, use exploded-machine.
+description: Create a narrated video that teaches a mechanism, concept or procedure from supplied sources, with synchronized visuals, captions and a transcript. Use for educational video explainers or a visual lesson. For a promotional clip, use the video-creator workflow; for an interactive explanation or scroll page, use explain-machine.
 ---
 
 # Educational explainer

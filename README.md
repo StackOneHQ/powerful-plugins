@@ -52,7 +52,7 @@ In Claude Cowork, open **Customize**, then **Plugins**, select **Add marketplace
 | Plugin | Category | What it does |
 |--------|----------|--------------|
 | `workday-flex-credits` | Calculators | Forecasts Workday Flex Credit use and cost month by month for AI agents and integrations, from your Console, order form or estimates, as a spreadsheet and report. |
-| `animation-studio` | Design | Plans and builds web animations, scroll-driven 3D explainers and short videos from a rough spec, with the Web Animations API, Motion, anime.js, Three.js and Remotion. |
+| `animation-studio` | Design | Builds web animations, interactive system and mechanism explanations, and short videos. Explain Machine lets readers inspect, follow, operate and compare; existing exploded drawings remain available. |
 | `decision-artifacts` | Design | Turns findings, options, plans and status updates into short, evidence-backed pages that help people decide. |
 | `diagram-explainer` | Design | Creates editable, source-grounded architecture, sequence, state and causal diagrams with previews and evidence. |
 | `tufte-viz` | Design | Designs and critiques charts with Edward Tufte's principles: data-ink ratio, graphical integrity, small multiples and sparklines. |
