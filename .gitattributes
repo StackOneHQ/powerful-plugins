@@ -1,5 +1,5 @@
 # Files scripts/generate_codex_marketplace.py writes. GitHub collapses them in pull request diffs and
-# spark's slop meter skips them. tests/test_repository_guidance.py checks this matches
+# forge's slop meter skips them. tests/test_repository_guidance.py checks this matches
 # .agents/plugins/generated-files.json.
 codex-compat/** linguist-generated
 .agents/plugins/marketplace.json linguist-generated

@@ -58,7 +58,8 @@ In Claude Cowork, open **Customize**, then **Plugins**, select **Add marketplace
 | `tufte-viz` | Design | Designs and critiques charts with Edward Tufte's principles: data-ink ratio, graphical integrity, small multiples and sparklines. |
 | `natural-writing` | Documentation | Writes and edits prose that reads like a person wrote it, with a mechanical checker and a review command. |
 | `browser-recorder` | Engineering | Records browser sessions from a shot list: screenshots, video clips and a mouse event log for editing afterwards. |
-| `spark` | Engineering | Finds the most useful next addition to a change, pressure-tests plans and strips AI slop from code, and runs read-only simplification audits. |
+| `forge` | Engineering | Rewrites a change into its simplest, sturdiest form and strips AI slop from code, pressure-tests plans, and runs read-only simplification audits. |
+| `spark` | Engineering | Finds the single most useful next addition to a change or project, builds it, and runs `forge` on the result when it is installed. |
 | `reflect` | Engineering | Learns from the current session, or from your session history, git changes and review feedback, and proposes fixes to your skills and guidance. |
 | `review-loop` | Engineering | Gets a pull request through every AI code reviewer on it (Copilot, cubic, Greptile, CodeRabbit and others): triggers each one, verifies every comment, fixes or declines it, and repeats until they're all clean. |
 | `browser-automation` | Engineering | Picks the right browser tool for the job: the agent's own browser extension, agent-browser, Playwright or Chrome DevTools. |
@@ -72,7 +73,7 @@ commit:
 | Plugin | Category | Upstream | Used by |
 |--------|----------|----------|---------|
 | `agent-browser` | Engineering | [vercel-labs/agent-browser](https://github.com/vercel-labs/agent-browser) | `browser-automation`, `browser-recorder`, `tufte-viz` |
-| `pr-review-toolkit` | Engineering | [anthropics/claude-plugins-official](https://github.com/anthropics/claude-plugins-official/tree/main/plugins/pr-review-toolkit) | `spark` |
+| `pr-review-toolkit` | Engineering | [anthropics/claude-plugins-official](https://github.com/anthropics/claude-plugins-official/tree/main/plugins/pr-review-toolkit) | `forge` |
 | `remotion-best-practices` | Design | [remotion-dev/skills](https://github.com/remotion-dev/skills) | `animation-studio` |
 | `skill-creator` | Engineering | [anthropics/claude-plugins-official](https://github.com/anthropics/claude-plugins-official/tree/main/plugins/skill-creator) | `reflect` |
 | `vercel-web-design-guidelines` | Design | [vercel-labs/agent-skills](https://github.com/vercel-labs/agent-skills/tree/main/skills/web-design-guidelines) | `decision-artifacts` |
@@ -247,7 +248,7 @@ pip install --require-hashes -r .github/skillspector/build-requirements.txt
 pip install --require-hashes --no-deps --no-build-isolation -r .github/skillspector/requirements.txt
 scripts/scan-skills.sh all                # every skill and plugin component folder
 scripts/scan-skills.sh changed            # only what changed against origin/main
-SKILL_ROOT=plugins/engineering/spark scripts/scan-skills.sh all
+SKILL_ROOT=plugins/engineering/forge scripts/scan-skills.sh all
 ```
 
 In `changed` mode, a changed plugin file outside every component folder (source code,

@@ -7,7 +7,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-METER = Path(__file__).resolve().parents[1] / "plugins" / "engineering" / "spark" / "scripts" / "slop-meter.mjs"
+METER = Path(__file__).resolve().parents[1] / "plugins" / "engineering" / "forge" / "scripts" / "slop-meter.mjs"
 
 
 def git(repo: Path, *args: str) -> None:
@@ -105,6 +105,66 @@ class SlopMeterTests(unittest.TestCase):
         r.write({"new.ts": body + "const v = a?.b ?? c;\n"})
         totals = r.meter()["totals"]
         self.assertEqual((totals["optionalChains"], totals["nullishDefaults"]), (1, 1))
+
+    def test_comments_carried_into_a_rewritten_rename_are_not_new(self) -> None:
+        comments = "".join(f"// The resource indicator rule number {i} still holds.\n" for i in range(9))
+        old_code = "".join(f"export const oldValue{i} = normalizeResource({i});\n" for i in range(30))
+        new_code = "".join(f"export const tokenValue{i} = resolveTokenResource({i}, true);\n" for i in range(30))
+        r = self.repo({"src/resource-normalize.ts": comments + old_code})
+        git(r.path, "mv", "src/resource-normalize.ts", "src/token-resource.ts")
+        r.write({"src/token-resource.ts": comments + "// One new note.\n" + new_code})
+        totals = r.meter()["totals"]
+        self.assertEqual((totals["addedComments"], totals["longestCommentBlock"]), (1, 1))
+
+    def test_a_comment_moved_to_another_file_is_not_new(self) -> None:
+        r = self.repo({"a.ts": "// Callers rely on this staying sorted.\n// Do it.\nexport const a = 1;\n", "b.ts": "export const b = 2;\n"})
+        r.write({"a.ts": "export const a = 1;\n", "b.ts": "// Callers rely on this staying sorted.\n// Do it.\nexport const b = 2;\n"})
+        self.assertEqual(r.meter()["totals"]["addedComments"], 0)
+
+    def test_a_moved_comment_offsets_only_one_copy(self) -> None:
+        r = self.repo({"a.ts": "// Callers rely on this staying sorted.\nexport const a = 1;\n", "b.ts": "export const b = 2;\n"})
+        note = "// Callers rely on this staying sorted.\n"
+        r.write({"a.ts": "export const a = 1;\n", "b.ts": note + "export const b = 2;\n", "c.ts": note + "export const c = 3;\n"})
+        self.assertEqual(r.meter()["totals"]["addedComments"], 1)
+
+    def test_a_moved_doc_block_brings_its_delimiters(self) -> None:
+        doc = "/**\n * Callers rely on this staying sorted.\n *\n * Keep it that way.\n */\n"
+        r = self.repo({"a.ts": doc + "export const a = 1;\n", "b.ts": "export const b = 2;\n"})
+        r.write({"a.ts": "export const a = 1;\n", "b.ts": doc + "export const b = 2;\n"})
+        totals = r.meter()["totals"]
+        self.assertEqual((totals["addedComments"], totals["longestCommentBlock"]), (0, 0))
+
+    def test_a_new_doc_block_counts_its_delimiters(self) -> None:
+        r = self.repo({"b.ts": "export const b = 2;\n"})
+        r.write({"b.ts": "/**\n * A new note.\n */\nexport const b = 2;\n"})
+        self.assertEqual(r.meter()["totals"]["addedComments"], 3)
+
+    def test_a_new_doc_block_does_not_match_a_removed_blocks_delimiters(self) -> None:
+        code = "export const a = 1;\nexport const b = 2;\n"
+        r = self.repo({"b.ts": "/**\n * Old note here.\n */\n" + code + "export const c = 3;\n"})
+        r.write({"b.ts": code + "/**\n * A new note.\n */\nexport const c = 3;\n"})
+        totals = r.meter()["totals"]
+        self.assertEqual((totals["addedComments"], totals["longestCommentBlock"]), (3, 3))
+
+    def test_new_wordless_comment_lines_beside_a_moved_comment_are_new(self) -> None:
+        note = "// Callers rely on this staying sorted.\n"
+        table = "// 0 | 1 | 2 | 3\n// ---+---+---+---\n// 1 | 2 | 3 | 4\n"
+        r = self.repo({"a.ts": note + "export const a = 1;\n", "b.ts": "export const b = 2;\n"})
+        r.write({"a.ts": "export const a = 1;\n", "b.ts": note + table + "export const b = 2;\n"})
+        totals = r.meter()["totals"]
+        self.assertEqual((totals["addedComments"], totals["longestCommentBlock"]), (3, 3))
+
+    def test_a_reindented_wordless_comment_is_not_new(self) -> None:
+        table = ["// 0 | 1", "// --+--", "// 1 | 2"]
+        r = self.repo({"a.ts": "".join(f"{t}\n" for t in table) + "export const a = 1;\n"})
+        r.write({"a.ts": "".join(f"  {t}\n" for t in table) + "export const a = 1;\n"})
+        self.assertEqual(r.meter()["totals"]["addedComments"], 0)
+
+    def test_a_comment_echoed_as_string_data_still_matches_its_move(self) -> None:
+        note = "// Callers rely on this staying sorted.\n"
+        r = self.repo({"a.ts": note + "export const a = 1;\n", "b.ts": "export const b = 2;\n"})
+        r.write({"a.ts": "export const a = 1;\nexport const t = `\n" + note + "`;\n", "b.ts": note + "export const b = 2;\n"})
+        self.assertEqual(r.meter()["totals"]["addedComments"], 0)
 
     def test_a_git_failure_is_an_error_not_an_empty_diff(self) -> None:
         r = self.repo({"a.ts": "export const a = 1;\n"})

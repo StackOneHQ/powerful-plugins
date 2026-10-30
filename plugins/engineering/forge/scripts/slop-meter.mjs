@@ -210,29 +210,49 @@ const patchOf = (file) => {
   return hunks;
 };
 
+const put = (pool, key) => pool.set(key, (pool.get(key) ?? 0) + 1);
+const take = (pool, key) => {
+  const left = pool.get(key);
+  if (left) pool.set(key, left - 1);
+  return Boolean(left);
+};
+// A removed comment is matched only by an added comment, and removed code only by code, so a comment
+// that reappears as string data is still free to match its move into another file.
+const keyOf = ({ text, prose }) => `${prose ? 'c' : 'x'}${squash(text)}`;
+// A comment line that only opens, spaces or closes a block (`/**`, ` *`, `*/`, `"""`, a bare `//`, a
+// blank docstring line) would match any other block's, so it never matches by its text: it moves
+// with its block instead.
+const DELIMITER = /^(\/\*+|\*|\*+\/|\/\/+|#|[rRuUbBfF]{0,2}("""|'''))?$/;
+const isDelimiter = (l) => l.prose && DELIMITER.test(squash(l.text));
+const removedPool = (lines) => {
+  const pool = new Map();
+  for (const l of lines) if (l.sign === '-' && !isDelimiter(l)) put(pool, keyOf(l));
+  return pool;
+};
 // A line that moved or was re-indented shows up as both removed and added; count only what is new.
 // Comment blocks are counted within one hunk, over new lines only.
-const additionsOf = (hunks, isProseAt) => {
-  const pool = new Map();
-  for (const { sign, text } of hunks.flat()) if (sign === '-') { const key = squash(text); pool.set(key, (pool.get(key) ?? 0) + 1); }
+const additionsOf = (hunks, movedComments) => {
   const added = [];
   let longestCommentBlock = 0;
   for (const hunk of hunks) {
+    const lines = hunk.filter((l) => l.sign === '+').map((l) => ({ ...l, old: l.old || take(movedComments, keyOf(l)) }));
+    for (let i = 0, j; i < lines.length; i = j + 1) {
+      for (j = i; lines[j]?.prose; j++);
+      const block = lines.slice(i, j);
+      if (block.some((l) => l.old) && block.every((l) => l.old || isDelimiter(l))) for (const l of block) l.old = true;
+    }
     let run = 0;
-    for (const { sign, text, ln } of hunk) {
-      if (sign !== '+') continue;
-      const left = pool.get(squash(text));
-      if (left) { pool.set(squash(text), left - 1); run = 0; continue; }
-      const prose = isProseAt(ln);
-      added.push({ text, prose, ln });
-      run = prose ? run + 1 : 0;
+    for (const l of lines) {
+      if (l.old) { run = 0; continue; }
+      added.push(l);
+      run = l.prose ? run + 1 : 0;
       longestCommentBlock = Math.max(longestCommentBlock, run);
     }
   }
   return { added, longestCommentBlock };
 };
-const densityOf = (file, text) => {
-  const lexed = scan(file, text), prose = proseOf(lexed);
+const densityOf = (lexed) => {
+  const prose = proseOf(lexed);
   const nonBlank = lexed.flatMap((l, i) => (l.text.trim() ? [prose[i]] : []));
   return nonBlank.length ? nonBlank.filter(Boolean).length / nonBlank.length : 0;
 };
@@ -241,7 +261,7 @@ const siblingBaseline = (file) => {
   const ext = file.slice(file.lastIndexOf('.'));
   const ds = git(['--literal-pathspecs', 'ls-tree', '--name-only', base, `${dir}/`]).split('\n')
     .filter((f) => f && f.endsWith(ext) && IS_TEST(f) === IS_TEST(file)).slice(0, 12)
-    .map((f) => densityOf(f, git(['show', `${base}:${f}`])));
+    .map((f) => densityOf(scan(f, git(['show', `${base}:${f}`]))));
   return ds.length ? ds.reduce((a, b) => a + b, 0) / ds.length : null;
 };
 
@@ -330,13 +350,13 @@ const definesFn = (fn, line) => {
     new RegExp(`(^|[^\\w$.])${f}\\s*[:=]\\s*(async\\s+)?(function\\b|\\([^)]*\\)\\s*(:[^=]+)?=>|[\\w$]+\\s*=>)`).test(line) ||
     (!NOT_A_DEFINITION.test(line) && new RegExp(`^[\\s\\w$<>,.?\\[\\]]*(?<![\\w$])${f}\\s*(<[^>]*>)?\\([^;]*\\)\\s*(:[^;={]+|throws[^;={]+)?\\{\\s*$`).test(line));
 };
-const reuseOf = (file, added, lexed) => {
+const reuseOf = (file, added) => {
   // Tests repeat setup calls by design; only source code that re-derives a configured call is a candidate.
   if (IS_TEST(file)) return [];
   const ext = file.slice(file.lastIndexOf('.'));
   const calls = new Map();
   // Calls are found in the line's code, so one written inside a string or a comment is not a call.
-  for (const { text, ln, prose } of added) if (!prose) for (const m of (lexed[ln - 1]?.code ?? '').matchAll(/([A-Za-z_$][\w$]*)\(\s*[^,()]+(,[^()]*\))/g)) {
+  for (const { text, code, prose } of added) if (!prose) for (const m of code.matchAll(/([A-Za-z_$][\w$]*)\(\s*[^,()]+(,[^()]*\))/g)) {
     const fn = m[1], tail = text.slice(m.index + m[0].length - m[2].length, m.index + m[0].length);
     // The shared configuration must name something (CensorType.FULL), not just repeat a string literal.
     const named = (tail.replace(/(['"`])(?:\\.|(?!\1).)*\1/g, '').match(/[A-Za-z_$][\w$.]{2,}/g) ?? []).some((t) => !LITERALS.has(t));
@@ -361,24 +381,37 @@ const reuseOf = (file, added, lexed) => {
 const ESCAPES = /\bas any\b|\bas unknown as\b|:\s*any\b/g;
 // A test builds a partial fixture with `{ ... } as unknown as T`; there that double cast is the idiom.
 const TEST_ESCAPES = /\bas any\b|:\s*any\b/g;
-const rows = files.map((file) => {
-  const hunks = patchOf(file);
+// A comment moved to another file, or kept through a rewrite git no longer pairs as a rename, is
+// removed in one file and added in another: the removed comments a file's own additions leave unmatched.
+const movedComments = new Map();
+// Comment status comes from the whole file, so a line inside a docstring counts as prose. Each side
+// uses its own path's syntax, since a rename can change the extension. Only the diff's lines keep
+// their scan; the file texts are dropped once the base density is known.
+const inputs = files.map((file) => {
   const baseText = showAt(base, basePathOf(file));
-  // Comment status comes from the whole file, so a line inside a docstring counts as prose. Each side
-  // uses its own path's syntax, since a rename can change the extension.
-  const headLexed = scan(file, headText(file)), baseLexed = scan(basePathOf(file), baseText);
-  const headProse = proseOf(headLexed);
+  const lexed = { '+': scan(file, headText(file)), '-': scan(basePathOf(file), baseText) };
+  const prose = { '+': proseOf(lexed['+']), '-': proseOf(lexed['-']) };
+  const hunks = patchOf(file).map((hunk) => hunk.map((l) => {
+    const { code = '', notes = '' } = lexed[l.sign][l.ln - 1] ?? {};
+    return { ...l, prose: prose[l.sign][l.ln - 1] ?? false, code, notes };
+  }));
+  const lines = hunks.flat(), pool = removedPool(lines);
+  for (const l of lines) if (l.sign === '+') l.old = take(pool, keyOf(l));
+  for (const [key, left] of pool) if (left && key.startsWith('c')) movedComments.set(key, (movedComments.get(key) ?? 0) + left);
+  return { file, hunks, baseDensity: baseText ? densityOf(lexed['-']) : siblingBaseline(file) };
+});
+
+const rows = inputs.map(({ file, hunks, baseDensity }) => {
   const lines = hunks.flat();
   // Pattern counts read only code: `as any` in a comment is prose about code, and one in a string or a
   // regex is data. `@ts-ignore` is the exception: it is a directive only where it opens a comment.
-  const sideOf = (sign, key) => lines.filter((l) => l.sign === sign).map((l) => (sign === '+' ? headLexed : baseLexed)[l.ln - 1]?.[key] ?? '');
+  const sideOf = (sign, key) => lines.filter((l) => l.sign === sign).map((l) => l[key]);
   const netCount = (re, key = 'code') => Math.max(0, count(sideOf('+', key), re) - count(sideOf('-', key), re));
-  const { added: addedLines, longestCommentBlock } = additionsOf(hunks, (ln) => headProse[ln - 1] ?? false);
+  const { added: addedLines, longestCommentBlock } = additionsOf(hunks, movedComments);
 
   const addedNonBlank = addedLines.filter((l) => l.text.trim());
   const addedComments = addedNonBlank.filter((l) => l.prose).map((l) => l.text);
   const density = addedNonBlank.length ? addedComments.length / addedNonBlank.length : 0;
-  const baseDensity = baseText ? densityOf(basePathOf(file), baseText) : siblingBaseline(file);
 
   return {
     file,
@@ -396,7 +429,7 @@ const rows = files.map((file) => {
     nullishDefaults: netCount(/\?\?/g),
     riskyRegexes: addedNonBlank.filter((l) => !l.prose && regexBodies(l.text).some(isRisky)).length,
     copies: copiesOf(file, addedLines.map((l) => l.text)),
-    reuseCandidates: reuseOf(file, addedLines, headLexed),
+    reuseCandidates: reuseOf(file, addedLines),
   };
 });
 
