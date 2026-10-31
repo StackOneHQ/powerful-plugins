@@ -82,9 +82,13 @@ jobs:
           coverage report --show-missing --fail-under=75
 
       - name: Check plugin versions were bumped
+        # On a push, origin/main is HEAD itself, so compare with the commit main pointed at before
+        # the push: that catches two merged PRs that bumped the same plugin to the same version.
+        env:
+          VERSION_BASE: ${{ github.event_name == 'push' && github.event.before || format('origin/{0}', github.base_ref || 'main') }}
         run: |
           git fetch --no-tags origin "${GITHUB_BASE_REF:-main}" || true
-          python scripts/check_plugin_versions.py --base "origin/${GITHUB_BASE_REF:-main}"
+          python scripts/check_plugin_versions.py --base "$VERSION_BASE"
 
       - name: Check generated Codex metadata
         run: python scripts/generate_codex_marketplace.py --check
