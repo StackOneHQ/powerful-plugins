@@ -77,6 +77,18 @@
       "category": "Engineering"
     },
     {
+      "name": "forge",
+      "source": {
+        "source": "local",
+        "path": "./plugins/engineering/forge"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Engineering"
+    },
+    {
       "name": "spark",
       "source": {
         "source": "local",

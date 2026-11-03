@@ -1,6 +1,6 @@
 ---
 name: spark
-description: This skill should be used when the user invokes "/spark" or asks "what's the best thing you could add to this PR/project?", "what single feature would make this better?", "what's the most impactful next move?", or "what would you add to this branch/codebase?". Generates the single smartest, most innovative and high-value addition to the current PR/branch or project, then offers to implement it.
+description: "Finds the single smartest, highest-value addition to the current PR, branch or project, presents it, and offers to build it. Use on \"/spark\", \"what is the best thing you could add to this PR?\", \"what single feature would make this better?\", \"what is the most impactful next move?\", \"what would you add to this codebase?\"."
 invoke: spark
 ---
 
@@ -68,6 +68,6 @@ Then ask "Want to build it?" (with `AskUserQuestion` in Claude Code, or a plain 
 
 ## Act on the answer
 
-- **Yes, build it now**: plan the implementation from the files it touches and the codebase's existing patterns, then build it. Once it is built and its tests pass, run `forge` on the change before calling it done. New features are where agent-written slop lands, and the author is the worst-placed reviewer of it.
+- **Yes, build it now**: plan the implementation from the files it touches and the codebase's existing patterns, then build it. Once it is built and its tests pass, run the forge plugin's skill (`forge:forge`) on the change before calling it done. New features are where agent-written slop lands, and the author is the worst-placed reviewer of it. Forge ships in its own plugin; if it is not installed, say the forge pass was skipped and that installing `forge` from the same marketplace adds it, and do not stand in for it with a review of your own.
 - **Refine the idea first**: ask about scope, constraints and preferences, then present the refined idea in the same shape and ask again.
 - **Show me alternatives**: offer two or three more options, weaker than the first but still strong, and proceed with the one the user picks.

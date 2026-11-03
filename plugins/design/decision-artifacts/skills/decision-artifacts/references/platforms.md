@@ -1,78 +1,35 @@
 # Platform routing
 
-Choose the native surface the user requested. Keep the decision spine and evidence model independent of the renderer.
-
-Platform capabilities change. Before relying on live data, storage, access control, or public sharing, check the current platform documentation and the controls visible in the user's account. The constraints below were last checked on 2026-10-08.
+This file covers Claude artifacts. For a Codex site, a local HTML file or an existing product, read [other-surfaces.md](other-surfaces.md) instead. Keep the decision spine and evidence model independent of the renderer. Platform capabilities change; these notes were last checked on 2026-10-18.
 
 ## Claude artifact
 
-Use Claude's native artifact capability when available.
+The Artifact tool, `artifact-design` and `artifact-capabilities` own the page contract; this section adds what decision pages need.
 
-- Build one self-contained page.
-- Prefer HTML, CSS, SVG, and the platform-supported component runtime.
-- Avoid backend assumptions, relative multi-page routes, and unnecessary dependencies.
-- Make the page useful at rest before adding controls.
-- Use connectors only when the requested artifact genuinely needs live viewer-specific data and the platform supports it.
-- A viewer uses their own connector access. Show a clear unavailable or access-required state when a source cannot load; do not present missing data as an empty result.
-- Treat personal and shared storage as different data scopes. Test storage only after publication when the platform requires it, and do not place sensitive source material in shared storage without explicit approval.
-- Review attached source files before sharing because a shared artifact may expose its conversation attachments.
-- Confirm the audience and distinguish a pinned version from a latest version when that choice is available and matters.
-
-### Page constraints
-
-The page runs under a strict content security policy. Load any library from the allowed public CDNs (cdnjs, unpkg, jsDelivr `/npm/`, the Tailwind and jQuery CDNs) and type from Google Fonts. Pin every script URL to an exact version and add an `integrity` hash with `crossorigin="anonymous"` when the CDN publishes one, because the page may run with the viewer's connector access; prefer inlining a small library over loading it. Then inline all other CSS and JavaScript, and embed images, logos and screenshots as data URIs; external images do not load. The page cannot fetch other origins, so live data comes only through declared connectors. Use in-page anchors for long content, because relative links do not resolve.
-
-### Runtime capabilities
-
-Connector calls and file downloads are declared when the artifact is published, and the page cannot use anything outside that declaration. Declare only what the reader's job needs.
-
-- **Live data.** Name the connector tools the page calls and check the names against the tools the connector actually exposes; a wrong name leaves the section empty for every viewer. Show when each live section last refreshed and offer a refresh control when the data moves during a meeting.
-- **Downloads.** The viewer blocks downloads the page starts itself, including `data:` and `blob:` links. Offer a CSV of a table or a PNG of a chart only through the declared downloads capability.
-- **Actions.** A control can call a connector tool with side effects, such as filing a ticket or posting a message once a decision is made. It runs as whoever selects it. Build one only when the user asked for it, label the destination and the effect on the control, show what will be sent, and require the viewer to confirm in a separate step immediately before the call. Never fire a side effect on page load, on a timer or from a single click.
-
-### Recording the decision
-
-A decide or track artifact is more useful when the choice stays on the page. Claude artifacts can store text data between sessions, either personal to each viewer or shared with everyone who opens the page ([storing data in an artifact](https://support.claude.com/en/articles/9487310-what-are-artifacts-and-how-do-i-use-them)). When the platform offers storage, record the selected option, who chose it, when, and any condition attached, in shared storage only when the audience should see each other's input, and show the recorded state on the page at rest. When storage is unavailable or the result needs to return to the working session, add an export control that copies the decision and its evidence references as plain text for the next prompt.
+- **Answers.** Declare the `db` capability and store one document per decision id in a `decisions` collection, `{choice, note, updated_at}`. Read it back with ArtifactData `list` before asking or acting. Until the test answer below has been read back, say persistence is untested. When several people answer, keep one document per decision and viewer with `db` rules so each writes only their own; act only on your user's answers unless told otherwise, and say whose you read. Everyone who can open the page can read shared answers; answers under `data/users/` are private even from the owner, so Claude can't read them.
+- **Updates.** Republish the same file path to keep the URL. After compaction or a reset, pass the artifact `url` explicitly; a publish by path alone can create a second page.
+- **Hooks.** When a file-edit hook is configured, edit the file and then publish; a publish that carries `edits` is refused.
+- **Media.** 15 MB per file, 64 MiB per publish, 256 MiB per version. Transcode first, spread large sets over several publishes or use the asset store, and give changed media a new file name so caches don't serve the old one.
+- **Access.** Connectors run with the viewer's own access; show an unavailable state rather than an empty result when a source can't load. Review attached files before sharing. Confirm the audience before widening access.
+- **Actions.** A control that writes to another system, such as filing a ticket or posting a message once a decision is made, runs as whoever selects it. Build one only when the user asked for it, declare it through `artifact-capabilities`, label the destination and the effect, show what will be sent, and ask the viewer to confirm in a separate step right before the call. Never fire it on page load, on a timer or from a single click.
 
 ### Review loop
 
-Shared artifacts can carry comment threads. People with edit access can send a thread to Claude, which can reply or revise and republish the page. Design for that loop:
+Shared artifacts can carry comment threads, and people with edit access can send a thread to Claude to reply or revise. Design for that loop:
 
 - Give each section, row and slide a stable heading or label so a comment can point at it.
-- When a revision answers a comment, say on the page or in the version note what changed and why.
-- Viewers see each version but cannot change the page; editors republish through Claude. Confirm who should be an editor before sharing.
-- Anyone reading through a public link sees no comments and, unless signed in to the same organization, no live sections. If the artifact must work for them, make the at-rest page carry the decision without connectors and say where the live view lives.
+- When a revision answers a comment, say in the version label what changed and why.
+- Viewers see each version but can't change the page; editors republish through Claude. Confirm who should be an editor before sharing.
+- A public link shows no comments and, outside the same organization, no live sections. If the page must work for those readers, make the at-rest page carry the decision without connectors and say where the live view lives.
 
 ### Decks and design canvases
 
-When the reader will consume the decision in a meeting, a Slides template (`/slides` in Claude Code) usually fits better than a scrolling page; read [presentations.md](presentations.md). When the request is a visual mockup of a screen or flow rather than a decision, a Design canvas (`/design` in Claude Code) is the native surface, and this skill supplies only the decision context around it. Where no Design canvas is available, as in Codex, build the mockup as a focused page through the Codex site or self-contained HTML routes below.
+When the decision will be presented in a meeting, a Slides template usually fits better than a scrolling page; read [presentations.md](presentations.md). When the request is a mockup of a screen or flow rather than a decision, a Design canvas is the native surface and this skill supplies only the decision context around it. Without a Design canvas, as in Codex, build the mockup as a focused page per [other-surfaces.md](other-surfaces.md).
 
-Official references: [using Claude artifacts](https://support.claude.com/en/articles/9487310-what-are-artifacts-and-how-do-i-use-them), [publishing and sharing artifacts](https://support.claude.com/en/articles/9547008-publish-and-share-artifacts), and [sharing session output as artifacts from Claude Code](https://code.claude.com/docs/en/artifacts).
+### Checking the page
 
-## Codex site
-
-Use the Sites capability for a shareable full-page site. Use the visualization capability for an in-conversation preview or dry run, not as a substitute for requested hosting.
-
-- Start with a focused first preview.
-- Use the platform's standard components for tabs, sheets, tables, and controls.
-- Review content, calculations, labels, and interaction before publishing.
-- Save a reviewed version before deployment. Every deployment URL is a production URL.
-- Do not deploy until the user has asked for a shareable or published result and the site has been reviewed.
-- Sites cannot connect directly to live data at the time of this review. Use a dated snapshot or a separately reviewed refresh workflow, and show the source and last refresh in the site.
-- Open the deployed URL in a browser and test it from the intended visitor's access level before sharing. Do not treat the in-app preview as proof of the deployed result.
-- Confirm the selected audience before publishing, especially when public access is available.
-
-Official references: [creating and managing ChatGPT Sites](https://help.openai.com/en/articles/20001339) and [ChatGPT Sites guidance](https://openai.com/academy/chatgpt-sites/).
-
-## Self-contained HTML fallback
-
-When no native artifact or site surface is available, create one focused HTML file.
-
-- Keep assets inline or local and portable.
-- Do not require a build step unless the requested interaction justifies it.
-- State that the file is a local preview, not a hosted URL.
-- Open or render it for inspection when the environment supports that.
-
-## Existing product or design system
-
-When the artifact belongs inside an existing product, follow that product's components, tokens, routes, and accessibility conventions. The built-in tastes are fallback directions, not permission to replace a design system.
+- Look once before publishing (a preview, or one screenshot of the local file), fix what it shows, and publish; no screenshot-and-probe loop.
+- After publishing, save a test answer under a throwaway id (`probe-<time>`, never a real decision id) with ArtifactData, read it back, then delete only that document.
+- The publish skeleton adds the charset meta. Keep `[hidden] { display: none !important; }` in the page's own style so a local look matches the live page.
+- Parse every inline script and data block before publishing; a syntax error leaves the tables empty.
+- Browser extensions usually can't reach inside the artifact frame. When a full click-through is asked for, run it on the local file in a real browser at desktop and 320 px, and say the live frame wasn't exercised. An animated chart that renders empty there may be throttled, not broken.

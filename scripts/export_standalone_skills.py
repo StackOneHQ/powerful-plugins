@@ -97,6 +97,9 @@ def discover_skills(root: Path) -> dict[str, SkillSource]:
         if _text_has_generated_marker(text):
             continue
         metadata, body = split_claude_frontmatter(text, skill_path)
+        if "alias-for" in metadata:
+            # A deprecated alias redirects to another plugin's skill and has nothing to export.
+            continue
         name = metadata.get("name")
         description = metadata.get("description")
         if not isinstance(name, str) or not SKILL_NAME_PATTERN.fullmatch(name) or len(name) > 64:

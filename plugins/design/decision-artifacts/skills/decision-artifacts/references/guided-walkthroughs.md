@@ -1,8 +1,16 @@
 # Guided walkthroughs
 
-Teach a mechanism by following one example from input to outcome. Use this recipe
+Explain a process or decision by following one example from input to outcome. Use this recipe
 when the reader needs to understand an order, state transition, calculation or
 conditional branch. An ordinary explanation does not need an interactive page.
+
+## Name the parts, then step up
+
+Name the parts before the diagram: a key with each component in eight words or fewer.
+After the worked case, state the general rule and show where the case sits among all
+cases. Explain why it works this way, including constraints and rejected alternatives.
+The trace's steps stay; how-to instructions belong to `act` and specs to the sheet. For a reader who owns the system, lead
+with what changed and collapse the trace.
 
 ## Keep one trace consistent
 
@@ -20,7 +28,7 @@ current position and allow the reader to return to the start. Leave the page sti
 until the reader acts. Motion can explain the transition, but the final state must
 also explain it without animation.
 
-## Add controls only when they teach
+## Add controls only when the result changes meaningfully
 
 When an input changes the result in a meaningful way, let the reader change it.
 Keep units and valid ranges visible, show the original baseline alongside the
@@ -34,8 +42,10 @@ look reasonable. Limit a numeric demonstration before its computation overflows.
 
 ## Keep the answer available without interaction
 
-Include a complete static trace of the baseline in ordinary HTML or a companion
-text file. It must contain the actual steps, outcome and qualifications, not a
+Include a complete static trace of the baseline in ordinary HTML after the
+interactive view (it counts toward the prose budget), or in a companion text file
+when it would exceed the budget. It
+must contain the actual steps, outcome and qualifications, not a
 message telling the reader to enable JavaScript. Keep it available for printing,
 screen readers and readers who prefer text. Dynamic updates should not force a
 screen reader to announce the whole diagram on every keypress.

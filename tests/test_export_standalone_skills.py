@@ -102,6 +102,22 @@ class StandaloneExporterSecurityTests(unittest.TestCase):
             self.assertIn("duplicate", completed.stderr)
             self.assertFalse(destination.exists())
 
+    def test_deprecated_alias_does_not_collide_with_the_skill_it_redirects_to(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory) / "repo"
+            destination = Path(directory) / "exported"
+            self._skill(root, "real", "real")
+            alias = root / "plugins" / "other" / "skills" / "real" / "SKILL.md"
+            alias.parent.mkdir(parents=True)
+            alias.write_text(
+                "---\nname: real\ndescription: Deprecated alias.\nalias-for: example:real\n---\n"
+            )
+
+            completed = self._run(root, destination, "real")
+
+            self.assertEqual(completed.returncode, 0, completed.stderr)
+            self.assertIn("Export real.", (destination / "real" / "SKILL.md").read_text())
+
     def test_destination_symlink_is_not_followed(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory) / "repo"

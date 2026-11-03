@@ -1,64 +1,65 @@
 # Tastes
 
-Taste changes visual grammar, not truth or decision structure.
+Taste changes visual grammar, not truth or decision structure. Precedence: explicit user instructions, then a user-named design, brand or writing skill for its concern, then the requested taste, then `editorial`. A taste may change type, spacing, colour, density and form. It may not remove evidence, uncertainty, accessible interaction, or the action the page exists for.
 
-## Selection precedence
+## Design floor, every taste
 
-1. Explicit user instructions
-2. A user-named design, brand, or writing skill for its relevant concern
-3. A specified `taste`
-4. `editorial`
+Take colour, type and spacing from the project's brand or design-system skill; with none, the validated palette and ink roles from `dataviz`.
 
-The selected taste may change type, spacing, color, density, and visual form. It may not remove evidence, uncertainty, accessible interaction, or the action the page exists to support.
+| Area | Floor |
+|---|---|
+| Type | Nothing under 14 px, chart axes, legends and tooltips included (draw SVG at container width). Body 15 to 16 px; headings weight 400 to 500; tabular figures only in columns and axes. |
+| Contrast | Text 4.5:1 against its own surface in both themes; secondary text in the body ink, not light grey. Marks the reader must read 3:1, or their values printed. |
+| Colour | One accent per chart, on what the decision is about; the rest context grey. At most 4 coloured series plus Other in a stack, 3 in a scatter. No text in series colours; status colours only for status. Validate each theme's palette against its real surface; dark uses its own steps, never an inverted light palette. |
+| Marks | Cards on a neutral page plane; at most five hairline gridlines, no axis lines; rounded bar ends with a 2 px gap between stacked segments; dots ringed in the surface colour. |
+
+Measure it with `node scripts/audit-design-floor.mjs <page.html or URL> --click '<selector>'` from this skill (needs Playwright; `--click` opens each panel or tab in turn; for a local page you wrote, add `--allow-cdn` when it loads libraries or fonts from a CDN on the script's allow-list, since page code can then send the files served beside it to that CDN; without the flag a local page reaches only its own files). It reads every visible text node's size and contrast against its resolved background and counts chart marks under 3:1, in both themes at 1440 and 320 px, and exits 1 on any text finding. Validate a categorical palette with `node <dataviz>/scripts/validate_palette.js "<hex,...>" --mode light --surface <card colour>`, then `--mode dark`. Run the project's render-overlap gate where it has one.
 
 ## Editorial, default
 
-Use for broad audiences, decision briefs, and shareable reports.
+For broad audiences, decision briefs and shareable reports. For a Claude artifact, `artifact-design`'s utilitarian treatment for a UI fits better than its editorial one.
 
-- Strong conclusion-led headline
-- Restrained palette with one semantic accent
-- Typographic hierarchy, whitespace, rules, and direct labels
-- One primary figure or comparison
+- A conclusion-led headline
+- A restrained palette with one semantic accent
+- Typographic hierarchy, whitespace, rules and direct labels
+- One primary figure; add another only when it answers a different question
 - Tables and side notes instead of repeated cards
-- Calm motion used only to explain state or selection
-
-The page should feel edited, not generated.
+- Transitions of 200 ms or less that explain state or selection, none under reduced motion
 
 ## Dashboard
 
-Use for recurring status, monitoring, or operational review.
+For recurring status, monitoring or operational review.
 
-- Dense but ordered scan path
-- Status and delta before totals
-- Compact rows, sparklines, small multiples, and aligned numbers
-- Persistent filters only when they change the reader's task
+- A dense but ordered scan path, status and delta before totals
+- Compact rows, sparklines, small multiples, aligned numbers
+- Filters only when they change the reader's task
 - Written context for what changed and what needs attention
 
-Do not force the whole artifact into one viewport or turn every metric into a tile.
+Don't force the page into one viewport or turn every metric into a tile.
 
 ## Technical
 
-Use for architecture, implementation, debugging, and engineering decisions.
+For architecture, implementation, debugging and engineering decisions.
 
-- Mechanism before decoration
-- Diagrams with labelled arrows and clear ownership boundaries
-- Monospace only for identifiers, data, or code
-- Inspectable evidence, source references, and precise states
-- Diffs and before/after shapes when the change is the point
+- Mechanism before decoration; diagrams with labelled arrows and ownership boundaries
+- Monospace only for identifiers, data and code
+- Inspectable evidence and precise states; diffs when the change is the point
 
-Keep the overview legible to the intended audience. Technical taste does not mean showing every internal detail.
+Technical taste doesn't mean showing every internal detail on the first screen.
 
 ## Narrative
 
-Use for launches, proposals, change stories, and guided explanations.
+For launches, proposals, change stories and guided explanations.
 
-- A clear sequence with one claim per section or scene
-- Controlled reveals that follow the explanation order
-- Before, turning point, after, and implication when those stages are real
-- Short transitions and repeated orientation cues
+- One claim per section, in explanation order
+- Before, turning point, after and implication when those stages are real
 
-Do not use tabs to represent ordered steps. Use scrolling, a stepper, or next/previous navigation with a visible outline.
+Show ordered steps with scrolling, a stepper or previous/next with a visible outline, not tabs.
+
+## Motion on review pages
+
+When the page exists to compare motion (animations, transitions, video cuts), previews may autoplay, but anything that moves for more than 5 seconds gets a pause control, and reduced motion shows a still frame with a play button. A site's own rules about motion above the fold apply to the site, not to the review page.
 
 ## Custom taste
 
-A user may name another installed skill or describe a taste in the prompt. Read and apply that source rather than translating it into one of the four built-ins. Preserve the selected mode and non-negotiable evidence and accessibility requirements.
+A user may name another installed skill or describe a taste. Apply that source directly rather than mapping it onto a built-in, and keep the mode, evidence and accessibility requirements.

@@ -63,7 +63,7 @@
       "rationale": "EA2 flags the line that lists what this skill may do without asking, which the repository's instructions require every skill to state. Here it covers reading the workspace's own history and running read-only reviewers; editing skills or filing tracker items needs a yes. RA2 and MP1 flag the sentences that limit what reflect persists: SKILL.md says it does not rewrite CLAUDE.md on its own, and history-review.md says commit SHAs are recorded as citations, not as permanent rules. Changes to instruction files still need the user's yes."
     },
     {
-      "skill": "plugins/engineering/spark/skills/audit",
+      "skill": "plugins/engineering/forge/skills/audit",
       "rules": [
         "EA2",
         "EA3"
@@ -71,7 +71,7 @@
       "rationale": "EA2 flags the line that lists what this skill may do without asking, which the repository's instructions require every skill to state. Here it covers picking the audit mode and publishing a private report only the user can see; audit never edits the repository. EA3 flags the subagent brief that tells each reviewer to stay inside its assigned boundary and not expand scope, which is the opposite of scope creep."
     },
     {
-      "skill": "plugins/engineering/spark/skills/forge",
+      "skill": "plugins/engineering/forge/skills/forge",
       "rules": [
         "EA2",
         "MP3"
