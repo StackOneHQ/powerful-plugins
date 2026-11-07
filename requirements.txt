@@ -2,9 +2,9 @@
 # Edit the top-level pins, then regenerate the hashes (Dependabot does this for its bumps):
 #   uv pip compile requirements.txt --universal --python-version 3.12 --generate-hashes \
 #     --no-header --no-annotate -o requirements.txt
-portalocker==4.4.1 \
-    --hash=sha256:42fcacc417a91b9b90238ae70fa7a3955d7a8b1e93866cc4cd830034895e10f0 \
-    --hash=sha256:4a184e8fb1adb37e078ca1804f1b7c0d8e73d81136790b1ad695ae8f1c8be291
+portalocker==4.4.2 \
+    --hash=sha256:7ac85bb2aa3c7873bf2ac72586fc6154afa4671ac786994a16617a6b7ccb3e5e \
+    --hash=sha256:e661b91af34fc1806740f8e0e42990fe55cd85cbae55675ac48a400a9656a51b
 pywin32==312 ; sys_platform == 'win32' \
     --hash=sha256:02ebca0f0242b75292e218065004310d6a477407c09fa449bfe4f6022bc0c0fc \
     --hash=sha256:17948aeadbdb091f0ced6ef0841620794e68327b94ee415571c1203594b7215c \
