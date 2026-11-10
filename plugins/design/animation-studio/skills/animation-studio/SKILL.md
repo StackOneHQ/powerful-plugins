@@ -58,7 +58,9 @@ Check your own build rather than trusting this table: run the production build, 
 1. **Understand the target**: read the component or page code
 2. **Pick the library**: use the decision matrix above
 3. **Check existing animations**: don't conflict with a CSS reveal system or existing Motion code
-4. **Dispatch to the right agent or skill:**
+4. **Dispatch to the right agent or skill** (in Codex, the four agents are reached through the
+   `animation-studio-specialists` skill; where neither is available, follow the agent's file in
+   `${CLAUDE_PLUGIN_ROOT}/agents/` directly):
    - Concept/brainstorming → `animation-ideator`
    - Motion component → `motion-creator`
    - anime.js or vanilla animation → `animejs-creator`
@@ -67,6 +69,13 @@ Check your own build rather than trusting this table: run the production build, 
    - Interactive system, process or mechanism explanation → `explain-machine` skill
    - Detailed scroll-driven exploded drawing → `exploded-machine` skill (Inspect recipe)
 5. **Verify**: check that `prefers-reduced-motion` is respected, on the production build as well as the dev server. Dev servers can differ from production in script loading and hydration timing, so build, then serve the output with a static server or the framework's preview command. When you replace or refactor an existing animation, prove parity frame by frame: capture the old and new versions at the same timestamps and compare them. The `browser-recorder` plugin in the powerful-plugins marketplace can record both runs
+
+When you hand back, say which library you chose and why, the files you changed, and how reduced
+motion (and parity, for a replacement) was checked. A few lines is enough.
+
+This skill builds page animations and routes the rest. It does not itself write narrated lessons,
+interactive explanations, exploded drawings or Remotion videos; those go to the skills and agents
+above.
 
 ## Default Animation Language
 
@@ -98,14 +107,14 @@ These defaults suit a professional product. If the project defines motion tokens
 ### Principles
 - Always respect `prefers-reduced-motion` (disable transforms, keep opacity)
 - Spring physics preferred over easing curves for React (Motion)
-- Stagger children for lists and grids, always
-- No animation above the fold on initial page load (it delays the first paint of that content)
+- Stagger children in lists and grids, up to about 6 items (see Anti-Patterns)
+- No animation above the fold on initial page load unless the user asks for it (it delays the first paint of that content)
 - Use CSS for simple cases; don't reach for JS when CSS works
 
 ## Motion: Quick Reference
 
 ```bash
-pnpm add motion
+pnpm add motion   # or the project's own package manager
 ```
 
 ```tsx
@@ -145,7 +154,7 @@ const item = {
 ## anime.js: Quick Reference
 
 ```bash
-pnpm add animejs
+pnpm add animejs   # or the project's own package manager
 ```
 
 ```js
@@ -210,8 +219,9 @@ For video creation, hand off to the `video-creator` agent:
 ## Before you build: show two to four options
 
 For any visual decision with no obvious answer (how a meter fills, how a toggle is emphasised,
-how a graph reads at rest), mock the options as a **live artifact** and let the person choose,
-before implementing one.
+how a graph reads at rest), mock the options as one local HTML page (or an artifact, where the
+host offers them) and let the person choose, before implementing one. Skip this when the user has
+already said what they want, or asked you to just build it.
 
 Run every option with the same data and content so they compare fairly. Showing options beats
 describing them in prose, and both beat building one and defending it. A decision framed this

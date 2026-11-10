@@ -9,7 +9,7 @@ the drawing freezes and looks broken when it is not. A headless browser is fine 
 Screenshot fixed scroll points on desktop and on a phone: 0, just past each phase boundary (a
 boundary plus about 0.005, since scroll positions round to whole pixels and an exact boundary can
 land just before it), the middle of each stop, and 1. Do this in the chosen style and, for
-Realistic, in its Technical fallback too. Use the same points every time, so
+Clay or Realistic, in its Technical fallback too. Use the same points every time, so
 two versions compare frame for frame. Before each screenshot, wait until the render loop has
 stopped; a frame taken mid-glide does not count. A `?style=` URL parameter makes every style
 reachable from a script.

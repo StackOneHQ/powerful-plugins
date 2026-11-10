@@ -31,7 +31,7 @@ codex plugin add animation-studio@powerful-plugins
 | `animation-studio` | Entry point: decision matrix, page cost table, default timing and easing, idle-motion and layout rules, routing to the agents |
 | `explain-machine` | Interactive explanations from a URL, repository, docs or short brief. Choose Inspect, Follow, Operate or Compare to answer a specific question; use a sourced worked example and a shared model for motion, readouts and captions. SVG, HTML, Canvas or 3D according to the subject |
 | `educational-explainer` | Source-grounded lessons with worked examples, synchronized narration, captions, transcript and a local WAV/timeline checker |
-| `exploded-machine` | Existing entry point and detailed Inspect recipe for scroll-driven exploded drawings. Preserves Technical, Blueprint, Patent, Assembly manual, Graphite, Hologram, Clay and Realistic styles, Cutaway and X-ray, and optional housing, definition panel, input/output chips and example flow |
+| `exploded-machine` | Scroll-driven exploded drawings, also used as the detailed Inspect recipe by `explain-machine`. Preserves Technical, Blueprint, Patent, Assembly manual, Graphite, Hologram, Clay and Realistic styles, Cutaway and X-ray, and optional housing, definition panel, input/output chips and example flow |
 
 ## Agents
 

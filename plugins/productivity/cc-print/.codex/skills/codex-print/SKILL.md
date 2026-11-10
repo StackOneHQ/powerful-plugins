@@ -11,7 +11,7 @@ Arguments: `[last N] [from "topic"] [until "topic"] [light] [png|svg|pdf|html] [
 
 Before running shell snippets, resolve `PLUGIN_ROOT` to the nearest ancestor containing `.codex-plugin/plugin.json`, and export it.
 
-Export this conversation to a terminal-styled PNG: the invocation input
+Export this conversation to a terminal-styled file (PNG unless the arguments name another format): the invocation input
 
 ## Steps
 
@@ -57,6 +57,8 @@ Export this conversation to a terminal-styled PNG: the invocation input
    ```bash
    node <script-path> <file> [options]
    ```
+   Once the range is settled and any credential question answered, run it without asking again: the script only reads the transcript
+   and writes one file on this machine.
 
 5. **Report the output path** in one line and offer to open it. The file stays on this machine;
    don't upload or share it unless the user asks.

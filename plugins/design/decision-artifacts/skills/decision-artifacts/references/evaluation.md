@@ -7,9 +7,9 @@ Evaluate the result as a decision tool, not as a screenshot.
 The artifact fails if any answer is no:
 
 - Is the main conclusion or current state accurate, and is every volatile fact re-checked with its time?
-- Does the first screen show what needs the reader, in order, each with what done looks like, and nothing that Claude could do itself?
+- Does the first screen show what needs the reader, in order, each with what done looks like, and nothing that the agent could do itself?
 - Do recommendations and timelines respect the user's standing rulings and stated scope?
-- Can the reader record an answer on every open decision, and can Claude read it back?
+- Can the reader record an answer on every open decision, and can the agent read it back?
 - Are observation, inference, assumption, recommendation, delivery and verification kept distinct?
 - Are consequential claims backed by evidence reachable in one selection?
 - Is every change that can be shown, shown before and after, and are proposed or unverified values drawn differently from measured ones?

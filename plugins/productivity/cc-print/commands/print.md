@@ -4,7 +4,7 @@ description: Export this conversation to a terminal-styled PNG/SVG/PDF/HTML
 argument-hint: "[last N] [from \"topic\"] [until \"topic\"] [light] [png|svg|pdf|html] [full]"
 ---
 
-Export this conversation to a terminal-styled PNG: $ARGUMENTS
+Export this conversation to a terminal-styled file (PNG unless the arguments name another format): $ARGUMENTS
 
 ## Steps
 
@@ -41,6 +41,8 @@ Export this conversation to a terminal-styled PNG: $ARGUMENTS
    ```bash
    node <script-path> <file> [options]
    ```
+   Once the range is settled and any credential question answered, run it without asking again: the script only reads the transcript
+   and writes one file on this machine.
 
 5. **Report the output path** in one line and offer to open it. The file stays on this machine;
    don't upload or share it unless the user asks.

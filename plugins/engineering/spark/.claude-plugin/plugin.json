@@ -1,6 +1,6 @@
 {
   "name": "spark",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "Finds the single best next addition to your PR, branch or project, then offers to build it.",
   "author": {
     "name": "StackOne",

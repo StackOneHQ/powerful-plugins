@@ -121,15 +121,20 @@ python3 "${CLAUDE_PLUGIN_ROOT}/scripts/pr_review.py" wait {n} --head <pushed sha
   --check "<reviewer check name>" --reviewer <login>
 ```
 
-It exits 0 when the head's checks have all finished, each named check exists and each named
-reviewer has posted a review of the head (with reviewers named and no checks on the head yet, the
-reviews alone decide, so also name the checks you need); 3 on timeout; 4 when the head moved (a workflow pushed to
-the branch: pull, and wait on the new head); and 5 when a named reviewer answered without reviewing,
-such as a quota notice. Exit 5 is not clean: report that reviewer as not reviewed. `--reviewer` sees
-review objects only, so a reviewer whose signal is a summary comment is watched by hand. A round outlasts most agent tool timeouts, so run it as a
-background command where the runtime offers one, one per PR. It ends by listing the threads you
-have not answered, because a reviewer's passing check is not its verdict: some pass with findings
-open.
+Exit codes:
+
+- 0: the head's checks have all finished, each named check exists, and each named reviewer has
+  posted a review of the head. With reviewers named and no checks on the head yet, the reviews
+  alone decide, so also name the checks you need.
+- 3: timeout.
+- 4: the head moved (a workflow pushed to the branch). Pull, and wait on the new head.
+- 5: a named reviewer answered without reviewing, such as a quota notice. This is not clean:
+  report that reviewer as not reviewed.
+
+`--reviewer` sees review objects only, so a reviewer whose signal is a summary comment is watched
+by hand. A round outlasts most agent tool timeouts, so run it as a background command where the
+runtime offers one, one per PR. It ends by listing the threads you have not answered, because a
+reviewer's passing check is not its verdict: some pass with findings open.
 
 When the time runs out, name each reviewer that has not finished, and say that its part of the round
 is **pushed but unconfirmed**. Do not call it clean.
