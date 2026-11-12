@@ -1,50 +1,64 @@
 # Evidence spine
 
-The evidence spine keeps the polished summary tied to what is actually known. It may remain an internal working structure, but every material record must be inspectable from the artifact.
+The evidence spine ties the summary to what is actually known. It can stay an internal working structure, but every material record must be reachable from the artifact.
 
 ## Record
 
-For each prominent claim, capture:
+For each prominent claim:
 
 | Field | Meaning |
 |---|---|
 | Claim | The exact statement the artifact makes |
-| Kind | Observation, inference, assumption, or recommendation |
+| Kind | Observation, inference, assumption or recommendation |
 | Evidence | The minimum proof that supports it |
-| Source | Link, file, query, test, conversation, or named origin |
-| Confidence | High, medium, low, or unknown, with a short reason |
-| Verification | Verified, unverified, stale, or contradicted |
-| Last checked | Date or timestamp when volatility matters |
+| Source | A named link, file, query, test, meeting or document, a user ruling with its date, or a stored answer by id; never "the conversation" |
+| Confidence | High, medium, low or unknown, with a short reason |
+| Verification | One value from the verification column below |
+| Last checked | UTC time, taken from tool output, when the claim can change |
 | Scope | Where the claim applies and known exclusions |
 | Decision effect | What changes if the claim is false |
 
-Do not show empty metadata for trivial claims. Do show provenance for facts that drive the recommendation, status, risk, or expected impact.
+Skip metadata for trivial claims. Show provenance for anything that drives the recommendation, status, risk or impact.
 
-## Separate state axes
-
-Delivery state and verification state answer different questions.
+## Delivery and verification are separate
 
 | Delivery | Verification |
 |---|---|
 | Proposed | Unverified |
-| In progress | Checked in code or source |
-| Implemented | Tested in a controlled environment |
-| Shipped | Observed in the intended environment |
+| In progress | Checked in source |
+| Implemented | Tested |
+| Shipped | Observed |
 | Deferred or rejected | Stale or contradicted |
 
-Do not infer one axis from the other. A merged change is not automatically tested. A passing test is not proof of production behavior.
+Use exactly these verification values on the page; a badge never says anything the record doesn't. Don't infer one axis from the other: a merged change is not tested, and a passing test is not production behaviour. "Tested" in a local preview is not "Observed" in the live viewer.
 
-## Confidence
+## Claims that need extra care
 
-Use words and reasons, not invented probabilities.
+- **Absence.** A claim that something is unused, gone or has no consumers states its census: "checked 14 of 14 monitors, 0 errors". A partial, throttled or failed read is shown as such, never rounded to zero.
+- **Volatile state.** Infrastructure, PR and CI status, prices, model lineups and anything else that moves is re-checked before each republish, with its time.
+- **People and plans.** Never fill an owner, plan tier or account by inference. Write "owner: ?" and ask.
+- **Named sources.** When the user named sources (a scanner, a dashboard, a document), cover each one or say why not.
+- **Single-source product claims.** A claim from one positioning or planning document is "Checked in source", not settled. Cross-check the live product or docs before removing a capability from copy.
+
+## Likelihood and confidence
+
+These are two different statements; never put both in one clause.
+
+**Likelihood** is how probable an outcome is. Take the term from one scale and show its band on first use: almost no chance (under 5%), very unlikely (5 to under 20%), unlikely (20 to under 45%), roughly even (45 to 55%), likely (over 55 to 80%), very likely (over 80 to 95%), almost certain (over 95%). "May", "could" and "real possibility" are not estimates.
+
+**Confidence** rates the evidence, in words and reasons, never invented percentages, in its own badge or sentence:
 
 - **High:** direct, current evidence covers the claim's scope
-- **Medium:** evidence is relevant but incomplete, indirect, or somewhat stale
-- **Low:** the claim relies mainly on inference or an unverified source
-- **Unknown:** evidence is missing or contradictory
+- **Medium:** relevant but incomplete, indirect or somewhat stale
+- **Low:** mainly inference or an unverified source
+- **Unknown:** missing or contradictory
 
-Expose what would raise or lower confidence when that affects the decision.
+Say what would raise or lower confidence when it affects the decision.
+
+## Corrections
+
+When a published claim turns out wrong, fix it on the page and add a dated line to a visible "Corrections" row: what it said, what is true, and how that was found. Don't leave the correction only in chat.
 
 ## Presentation
 
-Keep the headline conclusion concise. Let a selected row, chart mark, or diagram node open the relevant evidence record in the detail surface. Include source links, verification state, and contradictions there. Surface critical uncertainty on the main page rather than hiding it in the panel.
+Keep the headline short. A selected row, mark or node opens its record in the sheet, with sources, verification state and contradictions. Critical uncertainty stays on the main page.

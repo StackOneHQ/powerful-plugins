@@ -204,8 +204,8 @@ gh api "repos/{owner}/{repo}/branches/{base}/protection" --jq '.required_convers
 - Stop when every reviewer's completion signal on the latest head comes with no new findings, or
   after five rounds, whichever comes first.
 - Fix rounds pile up explanatory comments and small wrappers. After the last clean round, run the
-  repository's simplify pass over the PR's whole diff (spark's `forge` skill, when installed). A
-  change it makes is a new commit, so it starts one more round.
+  repository's simplify pass over the PR's whole diff (the `forge` plugin's `forge` skill, when
+  installed). A change it makes is a new commit, so it starts one more round.
 
 ## 7. Report
 
