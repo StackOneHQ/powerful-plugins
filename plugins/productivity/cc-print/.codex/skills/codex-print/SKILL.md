@@ -57,8 +57,9 @@ Export this conversation to a terminal-styled file (PNG unless the arguments nam
    ```bash
    node <script-path> <file> [options]
    ```
-   Once the range is settled and any credential question answered, run it without asking again: the script only reads the transcript
-   and writes one file on this machine.
+   Once the range is settled and any credential question answered, run it without asking again for HTML, which is written locally
+   without rendering. For PNG, SVG and PDF the exporter renders the transcript in Puppeteer and loads highlight.js and Google Fonts
+   from the network, so tell the user that and get confirmation before running one of those formats.
 
 5. **Report the output path** in one line and offer to open it. The file stays on this machine;
    don't upload or share it unless the user asks.
