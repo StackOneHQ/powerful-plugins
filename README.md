@@ -58,6 +58,7 @@ In Claude Cowork, open **Customize**, then **Plugins**, select **Add marketplace
 | `tufte-viz` | Design | Designs and critiques charts with Edward Tufte's principles: data-ink ratio, graphical integrity, small multiples and sparklines. |
 | `natural-writing` | Documentation | Writes and edits prose that reads like a person wrote it, with a mechanical checker and a review command. |
 | `browser-recorder` | Engineering | Records browser sessions from a shot list: screenshots, video clips and a mouse event log for editing afterwards. |
+| `chart-recover` | Engineering | Recovers chart values from visible geometry and numerical evidence, with a local workbench, explicit assumptions and synthetic evaluations. |
 | `forge` | Engineering | Rewrites a change into its simplest, sturdiest form and strips AI slop from code, pressure-tests plans, and runs read-only simplification audits. |
 | `spark` | Engineering | Finds the single most useful next addition to a change or project, builds it, and runs `forge` on the result when it is installed. |
 | `reflect` | Engineering | Learns from the current session, or from your session history, git changes and review feedback, and proposes fixes to your skills and guidance. |
