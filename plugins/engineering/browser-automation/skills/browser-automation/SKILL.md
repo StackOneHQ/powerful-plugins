@@ -184,4 +184,6 @@ In order:
    which hostname you looked for and ask the person how they want to proceed.
 
 Fill credentials only into the site they belong to. Never echo, log or write a secret to a file,
-and save the session state afterwards so the next run needs no password at all.
+and save the session state afterwards so the next run needs no password at all. Saved state holds
+live session cookies: keep it outside any repository, or in a git-ignored folder, and tell the
+person where it is.

@@ -1,6 +1,6 @@
 {
   "name": "forge",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Rewrites code, a diff, a PR or a plan into its simplest, sturdiest form and strips AI-written slop, with a slop meter to prove it. Audit runs a read-only simplification audit across whole codebases.",
   "author": {
     "name": "StackOne",

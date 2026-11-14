@@ -42,10 +42,9 @@ Read [references/narration.md](references/narration.md) when audio is requested.
 Use an existing renderer and project when available. Remotion is the preferred
 path for editable video; load `remotion-best-practices` if installed. Another
 available renderer is acceptable when it can express the explanation and deliver
-the requested editable sources. Before installing packages, confirm that the user
-has already authorized the installation. Otherwise provide the command and ask
-before running it, as the video-creator workflow does. Reuse existing authorization.
-Pin any newly installed packages and keep their
+the requested editable sources. Installing packages needs the user's yes: unless
+they already authorized it, give the command and ask before running it, as the
+video-creator workflow does. Pin any newly installed packages and keep their
 lockfile; do not install a renderer merely to produce a storyboard.
 
 Synthesize or obtain the audio before finalizing scene durations. Measure each
@@ -60,10 +59,13 @@ provide the transcript and a still summary for readers who do not use video.
 
 ## Verify the delivered file
 
-Render the video rather than stopping at a render command. Play the result, check
-the start and end of every scene, and listen for mispronounced terms or clipped
-speech. Check captions against both speech and visuals. Use the local timeline
-checker when the scene plan uses its schema:
+Render the video rather than stopping at a render command. Probe the render's
+duration and audio stream, and look at frames from the start and end of every
+scene. Check captions against both speech and visuals. Mispronounced terms and
+clipped speech only show up by listening: if you cannot listen to the audio or
+transcribe it with a local speech-to-text tool that is already installed, say so
+in the handoff and ask the user to listen. Use the local timeline checker when
+the scene plan uses its schema:
 
 ```bash
 python3 "${CLAUDE_PLUGIN_ROOT}/skills/educational-explainer/scripts/check_timeline.py" plan.json
@@ -74,7 +76,7 @@ loaded `SKILL.md` path and invoke its `scripts/check_timeline.py` by absolute pa
 Keep `plan.json` relative to the user's project, not the plugin directory.
 
 The schema and a minimal example are in [references/narration.md](references/narration.md).
-The bundled checker reads the supplied plan and WAV files inside its directory;
+The bundled checker reads the supplied plan and WAV files inside the plan's directory;
 it does not write files or access the network.
 The frontmatter capability inventory describes that script for SkillSpector.
 Running Python and reading inputs still use the host's existing tool permissions.

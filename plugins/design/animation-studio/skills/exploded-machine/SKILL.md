@@ -1,17 +1,16 @@
 ---
 name: exploded-machine
-description: Build a detailed scroll-driven exploded drawing of a system, product or architecture, with labeled components, eight visual styles, cutaway and X-ray treatments. Keeps the existing exploded-machine entry point and rendering recipes for the Inspect mode of explain-machine. Use when the user wants an exploded view or a machine that comes apart; for broader interactive explanations, use explain-machine.
+description: Build a detailed scroll-driven exploded drawing of a system, product or architecture, with labeled components, eight visual styles (technical CAD, blueprint, patent, assembly manual, graphite, hologram, clay, realistic 3D) and cutaway or X-ray treatments. Use when the user asks for an exploded view, a teardown, a machine that comes apart as you scroll, or a scrollytelling diagram of how the parts of a system fit together. It is also the detailed Inspect recipe for explain-machine; for explanations with working controls, a traced process or comparisons, use explain-machine.
 metadata:
   tags: animation, exploded view, technical drawing, line art, blueprint, cutaway, canvas, three.js, animejs, scrollytelling, explainer, architecture
 ---
 
 # Exploded Machine
 
-This is the existing detailed exploded-view entry point and the Inspect recipe for
-`explain-machine`. Keep its behavior and visual styles when the user asks for an exploded
-machine. For a broader explanation with working controls, a traced process or comparisons,
-use `${CLAUDE_PLUGIN_ROOT}/skills/explain-machine/SKILL.md`; resolve that sibling from this file
-when the plugin variable is unavailable. The assembly rules below apply to the exploded view.
+This skill builds the exploded view, and `explain-machine` uses it as its detailed Inspect
+recipe. For a broader explanation with working controls, a traced process or comparisons, use
+`${CLAUDE_PLUGIN_ROOT}/skills/explain-machine/SKILL.md` instead (`../explain-machine/SKILL.md`
+from this file when the plugin variable is unavailable).
 
 Explain a system by taking it apart. Draw it as one object, in a form the user picks or you
 choose to fit (an engine, a pipe run, a tube, a rack), whose parts are the real components of the
@@ -20,7 +19,8 @@ along one axis, and the reader moves through the components one at a time: each 
 label appears on a leader line, and its explanation takes the caption. By the end every component
 is labelled and the reader knows what each one does and how they fit together.
 
-The model is the homepage of animejs.com: open it and scroll it before you start. What makes it
+The model is the homepage of animejs.com: if you can browse, open it and scroll it before you
+start. What makes it
 work is accuracy. The machine is drawn precisely enough to look engineered, and the walkthrough is
 paced slowly enough to read.
 
@@ -133,8 +133,8 @@ in a caption, not in a part.
   branding; otherwise use the subject's plain name. An SVG the site inlines counts once extracted
   to a file and made static: remove scripts, event-handler attributes, `foreignObject` and any
   external reference, and show it only as an image (`<img>` or drawn to the canvas), never inlined
-  into the page. Never typeset or draw a logo. With no site or tokens, use a warm pale paper, a dark grey ink and the
-  system fonts. Text is never smaller than 12 px or the brand's minimum, whichever is larger.
+  into the page. Never typeset or draw a logo. With no site or tokens, use a warm pale paper, a
+  dark grey ink and the system fonts. Text is never smaller than 12 px or the brand's minimum, whichever is larger.
 
 ## 3. Write the scroll story
 

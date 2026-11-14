@@ -59,8 +59,10 @@ and controls usable without hiding essential labels.
 
 Calculate expected results independently of the UI implementation before using
 them as test cases. Exercise the baseline, one meaningful change, a boundary and
-an invalid input. Then exercise reset and every step with both keyboard and pointer.
-Check that the diagram, labels, result and text explanation agree after each action.
+an invalid input, and check that the diagram, labels, result and text explanation
+agree after each. Exercise reset and every step with both keyboard and pointer when
+a full click-through is in scope (the user asked for one or reported a bug, per
+SKILL.md); otherwise say those paths weren't exercised.
 
 Inspect desktop and narrow layouts, reduced motion, and the static equivalent.
 For a disabled or unavailable browser path, state what remains untested. A screenshot

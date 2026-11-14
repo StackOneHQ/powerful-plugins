@@ -220,7 +220,6 @@ SCENE_URL="https://app.example.com/projects"
 DURATION=6
 FPS=60   # scene.fps, or 60 by default
 OUTPUT="video-capture/assets/${SCENE_ID}.webm"
-RECORDING_START_MS=$(node -e 'console.log(Date.now())')   # portable; BSD date has no %N
 
 # Load auth state if needed
 agent-browser state load video-capture/.auth/app.example.com.json
@@ -229,12 +228,13 @@ agent-browser open "${SCENE_URL}"
 agent-browser wait --load networkidle
 agent-browser set viewport 1920 1080
 
-# Start recording
+# Start recording; event timestamps are relative to this moment
+RECORDING_START_MS=$(node -e 'console.log(Date.now())')   # portable; BSD date has no %N
 agent-browser record start "${OUTPUT}" --fps "${FPS}"
 
 # Execute actions with natural timing between steps
 agent-browser wait 500
-agent-browser click @e1   # snapshot first to get refs if needed
+agent-browser click @e1   # ref from the snapshot taken before record start
 agent-browser wait 1000
 agent-browser scroll down 300
 
@@ -302,7 +302,8 @@ agent-browser get box @e3        # prints x, y, width, height in viewport pixels
 
 ### Timestamp tracking
 
-- Timestamps are milliseconds relative to when `agent-browser record start` was called for that scene
+- Timestamps are milliseconds relative to when `agent-browser record start` was called for that
+  scene (`RECORDING_START_MS` above)
 - Approximate timestamps from the cumulative wait times between actions
 - Example: if you wait 500ms before clicking, the click timestamp is ~500ms
 

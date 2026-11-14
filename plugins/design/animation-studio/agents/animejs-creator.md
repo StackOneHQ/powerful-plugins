@@ -21,7 +21,7 @@ Before reaching for anime.js, check whether the Web Animations API (`element.ani
 - Read the target page or component: its DOM structure and how the page ships scripts (bundler, framework, inline).
 - If you choose anime.js, check `package.json` for the `"animejs"` dependency. If it is missing, give the user the install command in the project's package manager (`pnpm add animejs` or equivalent) and let them run it, or run it yourself only after they say yes.
 - If the project already has a CSS reveal system, use it for simple fades rather than adding a second one.
-- Find the project's colour and motion tokens (CSS variables, theme file). If there are none, ask rather than inventing values.
+- Find the project's colour and motion tokens (CSS variables, theme file). Without motion tokens, use the default rules below. Without colour tokens, ask rather than inventing values; `currentColor` keeps the animation working meanwhile.
 
 Change the target page or component and its styles. Leave unrelated code alone.
 

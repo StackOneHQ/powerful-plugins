@@ -8,7 +8,7 @@ Help the user choose a voice for the Stop and Notification hooks. The voice sets
 
 1. **Check stackvox is installed.** If `command -v stackvox` fails, stop and point the user to the stackvox-install command.
 
-2. **Show the voice matrix** (5 supported languages, 2 female / 2 male where Kokoro provides them):
+2. **Show the voice matrix** (five languages, with English in American and British accents; up to 2 female and 2 male voices each, where Kokoro provides them):
 
    ### American English
    - Female: `af_heart` (warm) · `af_bella` (expressive)
