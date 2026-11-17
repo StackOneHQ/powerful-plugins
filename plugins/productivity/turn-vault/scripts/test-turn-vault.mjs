@@ -529,6 +529,7 @@ test("security: scrubs secrets, blocks symlinks & path traversal, neutralizes in
     assert.ok(Date.now() - started < 500, "redaction stays linear on adversarial input");
     const quotedMultiword = redactSecrets(`password: "correct horse battery" https://x.example/a?auth=s3cr3tA&session=s3cr3tB&X-Amz-Credential=s3cr3tC`);
     assert.doesNotMatch(quotedMultiword, /correct horse|s3cr3t/);
+    assert.equal(redactSecrets(`password: "${"k".repeat(1000)}"`).includes("kkkk"), false, "long quoted values are redacted too");
     assert.equal(sanitizeExternalUrl("javascript:alert(1)"), null);
     assert.equal(sanitizeExternalUrl("http://insecure.example.com/pr/1"), null);
     assert.equal(
@@ -551,6 +552,8 @@ test("security: scrubs secrets, blocks symlinks & path traversal, neutralizes in
         message: {
           content: [
             { type: "tool_use", name: "Bash", input: { command: 'git commit -m "fix(ENG-777): rotate client_secret=topsecretvalue123"' } },
+            { type: "tool_use", name: "Write", input: { file_path: join(sb.vaultDir, "Plans", "roadmap.md") } },
+            { type: "tool_use", name: "Write", input: { file_path: join(sb.vaultDir, "Confidential", "roadmap.md") } },
             { type: "tool_use", name: "Write", input: { file_path: join(sb.vaultDir, "Confidential", "merger-plan.md") } },
           ],
         },
@@ -563,6 +566,7 @@ test("security: scrubs secrets, blocks symlinks & path traversal, neutralizes in
     assert.equal(eng777.includes(fakeGhp), false);
     assert.doesNotMatch(eng777, /hunter2|mySecretToken|topsecretvalue123|<script\b/i);
     assert.doesNotMatch(eng777, /merger-plan/, "notes written under an excluded path are never named");
+    assert.match(eng777, /wrote \[\[roadmap\]\]/, "an excluded note never hides an included one with the same name");
 
     // 5. Path traversal & symlink escape blocks
     const vaultReal = JSON.parse(runCli(["status"], { stateHome: sb.stateHome })).config.vaultDir;

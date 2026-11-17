@@ -373,11 +373,7 @@ export function writeWorkUnitsToVault(vaultRootReal, config, units, { enrichment
     }
   }
 
-  for (const capturedUnit of units) {
-    const unit = {
-      ...capturedUnit,
-      vaultNotes: (capturedUnit.vaultNotes ?? []).filter((n) => !isExcludedVaultPath(n.relPath, config, vaultRootReal)),
-    };
+  for (const unit of units) {
     const markerId = `s:${unit.sessionId}`;
     const summaryText = sanitizeInlineText(unit.summary || "Completed coding session", 160);
     const mapBaseName = config.mapFile ? basename(config.mapFile, ".md") : "";

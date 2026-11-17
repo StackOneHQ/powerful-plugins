@@ -15,6 +15,7 @@ import {
   assertPathWithinAllowedRoots,
   expandTilde,
   hhmmString,
+  isExcludedVaultPath,
   localDateString,
   redactSecrets,
   safeNoteSlug,
@@ -534,6 +535,7 @@ export function parseSessionTranscript(
     vaultDir = "",
     teamPrefixes = [],
     topicDirs = [],
+    excludePaths = [],
     includeSubagents = true,
   } = {},
 ) {
@@ -664,8 +666,8 @@ export function parseSessionTranscript(
           if (vaultDir && isInsideVault(absFile, vaultDir)) {
             if (absFile.endsWith(".md")) {
               const relVault = toPosixRel(relative(vaultDir, absFile));
-              // Ignore Turn Vault's own daily notes & map file so self-writes never recurse
-              if (!relVault.split("/").some((p) => p.startsWith("."))) {
+              // Hidden and excluded vault paths are never named as deliverables.
+              if (!isExcludedVaultPath(relVault, { excludePaths })) {
                 const noteTitle = basename(absFile, ".md");
                 vaultNotesMap.set(noteTitle, { title: noteTitle, relPath: relVault });
                 milestones.add("vault_note_written");
@@ -910,6 +912,7 @@ export function scanTranscriptHistory({
   vaultDir = "",
   teamPrefixes = [],
   topicDirs = [],
+  excludePaths = [],
   since = "",
   limit = 250,
   full = false,
@@ -967,6 +970,7 @@ export function scanTranscriptHistory({
       vaultDir,
       teamPrefixes,
       topicDirs,
+      excludePaths,
       includeSubagents: true,
     });
 

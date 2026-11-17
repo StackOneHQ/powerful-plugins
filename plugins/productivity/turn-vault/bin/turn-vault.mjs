@@ -174,6 +174,7 @@ async function handleHookEvent(mode, stateHome) {
     vaultDir: activeConfig.vaultDir,
     teamPrefixes: activeConfig.teamPrefixes,
     topicDirs: activeConfig.topicDirs,
+    excludePaths: activeConfig.excludePaths,
     includeSubagents: true,
   });
 
@@ -353,6 +354,7 @@ async function main() {
       vaultDir: active?.vaultDir ?? "",
       teamPrefixes: active?.teamPrefixes ?? splitCsv(String(flags["team-prefixes"] ?? "")),
       topicDirs: active?.topicDirs ?? [],
+      excludePaths: active?.excludePaths ?? [],
       since,
       limit,
       full: true,
@@ -429,6 +431,7 @@ async function main() {
         vaultDir: active.vaultDir,
         teamPrefixes: active.teamPrefixes,
         topicDirs: active.topicDirs,
+        excludePaths: active.excludePaths,
         since,
         limit,
         full,
