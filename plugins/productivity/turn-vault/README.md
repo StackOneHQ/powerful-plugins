@@ -130,7 +130,10 @@ its transcripts use another format, so they record nothing there; in Codex, reco
 - Transcripts are read locally and never leave your machine.
 - Tokens, keys, passwords, `Authorization` headers and credentials in URLs are redacted before
   anything is written to the vault.
-- Paths you list with `--exclude` (or an exclusion manifest) are never read, indexed or written.
+- Paths you list with `--exclude` (or an exclusion manifest) are never read, indexed or written,
+  and notes written there are never named in other notes. Exclusions apply from the moment you
+  add them: entries written earlier stay as they are, so edit those lines by hand if one names a
+  note you have since excluded (each Turn Vault line ends with a `^tv-` block ID).
 - Config and state live in the plugin's own config folder (see `TURN_VAULT_HOME`) with private (`0600`) permissions.
 
 ## Testing
