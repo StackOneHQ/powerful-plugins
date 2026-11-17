@@ -65,6 +65,7 @@ In Claude Cowork, open **Customize**, then **Plugins**, select **Add marketplace
 | `browser-automation` | Engineering | Picks the right browser tool for the job: the agent's own browser extension, agent-browser, Playwright or Chrome DevTools. |
 | `cc-print` | Productivity | Exports Claude Code and Codex conversations to terminal-styled PNG, SVG, PDF or HTML. |
 | `say-hooks` | Productivity | Tells you out loud when a turn finishes or the agent is waiting on you, with offline [stackvox](https://github.com/StackOneHQ/stackvox) voices or the macOS `say` fallback. |
+| `turn-vault` | Productivity | Files finished coding tasks, past sessions and worked tickets into a backlinked Obsidian vault, so Graph View shows how your work connects. |
 
 Some of these build on other people's plugins. We pin each one to a commit we've reviewed (the
 `sha` in `.claude-plugin/marketplace.json`), and Claude Code and Codex both install that exact

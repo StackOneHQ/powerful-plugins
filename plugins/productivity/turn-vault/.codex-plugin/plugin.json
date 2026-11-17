@@ -1,0 +1,36 @@
+{
+  "name": "turn-vault",
+  "version": "1.0.0",
+  "description": "Turn completed coding tasks, past session transcripts and worked tickets into a backlinked Obsidian work graph that lights up in Graph View.",
+  "author": {
+    "name": "Cameron Carlin",
+    "url": "https://github.com/CameronCarlin"
+  },
+  "homepage": "https://github.com/StackOneHQ/powerful-plugins",
+  "repository": "https://github.com/StackOneHQ/powerful-plugins",
+  "interface": {
+    "displayName": "Turn Vault",
+    "shortDescription": "Turn completed coding tasks, past session transcripts and worked tickets into a backlinked Obsidian work graph that…",
+    "longDescription": "Turn completed coding tasks, past session transcripts and worked tickets into a backlinked Obsidian work graph that lights up in Graph View.",
+    "developerName": "Cameron Carlin",
+    "category": "Productivity",
+    "capabilities": [
+      "Interactive"
+    ],
+    "websiteURL": "https://github.com/StackOneHQ/powerful-plugins",
+    "defaultPrompt": [
+      "Use Turn Vault to run this workflow."
+    ]
+  },
+  "license": "MIT",
+  "keywords": [
+    "obsidian",
+    "knowledge-graph",
+    "backlinks",
+    "tickets",
+    "hooks",
+    "journal",
+    "productivity"
+  ],
+  "skills": "./.codex/skills/"
+}

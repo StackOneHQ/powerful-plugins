@@ -85,6 +85,17 @@
     "plugins/productivity/say-hooks/.codex/skills/codex-stackvox-uninstall/SKILL.md",
     "plugins/productivity/say-hooks/.codex/skills/codex-stackvox-uninstall/agents/openai.yaml",
     "plugins/productivity/say-hooks/.codex/skills/codex-stackvox-upgrade/SKILL.md",
-    "plugins/productivity/say-hooks/.codex/skills/codex-stackvox-upgrade/agents/openai.yaml"
+    "plugins/productivity/say-hooks/.codex/skills/codex-stackvox-upgrade/agents/openai.yaml",
+    "plugins/productivity/turn-vault/.codex-plugin/plugin.json",
+    "plugins/productivity/turn-vault/.codex/skills/codex-backfill/SKILL.md",
+    "plugins/productivity/turn-vault/.codex/skills/codex-backfill/agents/openai.yaml",
+    "plugins/productivity/turn-vault/.codex/skills/codex-check/SKILL.md",
+    "plugins/productivity/turn-vault/.codex/skills/codex-check/agents/openai.yaml",
+    "plugins/productivity/turn-vault/.codex/skills/codex-init/SKILL.md",
+    "plugins/productivity/turn-vault/.codex/skills/codex-init/agents/openai.yaml",
+    "plugins/productivity/turn-vault/.codex/skills/codex-log/SKILL.md",
+    "plugins/productivity/turn-vault/.codex/skills/codex-log/agents/openai.yaml",
+    "plugins/productivity/turn-vault/.codex/skills/turn-vault/SKILL.md",
+    "plugins/productivity/turn-vault/.codex/skills/turn-vault/agents/openai.yaml"
   ]
 }
