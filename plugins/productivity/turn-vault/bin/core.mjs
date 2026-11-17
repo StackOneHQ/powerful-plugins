@@ -49,6 +49,7 @@ const SENSITIVE_QUERY_KEYS = new Set([
   "session",
   "auth",
 ]);
+const SENSITIVE_QUERY_PARAM_RE = new RegExp(`([?&](?:${[...SENSITIVE_QUERY_KEYS].join("|")})=)[^&#\\s'")\\]]+`, "gi");
 
 export function resolveStateHome(env = process.env) {
   if (env.TURN_VAULT_HOME && env.TURN_VAULT_HOME.trim()) {
@@ -110,12 +111,8 @@ export function redactSecrets(raw) {
     "$1[REDACTED]@",
   );
 
-  out = out.replace(
-    /([?&](?:token|access_token|refresh_token|id_token|api_key|apikey|key|secret|client_secret|password|passwd|sig|signature|x-amz-signature|x-amz-security-token|code)=)[^&#\s'")\]]+/gi,
-    "$1[REDACTED]",
-  );
+  out = out.replace(SENSITIVE_QUERY_PARAM_RE, "$1[REDACTED]");
 
-  // Authorization / Cookie / X-API-Key headers
   out = out.replace(
     /\b(Authorization\s*[:=]\s*['"]?(?:Bearer|Basic|Token)\s+)[A-Za-z0-9._~+/=-]{8,}/gi,
     "$1[REDACTED]",
@@ -148,7 +145,7 @@ export function redactSecrets(raw) {
 
   // Key=value, key: value and "key": "value" assignments for sensitive names
   out = out.replace(
-    /\b((?:[A-Za-z0-9_]{0,64}?(?:api[_-]?key|client[_-]?secret|access[_-]?token|refresh[_-]?token|auth[_-]?token|private[_-]?key|secret[_-]?key|webhook[_-]?secret|signing[_-]?secret|secret[_-]?access[_-]?key|access[_-]?key|password|passwd|bearer[_-]?token|token|secret|credentials?))['"]?\s*[:=]\s*)(['"]?)[^\s'",;)\]}]{6,}\2/gi,
+    /\b((?:[A-Za-z0-9_]{0,64}?(?:api[_-]?key|client[_-]?secret|access[_-]?token|refresh[_-]?token|auth[_-]?token|private[_-]?key|secret[_-]?key|webhook[_-]?secret|signing[_-]?secret|secret[_-]?access[_-]?key|access[_-]?key|password|passwd|bearer[_-]?token|token|secret|credentials?))['"]?\s*[:=]\s*)(?:"[^"\n]{1,256}"|'[^'\n]{1,256}'|[^\s'",;)\]}[]{6,})/gi,
     "$1[REDACTED]",
   );
 
@@ -736,15 +733,15 @@ export function assertPathWithinAllowedRoots(rawPath) {
     throw new Error(`Refusing path outside user home or temp directory: ${expanded}`);
   }
 
-  if (existsSync(expanded)) {
-    const st = lstatSync(expanded);
-    if (st.isSymbolicLink()) {
-      throw new Error(`Refusing symbolic link path: ${expanded}`);
-    }
-    const real = realpathSync(expanded);
-    if (!roots.some((r) => isSubpath(r, real))) {
-      throw new Error(`Refusing canonical path outside user home or temp directory: ${real}`);
-    }
+  if (existsSync(expanded) && lstatSync(expanded).isSymbolicLink()) {
+    throw new Error(`Refusing symbolic link path: ${expanded}`);
+  }
+  // Missing folders get created under the nearest existing ancestor, so that ancestor must resolve inside the roots.
+  let existing = expanded;
+  while (!existsSync(existing) && dirname(existing) !== existing) existing = dirname(existing);
+  const real = realpathSync(existing);
+  if (!roots.some((r) => isSubpath(r, real))) {
+    throw new Error(`Refusing canonical path outside user home or temp directory: ${real}`);
   }
   return expanded;
 }

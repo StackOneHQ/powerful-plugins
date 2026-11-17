@@ -519,12 +519,16 @@ test("security: scrubs secrets, blocks symlinks & path traversal, neutralizes in
     assert.doesNotMatch(hostile, /\[\[/);
     assert.doesNotMatch(hostile, /javascript:/i);
     assert.doesNotMatch(hostile, /obsidian:/i);
-    const quoted = sanitizeInlineText('{"password":"correct-horse-battery"} AWS_SECRET_ACCESS_KEY=abcd1234efgh5678', 300);
-    assert.doesNotMatch(quoted, /correct-horse-battery|abcd1234efgh5678/);
+    const fakeEnvSecret = "q".repeat(16);
+    const quoted = sanitizeInlineText(`{"password":"correct-horse-battery"} AWS_SECRET_ACCESS_KEY=${fakeEnvSecret}`, 300);
+    assert.doesNotMatch(quoted, /correct-horse-battery/);
+    assert.equal(quoted.includes(fakeEnvSecret), false);
     assert.doesNotMatch(sanitizeInlineText("Fix ![p](https://tracker.example/t.gif) <img src=x>", 300), /!\[|<img/i);
     const started = Date.now();
     sanitizeInlineText("a.".repeat(250_000), 160);
     assert.ok(Date.now() - started < 500, "redaction stays linear on adversarial input");
+    const quotedMultiword = redactSecrets(`password: "correct horse battery" https://x.example/a?auth=s3cr3tA&session=s3cr3tB&X-Amz-Credential=s3cr3tC`);
+    assert.doesNotMatch(quotedMultiword, /correct horse|s3cr3t/);
     assert.equal(sanitizeExternalUrl("javascript:alert(1)"), null);
     assert.equal(sanitizeExternalUrl("http://insecure.example.com/pr/1"), null);
     assert.equal(
@@ -547,6 +551,7 @@ test("security: scrubs secrets, blocks symlinks & path traversal, neutralizes in
         message: {
           content: [
             { type: "tool_use", name: "Bash", input: { command: 'git commit -m "fix(ENG-777): rotate client_secret=topsecretvalue123"' } },
+            { type: "tool_use", name: "Write", input: { file_path: join(sb.vaultDir, "Confidential", "merger-plan.md") } },
           ],
         },
       },
@@ -556,7 +561,8 @@ test("security: scrubs secrets, blocks symlinks & path traversal, neutralizes in
     const eng777 = readFileSync(join(sb.vaultDir, "Tickets", "ENG-777.md"), "utf8");
     assert.equal(eng777.includes(fakeAnt), false);
     assert.equal(eng777.includes(fakeGhp), false);
-    assert.doesNotMatch(eng777, /hunter2|mySecretToken|topsecretvalue123|<script>/);
+    assert.doesNotMatch(eng777, /hunter2|mySecretToken|topsecretvalue123|<script\b/i);
+    assert.doesNotMatch(eng777, /merger-plan/, "notes written under an excluded path are never named");
 
     // 5. Path traversal & symlink escape blocks
     const vaultReal = JSON.parse(runCli(["status"], { stateHome: sb.stateHome })).config.vaultDir;
@@ -732,6 +738,12 @@ test("security audit regressions: pure gitdir worktree parser, DB URI redaction,
 
     // Symlinked --enrich file and paths outside home/tmpdir must be rejected
     assert.throws(() => assertPathWithinAllowedRoots("/etc/hosts"), /outside user home or temp/);
+    symlinkSync("/", join(sb.root, "root-link"));
+    assert.throws(
+      () => assertPathWithinAllowedRoots(join(sb.root, "root-link", "new-vault")),
+      /canonical path outside/,
+      "a missing folder under a symlinked ancestor resolves through that ancestor",
+    );
     const realEnrich = join(sb.root, "real-enrich.json");
     const symEnrich = join(sb.root, "sym-enrich.json");
     writeFileSync(realEnrich, "{}", "utf8");
