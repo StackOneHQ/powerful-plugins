@@ -7,7 +7,7 @@ description: "Upgrade stackvox to the latest release on PyPI"
 
 # Codex Stackvox Upgrade
 
-Upgrade stackvox to the latest release on PyPI. Run the steps in order. If a step fails after the daemon has been stopped, restart it (step 5) so the hooks keep speaking, then report which step failed and stop.
+Upgrade stackvox to the latest release on PyPI. Running this command is the user's go-ahead to stop the daemon and reinstall stackvox; install nothing else. Run the steps in order. If a step fails after the daemon has been stopped, restart it (step 5) so the hooks keep speaking, then report which step failed and stop.
 
 ## Steps
 

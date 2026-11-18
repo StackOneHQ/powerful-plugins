@@ -2,6 +2,14 @@
 
 All notable changes to `say-hooks` are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions track `.claude-plugin/plugin.json`.
 
+## [1.1.2]
+
+### Changed
+
+- `/stackvox-upgrade` states that running it is the go-ahead to stop the daemon and reinstall stackvox, and nothing else.
+- `/stackvox-configure` describes the voice matrix accurately: five languages, English in two accents.
+- The README points to `/stackvox-configure` for picking a voice.
+
 ## [1.1.0]
 
 ### Changed

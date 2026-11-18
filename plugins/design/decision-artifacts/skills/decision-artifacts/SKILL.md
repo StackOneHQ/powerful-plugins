@@ -34,7 +34,7 @@ At 320 px the first screen shows the `h1` and the first Needs-you item. Two disc
 
 ## Rules
 
-- **Capture answers.** Every decision gets a stable id, a choice (with "keep current" where it exists) and a note, saved where Claude can read them back (or pasted back from "Copy my answers" where the platform has no such store), never browser storage alone. Give a decision a new id when its question or options change meaning, so an old answer can't carry over. Show "N of M answered", "Approve all recommended" and "Copy my answers".
+- **Capture answers.** Every decision gets a stable id, a choice (with "keep current" where it exists) and a note, saved where the agent can read them back (or pasted back from "Copy my answers" where the platform has no such store), never browser storage alone. Give a decision a new id when its question or options change meaning, so an old answer can't carry over. Show "N of M answered", "Approve all recommended" and "Copy my answers".
 - **Follow up on the page.** When review raises a new choice, add a row with options, trade-offs and a stable id on the same page. Link to the row when hosted, or hand back the updated file.
 - **Close the loop.** On refresh, move confirmed answers below open decisions into a collapsed Settled section. Update the headline and Needs you from the remaining open rows. Follow [interaction.md](references/interaction.md#settled-decisions) for receipts and reopening.
 - **One living page per topic.** Republish in place, keep ids stable, banner superseded pages, label each version, and end every reply about the page with its link. Check for changes since the update time before calling it current.

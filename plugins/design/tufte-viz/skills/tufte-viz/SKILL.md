@@ -2,18 +2,22 @@
 name: tufte-viz
 description: |
   Ideate and critique data visualizations using Edward Tufte's principles from "The Visual Display of Quantitative Information." Use this skill when:
-  (1) Designing new data visualizations or charts
+  (1) Designing new data visualizations, charts or graphs
   (2) Critiquing or improving existing visualizations
-  (3) Reviewing dashboards or reports for graphical integrity
+  (3) Reviewing dashboards or reports for graphical integrity (misleading scales, truncated axes, 3D distortion)
   (4) Deciding between visualization approaches
   (5) Reducing chartjunk or improving data-ink ratio
-  (6) Planning small multiples or high-density displays
-  Applies principles: data-ink ratio, chartjunk elimination, graphical integrity, lie factor, small multiples, and data density.
+  (6) Planning small multiples, sparklines or high-density displays
+  (7) Checking that a generated SVG or HTML chart renders without overlapping, clipped or hidden labels
+  Applies principles: data-ink ratio, chartjunk elimination, graphical integrity, lie factor, small multiples, and data density. Not for diagrams of systems, flows or architecture.
 ---
 
 # Tufte visualization ideation
 
 Apply Edward Tufte's principles to design clear, honest, high-density data visualizations.
+This skill covers quantitative displays; a diagram of a system, flow or architecture belongs to a
+diagramming skill (such as `diagram-explainer`) when one is installed. A project's own brand or
+design-system palette and type take precedence over the defaults here.
 
 ## Designing a new visualization
 
@@ -50,7 +54,8 @@ node ${CLAUDE_PLUGIN_ROOT}/skills/tufte-viz/scripts/verify-asset-text.mjs \
   --out /tmp/asset-verify path/to/chart.svg
 ```
 
-It takes `.svg` and `.html` assets, and `--out` must be absolute. It fails on text that
+If `CLAUDE_PLUGIN_ROOT` is unset, run `scripts/verify-asset-text.mjs` from this skill's folder by
+absolute path. It takes `.svg` and `.html` assets, and `--out` must be absolute. It fails on text that
 overlaps, is clipped by its container, is hidden behind a later-painted shape, or is invisible.
 Then open the screenshots it prints and look at them, because clean geometry does not mean the
 chart reads well.

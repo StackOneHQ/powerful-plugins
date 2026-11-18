@@ -1,6 +1,6 @@
 ---
 name: natural-writing
-description: Write like a human, not an LLM. Auto-triggers when writing or editing documentation, copy, marketing content, social posts, emails, READMEs, blog posts, commit messages, or explanatory text. Bans em dashes and curly quotes outright, bans LLM word choices, bans the sentence SHAPES that survive word-level filters, and adds a line-level craft pass for active voice, concreteness and rhythm. Has a slot for your own banned house terms. Ships scripts/check-copy.sh so any workflow can gate on the mechanical rules. Use /natural-writing:review-copy to audit text already written.
+description: Write like a human, not an LLM. Auto-triggers when writing or editing documentation, copy, marketing content, social posts, emails, READMEs, blog posts, commit messages, or explanatory text. Bans em dashes and curly quotes outright, bans LLM word choices, bans the sentence shapes that survive word-level filters, and adds a line-level craft pass for active voice, concreteness and rhythm. Has a slot for your own banned house terms. Ships scripts/check-copy.sh so any workflow can gate on the mechanical rules. Use /natural-writing:review-copy to audit text already written.
 invoke: natural-writing
 ---
 

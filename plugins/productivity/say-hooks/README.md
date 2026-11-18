@@ -119,7 +119,7 @@ Edit `phrases/*.sh` to change the spoken phrase templates (one file per language
 
 ### Picking a stackvox voice
 
-List voices with `stackvox voices`. Pass one via `STACKVOX_VOICE` env var (future) or by editing the scripts to call `stackvox-say --voice bf_emma "$sentence"`.
+List voices with `stackvox voices`, then set one with `/stackvox-configure` or in `~/.claude/say-hooks.local.md` (see Voice & language above).
 
 ### Picking a macOS `say` voice
 
