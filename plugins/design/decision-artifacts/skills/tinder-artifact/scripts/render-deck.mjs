@@ -1,16 +1,8 @@
-import { open, writeFile } from 'node:fs/promises';
-import { constants } from 'node:fs';
-import { renderEnvelope } from './deck-template.mjs';
+import { writeFile } from 'node:fs/promises';
+import { readDeckInput, renderEnvelope } from './deck-template.mjs';
 
 async function render(input, output) {
-  const file=await open(input,constants.O_RDONLY | (constants.O_NONBLOCK || 0));
-  let envelope;
-  try {
-    if(!(await file.stat()).isFile())throw Error('Choose a regular deck file.');
-    envelope=JSON.parse(await file.readFile('utf8'));
-  } finally {
-    await file.close();
-  }
+  const envelope=JSON.parse(await readDeckInput(input));
   const {html}=renderEnvelope(envelope);
   await writeFile(output,html,{flag:'wx',mode:0o600});
 }

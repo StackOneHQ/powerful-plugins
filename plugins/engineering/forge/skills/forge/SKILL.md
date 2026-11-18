@@ -98,4 +98,4 @@ When forge is one step of a larger task, the final message still carries one met
 ## Elsewhere
 
 - Plans, large diffs or a contested design choice: `references/lenses.md`. Unsure whether a pattern is slop, or which linter finds it: `references/slop-catalogue.md`.
-- Prose (a README, PR description, commit message, or the wording of a comment forge kept): `natural-writing`. A whole codebase: `audit` in this plugin. Posting PR comments: a review skill; forge changes the code instead.
+- Prose (a README, PR description, commit message, or the wording of a comment forge kept): `natural-writing`, if installed. A whole codebase: `audit` in this plugin. Posting PR comments: a review skill; forge changes the code instead.

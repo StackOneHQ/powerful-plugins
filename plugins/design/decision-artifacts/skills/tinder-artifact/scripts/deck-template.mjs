@@ -1,5 +1,5 @@
-import { readFile } from 'node:fs/promises';
-import { readFileSync } from 'node:fs';
+import { open, readFile } from 'node:fs/promises';
+import { constants, readFileSync } from 'node:fs';
 import { runInNewContext } from 'node:vm';
 
 const template = await readFile(new URL('../assets/renderer.html',import.meta.url),'utf8');
@@ -37,4 +37,16 @@ export function openDeckFile(input) {
   // Only evaluate our packaged pilot definitions. Files supplied by the user contribute data only.
   const pilot=template.slice(template.indexOf('const pilotDefinitions='),template.indexOf('const DECK_PREFIX'));
   return {html:template,deck:runInNewContext(pilot+'\nPILOT')};
+}
+
+// The path comes only from a local CLI argument. Open once and validate the
+// descriptor so pipes and devices cannot be consumed as decks.
+export async function readDeckInput(path) {
+  const file=await open(path,constants.O_RDONLY | (constants.O_NONBLOCK || 0));
+  try {
+    if(!(await file.stat()).isFile())throw Error('Choose a regular deck file.');
+    return await file.readFile('utf8');
+  } finally {
+    await file.close();
+  }
 }

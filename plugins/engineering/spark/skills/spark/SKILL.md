@@ -25,7 +25,7 @@ else
 fi
 ```
 
-If it printed "No base", ask the user which branch is the base, then rerun the three `git` lines with `base=$(git merge-base HEAD <that branch>)`. In a fork, use the canonical remote (often `upstream`) in place of `origin`.
+When `gh pr view` finds an open PR, use its base branch (`<remote>/<baseRefName>`) in place of the default branch, so a stacked PR is read against the branch it targets; forge measures it the same way. If it printed "No base", ask the user which branch is the base, then rerun the three `git` lines with `base=$(git merge-base HEAD <that branch>)`. In a fork, use the canonical remote (often `upstream`) in place of `origin`.
 
 **Project mode** applies on the default branch with no feature work in progress. Read the root listing, the README, the dependency manifest (`package.json`, `Cargo.toml`, `pyproject.toml` and so on), the last 20 commits, and the key architectural files: routes, entry points, core modules.
 
@@ -68,6 +68,6 @@ Then ask "Want to build it?" (with `AskUserQuestion` in Claude Code, or a plain 
 
 ## Act on the answer
 
-- **Yes, build it now**: plan the implementation from the files it touches and the codebase's existing patterns, then build it. Once it is built and its tests pass, run the forge plugin's skill (`forge:forge`) on the change before calling it done. New features are where agent-written slop lands, and the author is the worst-placed reviewer of it. Forge ships in its own plugin; if it is not installed, say the forge pass was skipped and that installing `forge` from the same marketplace adds it, and do not stand in for it with a review of your own.
+- **Yes, build it now**: plan the implementation from the files it touches and the codebase's existing patterns, then build it. Building edits the working tree and runs the repo's tests; committing and pushing stay with the user. For a PR the user did not write, from a fork or another author, name the checked-out commit and get a yes before building, installing dependencies or running its tests, because those are repository-controlled scripts. That yes covers that commit only, so ask again before using a newer head. Without it, do not build or run repository checks. Once it is built and its tests pass, run the forge plugin's skill (`forge:forge`) on the change before calling it done. New features are where agent-written slop lands, and the author is the worst-placed reviewer of it. Forge ships in its own plugin; if it is not installed, say the forge pass was skipped and that installing `forge` from the same marketplace adds it, and do not stand in for it with a review of your own.
 - **Refine the idea first**: ask about scope, constraints and preferences, then present the refined idea in the same shape and ask again.
 - **Show me alternatives**: offer two or three more options, weaker than the first but still strong, and proceed with the one the user picks.

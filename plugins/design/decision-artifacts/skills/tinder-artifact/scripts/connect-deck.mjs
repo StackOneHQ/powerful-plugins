@@ -1,10 +1,10 @@
 import http from 'node:http';
 import { constants } from 'node:fs';
-import { openDeckFile } from './deck-template.mjs';
+import { openDeckFile, readDeckInput } from './deck-template.mjs';
 import { createHash, randomBytes } from 'node:crypto';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
-import { mkdir, open, readFile, readdir, writeFile, rename } from 'node:fs/promises';
+import { lstat, mkdir, open, readdir, writeFile, rename } from 'node:fs/promises';
 import { resolve, join } from 'node:path';
 
 const exec = promisify(execFile);
@@ -17,12 +17,20 @@ const site = hostedPage ? new URL(hostedPage) : null;
 if (site && (site.protocol !== 'https:' || site.username || site.password || site.hash)) throw Error('Use the exact HTTPS deck page.');
 const { stdout: help } = await exec('codex', ['queue','--help']);
 if (!help.includes('--thread') || !help.includes('--resume')) throw Error('This Codex installation does not support session delivery.');
-const {deck,html}=openDeckFile(await readFile(deckFile,'utf8'));
+const {deck,html}=openDeckFile(await readDeckInput(deckFile));
 const {id:taskId,title,definitions}=deck;
 const digest = text=>createHash('sha256').update(text).digest('hex');
 const deckHash=digest(JSON.stringify(deck));
-const directory = join(resolve(receiptRoot),thread,digest(taskId).slice(0,24));
-await mkdir(directory,{recursive:true,mode:0o700});
+const root=resolve(receiptRoot);
+const threadDirectory=join(root,thread);
+const directory=join(threadDirectory,digest(taskId).slice(0,24));
+for(const path of [root,threadDirectory,directory]){
+  await mkdir(path,{recursive:true,mode:0o700});
+  const stat=await lstat(path);
+  const privateMode=path===root?0o022:0o077;
+  if(!stat.isDirectory() || (process.getuid && (stat.uid!==process.getuid() || (stat.mode & privateMode)!==0)))
+    throw Error('Choose an owned, private receipt directory.');
+}
 const secret = randomBytes(32).toString('hex');
 const launchId = randomBytes(24).toString('hex');
 const localPath='/open/'+launchId;
@@ -196,8 +204,37 @@ const server=http.createServer(async(req,res)=>{
 });
 server.requestTimeout=60000;
 server.headersTimeout=10000;
-server.listen(0,'127.0.0.1',()=>{
-  localOrigin='http://127.0.0.1:'+server.address().port;
-  console.log(JSON.stringify({local:localOrigin+localPath,hosted:site?localOrigin+hostedPath:undefined,taskId,label,expiresAt:new Date(expiresAt).toISOString()}));
-});
+// Reusing the previous loopback port lets the browser reopen the same draft
+// and frozen submission IDs after the issuing chat restarts its receiver.
+const portFile=join(directory,'listener.port');
+let preferredPort=0;
+let savedPortFile;
+try {
+  savedPortFile=await open(portFile,constants.O_RDONLY | (constants.O_NOFOLLOW || 0) | (constants.O_NONBLOCK || 0));
+  const stat=await savedPortFile.stat();
+  if(!stat.isFile() || stat.size>5)throw Error('Invalid private listener port file.');
+  const saved=await savedPortFile.readFile('utf8');
+  if(/^\d{4,5}$/.test(saved) && +saved>=1024 && +saved<=65535)preferredPort=Number(saved);
+} catch(error) { if(error.code!=='ENOENT')throw error; }
+finally {await savedPortFile?.close();}
+function listen(port) {
+  return new Promise((ok,fail)=>{
+    const failed=error=>{server.off('listening',ready);fail(error);};
+    const ready=()=>{server.off('error',failed);ok();};
+    server.once('error',failed).once('listening',ready).listen(port,'127.0.0.1');
+  });
+}
+try {await listen(preferredPort);}
+catch(error) {
+  if(!preferredPort || error.code!=='EADDRINUSE')throw error;
+  await listen(0);
+}
+const port=server.address().port;
+if(!preferredPort) {
+  try {await writeFile(portFile,String(port),{flag:'wx',mode:0o600});}
+  catch(error) {if(error.code!=='EEXIST')throw error;}
+}
+localOrigin='http://127.0.0.1:'+port;
+console.log(JSON.stringify({local:localOrigin+localPath,hosted:site?localOrigin+hostedPath:undefined,taskId,label,
+  expiresAt:new Date(expiresAt).toISOString(),...(preferredPort && preferredPort!==port?{draftNotice:'The previous port is occupied. This local link has separate browser storage; check earlier receipts in the chat before resubmitting.'}:{})}));
 setTimeout(()=>server.close(),Math.max(1,expiresAt-Date.now())).unref();

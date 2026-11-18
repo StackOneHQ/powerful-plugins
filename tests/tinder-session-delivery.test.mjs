@@ -9,12 +9,12 @@ import { get } from 'node:http';
 import { once } from 'node:events';
 import { createInterface } from 'node:readline';
 import { fileURLToPath } from 'node:url';
-import { openDeckFile } from '../skills/tinder-artifact/scripts/deck-template.mjs';
+import { openDeckFile } from '../plugins/design/decision-artifacts/skills/tinder-artifact/scripts/deck-template.mjs';
 
-test('a paired receiver saves and queues a reviewed batch once, to the issuing chat',async t=>{
+test('a paired receiver saves and queues a reviewed batch once, to the issuing chat',{skip:process.platform==='win32' && 'The recording CLI is a POSIX shell fixture.',timeout:20000},async t=>{
   const home=await mkdtemp(join(tmpdir(),'deck-receiver-'));
   const thread='12345678-1234-4123-9123-123456789012';
-  const entry=fileURLToPath(new URL('../skills/tinder-artifact/scripts/connect-deck.mjs',import.meta.url));
+  const entry=fileURLToPath(new URL('../plugins/design/decision-artifacts/skills/tinder-artifact/scripts/connect-deck.mjs',import.meta.url));
   const fixture={id:'check-pair',brief:'Prepare an internal draft.',payload:{title:'Draft review',cards:[{
     job:'guide',kind:'proposal',required:true,question:'Use this draft?',context:'Internal pilot.',
     recommendation:'Use it.',reason:'Matches the brief.',action:'Prepare the draft.',source:'Pilot brief.',uncertainty:'Untested.'
@@ -32,6 +32,7 @@ test('a paired receiver saves and queues a reviewed batch once, to the issuing c
       for(const suffix of ['.json','.receipt.json','.receipt.json.tmp'])await removeIfPresent(unlink,submissionPath(id)+suffix);
     }
     await removeIfPresent(unlink,join(receiptFolder,'delivery-test-01.receipt.json'));
+    await removeIfPresent(unlink,join(receiptFolder,'listener.port'));
     for(const directory of [receiptFolder,join(home,'receipts',thread),join(home,'receipts'),home])await removeIfPresent(rmdir,directory);
   });
   const file=join(home,'deck.json');
@@ -41,13 +42,20 @@ test('a paired receiver saves and queues a reviewed batch once, to the issuing c
   await writeFile(recorder,"#!/bin/sh\nif [ \"$2\" = '--help' ]; then echo '--thread --resume'; exit 0; fi\nprintf '%s\\n' \"$@\" >> \"$QUEUE_LOG\"\n",{mode:0o700});
   const log=join(home,'calls.txt');
   const site='https://review.example';
-  const child=spawn(process.execPath,[entry,file,join(home,'receipts'),'Draft chat',site],{
-    env:{...process.env,CODEX_THREAD_ID:thread,PATH:home+':'+process.env.PATH,QUEUE_LOG:log},
-    stdio:['ignore','pipe','inherit']
-  });
-  t.after(()=>child.kill());
-  const [line]=await once(createInterface({input:child.stdout}),'line');
-  const launch=JSON.parse(line);
+  function launchReceiver(){
+    const child=spawn(process.execPath,[entry,file,join(home,'receipts'),'Draft chat',site],{
+      env:{CODEX_THREAD_ID:thread,PATH:home,QUEUE_LOG:log},
+      stdio:['ignore','pipe','inherit']
+    });
+    t.after(()=>child.kill());
+    const lines=createInterface({input:child.stdout});
+    return {child,ready:Promise.race([
+      once(lines,'line').then(([line])=>JSON.parse(line)),
+      once(child,'exit').then(()=>{throw Error('Receiver exited before readiness');})
+    ])};
+  }
+  const first=launchReceiver();
+  const launch=await first.ready;
   const origin=new URL(launch.local).origin;
   assert.equal((await fetch(launch.hosted,{redirect:'manual'})).status,403);
   const redirect=await new Promise((resolve,reject)=>{
@@ -96,7 +104,9 @@ test('a paired receiver saves and queues a reviewed batch once, to the issuing c
   assert.ok(calls.includes('--resume'));
   assert.ok(!calls.includes('Retain heading.'));
   const filePath=JSON.parse(calls.match(/frozen decisions at ("[^"\n]+")\./)[1]);
-  const frozen=JSON.parse(await readFile(filePath,'utf8'));
+  const expectedPath=submissionPath(snapshot.submissionId)+'.json';
+  assert.equal(filePath,expectedPath);
+  const frozen=JSON.parse(await readFile(expectedPath,'utf8'));
   assert.equal(frozen.decisions[0].requestedWork,'Prepare the draft.');
   assert.equal(frozen.decisions[0].notes,'Retain heading.');
   const feedback={...snapshot,submissionId:'delivery-test-02',decisions:[{
@@ -106,4 +116,10 @@ test('a paired receiver saves and queues a reviewed batch once, to the issuing c
   const feedbackPacket=JSON.parse(await readFile(submissionPath(feedback.submissionId)+'.json','utf8'));
   assert.equal(feedbackPacket.decisions[0].requestedWork,null);
   assert.equal(feedbackPacket.decisions[0].notes,'Already reviewed elsewhere.');
+  const stopped=once(first.child,'exit');
+  first.child.kill();
+  await stopped;
+  const restarted=await launchReceiver().ready;
+  assert.equal(new URL(restarted.local).origin,origin);
+  assert.notEqual(restarted.local,launch.local);
 });

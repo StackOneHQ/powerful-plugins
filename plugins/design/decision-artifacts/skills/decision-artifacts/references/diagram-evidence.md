@@ -1,9 +1,7 @@
 # Evidence in diagrams
 
 Choose the view by the reader's question: dependencies, sequence, states, comparison
-or cause. Use an available diagramming skill such as `diagram-explainer` for the smallest useful representation.
-Quantitative charts remain with `tufte-viz`; this reference concerns the
-claims a diagram makes, not a new rendering system.
+or cause. Use the smallest diagram that answers it. For a quantitative comparison, use the [chart guidance](visuals.md).
 
 For each consequential arrow, identify its source and relationship: a data flow,
 dependency, time order and causal effect are different claims. Label conditions,

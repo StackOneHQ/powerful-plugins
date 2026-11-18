@@ -4,7 +4,7 @@ Use a deck when the decision will be walked through live: a review, a steering m
 
 ## Surface
 
-- In Claude, prefer the Slides template (`/slides` with a brief in Claude Code). People can edit any slide directly, comment and ask Claude to revise, present from the browser, and export to formats such as PowerPoint or PDF. Confirm the current export options in the account before promising one.
+- When the host provides it, use the Slides template (`/slides` with a brief in Claude Code). People can edit any slide directly, comment and ask Claude to revise, present from the browser, and export to formats such as PowerPoint or PDF. Confirm the current export options in the account before promising one.
 - When there is no native slide surface, build one self-contained HTML page with one section per slide, keyboard navigation (arrow keys, Home, End), a visible slide counter and a print stylesheet that puts one slide per page.
 - When the organisation presents from an existing slide tool, follow its template and export into it rather than recreating its look.
 

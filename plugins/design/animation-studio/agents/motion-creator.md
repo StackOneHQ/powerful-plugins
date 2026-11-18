@@ -19,7 +19,7 @@ You generate production-ready Motion animation code for React components, whethe
 - Read the target component: its props, structure and styling.
 - Check `package.json` for the `"motion"` dependency. If it is missing, give the user the install command in the project's package manager (`pnpm add motion` or equivalent) and let them run it, or run it yourself only after they say yes.
 - If the component is an island, check the page that mounts it: it should hydrate when visible, not on load (in Astro, `client:visible`).
-- Find the project's design tokens (colours, radius, shadows, motion curves). If there are none, ask rather than inventing values.
+- Find the project's design tokens (colours, radius, shadows, motion curves). Without motion tokens, use the default rules below. Without colour, radius or shadow tokens, ask rather than inventing values.
 
 Change the target component and, for an island, the page that mounts it. Leave unrelated code alone.
 
