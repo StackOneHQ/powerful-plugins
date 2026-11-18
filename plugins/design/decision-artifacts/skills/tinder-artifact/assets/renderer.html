@@ -514,10 +514,10 @@ async function connectOriginatingChat(){
   sender.message='Checking the originating chat…';
   await checkSender();
 }
-function freezeReviewedBatch(forDelivery=false){
+function freezeReviewedBatch(){
   if(conflictPending)return null;
   const base=buildSnapshot();
-  if(!base.decisions.some(d=>['Apply','Revise'].includes(d.group) || (forDelivery && d.intent==='dismiss')))return null;
+  if(!base.decisions.some(d=>['Apply','Revise'].includes(d.group) || d.intent==='dismiss'))return null;
   const fingerprint=JSON.stringify(base);
   const previous=state.history.find(h=>h.fingerprint===fingerprint);
   if(previous)return previous;
@@ -529,7 +529,8 @@ function freezeReviewedBatch(forDelivery=false){
   return snapshot;
 }
 function deliveryControls(actionable){
-  const disabled=!actionable || conflictPending;
+  const canShare=actionable || definitions.some(d=>record(d.id).intent==='dismiss');
+  const disabled=!canShare || conflictPending;
   const peer=sender.peer;
   const intro=peer?'Send your reviewed decisions to '+peer.label+'. Codex will queue the batch and request that this chat continue.':sender.message || 'Open the paired link from the originating chat to send directly. You can also copy this batch into an AI conversation.';
   let controls='';
@@ -537,9 +538,8 @@ function deliveryControls(actionable){
     const frozen=state.history.find(h=>h.fingerprint===JSON.stringify(buildSnapshot()));
     const receipt=currentReceipt(frozen);
     const done=receipt?.state==='queued';
-    const canSend=actionable || definitions.some(d=>record(d.id).intent==='dismiss');
     const caption=done?'Queued in '+peer.label:sender.busy?'Sending…':receipt?'Check delivery':'Send to '+peer.label;
-    controls='<button class="primary" id="send-batch" '+(conflictPending || !canSend || done || sender.busy?'disabled':'')+'>'+esc(caption)+'</button>';
+    controls='<button class="primary" id="send-batch" '+(disabled || done || sender.busy?'disabled':'')+'>'+esc(caption)+'</button>';
     if(receipt)controls+='<p class="small" role="status">'+esc(receipt.detail)+'</p>';
   } else if(sender.url){
     const local=new URL('/deck',sender.url);
@@ -550,7 +550,7 @@ function deliveryControls(actionable){
 }
 async function sendBatch(){
   if(sender.busy || !sender.peer)return;
-  const snapshot=freezeReviewedBatch(true);
+  const snapshot=freezeReviewedBatch();
   if(!snapshot || currentReceipt(snapshot)?.state==='queued')return;
   if((saveError && !persist()) || conflictPending){$('send-status').textContent='Save this draft before sending so a retry can reuse its submission ID.';return;}
   const target=sender.peer;

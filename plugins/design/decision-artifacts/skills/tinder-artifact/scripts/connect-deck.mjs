@@ -3,7 +3,7 @@ import { openDeckFile } from './deck-template.mjs';
 import { createHash, randomBytes } from 'node:crypto';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
-import { mkdir, open, readFile, writeFile, rename } from 'node:fs/promises';
+import { mkdir, open, readFile, readdir, writeFile, rename } from 'node:fs/promises';
 import { resolve, join } from 'node:path';
 
 const exec = promisify(execFile);
@@ -26,6 +26,22 @@ const secret = randomBytes(32).toString('hex');
 const launchId = randomBytes(24).toString('hex');
 const localPath='/open/'+launchId;
 const hostedPath='/site/'+launchId;
+const viewPath='/deck/'+randomBytes(24).toString('hex');
+// Older hosted renderers link to /deck with pairing details in the fragment.
+// This shell contains no deck data and exchanges a valid bearer for the private view.
+const publicShell=`<!doctype html><meta charset="utf-8"><title>Paired decision deck</title>
+<p id="status">Open the pairing link from your originating chat.</p><script>
+(async function(){
+  const key=new URLSearchParams(location.hash.slice(1)).get('tinderKey');
+  if(!key)return;
+  try {
+    const response=await fetch('/open-view',{method:'POST',headers:{Authorization:'Bearer '+key}});
+    if(!response.ok)return;
+    const view=await response.json();
+    location.replace(view.path+location.search+location.hash);
+  } catch { document.getElementById('status').textContent='Reopen the pairing link from your chat.'; }
+})();
+</script>`;
 const expiresAt = Date.now()+8*60*60*1000;
 let localOrigin;
 const groups = new Set(['Apply','Revise','Dismiss','Unresolved']);
@@ -79,8 +95,19 @@ function checkedSnapshot(input) {
 async function enqueue(snapshot) {
   const content=JSON.stringify(snapshot,null,2)+'\n';
   const hash=digest(content);
-  const packetPath=join(directory,snapshot.submissionId+'.json');
-  const receiptPath=join(directory,snapshot.submissionId+'.receipt.json');
+  // New receipts use fixed-length server-derived names. Recognize old receipts
+  // by directory entry so retries from earlier renderer versions remain idempotent.
+  const basename=digest('submission/'+snapshot.submissionId);
+  const packetPath=join(directory,basename+'.json');
+  const receiptPath=join(directory,basename+'.receipt.json');
+  const legacy=(await readdir(directory,{withFileTypes:true})).find(entry=>
+    entry.isFile() && entry.name===snapshot.submissionId+'.receipt.json');
+  if(legacy){
+    let prior;
+    try {prior=JSON.parse(await readFile(join(directory,legacy.name),'utf8'));} catch {throw fail(409,'Check the earlier delivery receipt.');}
+    if(prior.hash!==hash)throw fail(409,'This submission ID already belongs to different answers.');
+    return prior;
+  }
   let lock;
   try {lock=await open(receiptPath,'wx',0o600);} catch(error) {
     if(error.code!=='EEXIST')throw error;
@@ -122,11 +149,23 @@ const server=http.createServer(async(req,res)=>{
     if(req.method==='GET' && (path===localPath || (site && path===hostedPath))) {
       // Only top-level navigations can obtain a pairing link. API responses never return the pairing secret.
       if(req.headers.origin || (req.headers['sec-fetch-mode'] && req.headers['sec-fetch-mode']!=='navigate'))throw fail(403,'Open the deck link directly.');
-      const dest=new URL(path===hostedPath?site:localOrigin+'/deck');
+      const dest=new URL(path===hostedPath?site:localOrigin+viewPath);
       dest.hash=new URLSearchParams({tinderPort:String(server.address().port),tinderKey:secret,tinderTask:taskId}).toString();
       res.writeHead(302,{Location:dest.href});res.end();return;
     }
-    if(req.method==='GET' && path.split('?')[0]==='/deck'){res.writeHead(200,{'Content-Type':'text/html; charset=utf-8'});res.end(html);return;}
+    const pathname=path.split('?')[0];
+    if(req.method==='GET' && (pathname==='/deck' || pathname===viewPath)){
+      if(Date.now()>=expiresAt)throw fail(403,'Pair this deck again.');
+      res.writeHead(200,{'Content-Type':'text/html; charset=utf-8'});
+      res.end(pathname===viewPath?html:publicShell);
+      return;
+    }
+    if(req.method==='POST' && path==='/open-view'){
+      if(Date.now()>=expiresAt || req.headers.origin!==localOrigin || req.headers.authorization!=='Bearer '+secret)
+        throw fail(403,'Open the paired deck link from your chat.');
+      reply(res,200,{path:viewPath});
+      return;
+    }
     if(req.method==='GET' && site && path==='/report.html'){res.writeHead(302,{Location:new URL('report.html',site).href});res.end();return;}
     if(!['/capability','/submit'].includes(path))throw fail(404,'Unknown route.');
     const origin=req.headers.origin;

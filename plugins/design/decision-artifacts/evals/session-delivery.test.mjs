@@ -43,10 +43,17 @@ test('a paired receiver saves and queues a reviewed batch once, to the issuing c
   const target=new URL(redirect.headers.location);
   assert.equal(target.origin,site);
   assert.equal((await fetch(origin+'/')).status,404);
-  assert.equal((await fetch(origin+'/deck?deck=another-deck')).status,200);
+  const shell=await fetch(origin+'/deck?deck=another-deck');
+  assert.equal(shell.status,200);
+  assert.ok(!(await shell.text()).includes(fixture.brief));
   const report=await fetch(origin+'/report.html',{redirect:'manual'});
   assert.equal(report.headers.get('location'),site+'/report.html');
   const key=new URLSearchParams(target.hash.slice(1)).get('tinderKey');
+  const view=auth=>fetch(origin+'/open-view',{method:'POST',headers:{Origin:origin,Authorization:'Bearer '+auth}});
+  assert.equal((await view('invalid')).status,403);
+  const {path:viewPath}=await (await view(key)).json();
+  assert.match(viewPath,/^\/deck\/[0-9a-f]{48}$/);
+  assert.ok((await (await fetch(origin+viewPath)).text()).includes(fixture.brief));
   const deckHash=createHash('sha256').update(JSON.stringify(openDeckFile(JSON.stringify(fixture)).deck)).digest('hex');
   const post=(path,data,caller=site,auth=key)=>fetch(origin+path,{
     method:'POST',headers:{Origin:caller,Authorization:'Bearer '+auth,'Content-Type':'application/json'},
@@ -80,7 +87,7 @@ test('a paired receiver saves and queues a reviewed batch once, to the issuing c
     ...snapshot.decisions[0],group:'Unresolved',intent:'dismiss',notes:'Already reviewed elsewhere.'
   }]};
   assert.equal((await (await post('/submit',feedback)).json()).state,'queued');
-  const feedbackPacket=JSON.parse(await readFile(filePath.replace('delivery-test-01','delivery-test-02'),'utf8'));
+  const feedbackPacket=JSON.parse(await readFile(filePath.replace(createHash('sha256').update('submission/delivery-test-01').digest('hex'),createHash('sha256').update('submission/delivery-test-02').digest('hex')),'utf8'));
   assert.equal(feedbackPacket.decisions[0].requestedWork,null);
   assert.equal(feedbackPacket.decisions[0].notes,'Already reviewed elsewhere.');
 });
