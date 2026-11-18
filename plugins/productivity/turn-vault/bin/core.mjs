@@ -145,7 +145,7 @@ export function redactSecrets(raw) {
 
   // Key=value, key: value and "key": "value" assignments for sensitive names
   out = out.replace(
-    /\b((?:[A-Za-z0-9_]{0,64}?(?:api[_-]?key|client[_-]?secret|access[_-]?token|refresh[_-]?token|auth[_-]?token|private[_-]?key|secret[_-]?key|webhook[_-]?secret|signing[_-]?secret|secret[_-]?access[_-]?key|access[_-]?key|password|passwd|bearer[_-]?token|token|secret|credentials?))['"]?\s*[:=]\s*)(?:"[^"\n]{0,4096}"|'[^'\n]{0,4096}'|[^\s'",;)\]}[]{6,})/gi,
+    /\b((?:[A-Za-z0-9_]{0,64}?(?:api[_-]?key|client[_-]?secret|access[_-]?token|refresh[_-]?token|auth[_-]?token|private[_-]?key|secret[_-]?key|webhook[_-]?secret|signing[_-]?secret|secret[_-]?access[_-]?key|access[_-]?key|password|passwd|bearer[_-]?token|token|secret|credentials?))['"]?\s*[:=]\s*)(?:"(?:\\[^\n]|[^"\\\n])*"?|'(?:\\[^\n]|[^'\\\n])*'?|[^\s'",;)\]}[]{6,})/gi,
     "$1[REDACTED]",
   );
 

@@ -529,7 +529,12 @@ test("security: scrubs secrets, blocks symlinks & path traversal, neutralizes in
     assert.ok(Date.now() - started < 500, "redaction stays linear on adversarial input");
     const quotedMultiword = redactSecrets(`password: "correct horse battery" https://x.example/a?auth=s3cr3tA&session=s3cr3tB&X-Amz-Credential=s3cr3tC`);
     assert.doesNotMatch(quotedMultiword, /correct horse|s3cr3t/);
-    assert.equal(redactSecrets(`password: "${"k".repeat(1000)}"`).includes("kkkk"), false, "long quoted values are redacted too");
+    for (const quote of ['"', "'"]) {
+      const longValue = "k".repeat(8192);
+      const assignment = "password: " + quote + longValue + "\\" + quote + "suffix";
+      assert.equal(redactSecrets(assignment + quote + ", next"), "password: [REDACTED], next");
+      assert.equal(redactSecrets(assignment), "password: [REDACTED]");
+    }
     assert.equal(sanitizeExternalUrl("javascript:alert(1)"), null);
     assert.equal(sanitizeExternalUrl("http://insecure.example.com/pr/1"), null);
     assert.equal(
