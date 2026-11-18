@@ -1,112 +1,38 @@
 # Decision Artifacts
 
-Build interactive decision pages: what needs the reader comes first, options and changes are shown before and after, the reader's answers are saved on the page so the agent can read them back, and the evidence sits in side panels.
+Turn a set of findings into a page where someone can compare options, inspect the evidence and record a choice. On the next review, they can see which questions still need an answer and what happened to earlier decisions.
 
-The plugin separates two choices that are often mixed together:
+## Install
 
-- **Mode** controls what the reader needs to do: `decide`, `explain`, `act`, `track`, or `explore`.
-- **Taste** controls how it feels: `editorial` by default, or `dashboard`, `technical`, or `narrative`.
+Decision Artifacts works on its own. Choose the commands for your tool.
 
-Users can override either in natural language:
+**Claude Code**
 
 ```text
-Use decision-artifacts with mode=decide taste=technical.
-```
-
-They can also name another installed writing, brand, or design skill. That skill becomes the authority for its concern while the decision structure, evidence, and accessibility rules remain in place.
-
-## Default output
-
-The default is an editorial decision page built around **simple at rest, exhaustive on demand**:
-
-- a "Needs you" block first: only what the reader must decide or do, in order
-- the conclusion and next action, with the update time and what the page covers
-- before/after views wherever a change can be shown: charts, number pairs, screenshots, mockups
-- proposed and unverified values drawn differently from measured ones, and likelihood stated apart from confidence
-- a working table with the reader's choice and note on every decision, saved on the page, with save state, Undo for Approve all and a "Your answers" review list
-- complete evidence, sources, alternatives, and technical detail in a side sheet
-- tabs or collapsed sections for history, such as previous runs and past answers
-- about 300 words of prose at rest, and no more than two levels of disclosure
-- one living page per topic, republished in place
-- source, confidence rationale, verification state, and last-checked time for consequential claims
-
-For a meeting, the same decision spine becomes a short deck: the decision slide first, one
-claim per slide, and every supporting record in the appendix or speaker notes. In Claude, it
-uses the Slides template, so people can edit, comment and ask Claude to revise before presenting.
-
-In a Claude artifact, when you ask for it, the skill can add a labelled control that acts on
-the decision, such as filing the follow-up ticket, with a confirmation step before it runs. It
-also keeps section labels stable so comment threads and revisions point at the right place.
-
-For a guided explanation, the skill can trace one example through a mechanism,
-keep a baseline beside an adjustable scenario, and deliver a complete static text
-equivalent. The diagram, step labels and result share one model so changing an
-input does not leave contradictory views. Ask: "Walk me through this retry policy
-with one example. Let me change the delay cap and show why the result changes."
-
-For a spend review, the skill builds one page: the decisions on the left and a
-panel on the right that follows the selection. The panel holds an overview
-with the pace and an owner table, an explore view where any bar, row or box
-filters every view, the waste the savings come from, and each decision's own
-data before its options and saving ranges. Ask: "Where
-is our cloud bill going? Let me group it by team or product and pick what to
-cut."
-
-## Composition with other skills
-
-The plugin composes with adjacent skills instead of copying their rules.
-
-- `decision-artifacts` owns the decision model, evidence spine, interaction, visual hierarchy, and platform routing.
-- `natural-writing` owns sentence-level language.
-- `tufte-viz` owns quantitative chart selection and critique.
-- `animation-studio` owns motion, when a state change needs it.
-- `browser-automation` covers interaction testing of the rendered artifact.
-- Any installed response-style skill owns response order, scannability, plain language, and honest uncertainty.
-- `diagram-explainer`, or another installed diagramming skill, owns focused diagrams and visual explanations.
-- The project's brand or design-system skill, or its design tokens, owns the visual system. If none exists, the built-in tastes apply and the skill asks before inventing brand values.
-- Any installed HTML rendering skill owns its rendering path.
-- `vercel-web-design-guidelines` covers implementation review.
-
-Every integration is optional. The skill reads an installed dependency before using it and applies only the responsibilities that dependency currently documents. If a dependency is unavailable, the artifact skill uses a compact fallback without copying the missing skill's rules.
-
-## Installation
-
-```bash
-# Claude Code
 /plugin marketplace add StackOneHQ/powerful-plugins
 /plugin install decision-artifacts@powerful-plugins
+```
 
-# Codex
+**Codex**
+
+```sh
 codex plugin marketplace add StackOneHQ/powerful-plugins
 codex plugin add decision-artifacts@powerful-plugins
 ```
 
-## Example requests
+## Try it with one decision
 
-```text
-Give me a decision artifact for these findings so I can pick on each one.
-```
+> Use Decision Artifacts to help me choose a support plan for a six-week launch. Our current plan costs $300/month and promises a reply within two business days. Priority costs $480/month and promises four business hours. Our budget is $500/month. Make a local HTML page where I can compare the plans, see the trade-off, and pick one with a note.
 
-```text
-Explain this change to nontechnical readers. Use a technical side panel for proof.
-```
+Open the file. You should see the $180 monthly premium beside the difference in promised **reply** time. Pick a plan, add your reason and select **Copy my answers**. Paste that into the chat and ask the agent to update the page. Your choice becomes a receipt. Whether anyone has changed the plan is a separate field.
 
-```text
-Turn this vendor comparison into a six-slide deck for Thursday's review. Put the evidence in the appendix.
-```
+Use the same prompt with your own notes, quotes or findings. On a host with built-in answer storage accessible to the agent, the agent can read answers back directly. A local HTML file works offline and uses the copy-and-paste handoff. Shared pages and controls that take an external action need the appropriate host capabilities and your confirmation.
 
-```text
-Make a decide-mode artifact for the team. Record who picked which option, and add a button that files the follow-up ticket once we choose.
-```
+## Other ways to use it
 
-```text
-Build a track-mode artifact showing what is done, left, blocked, and deliberately excluded.
-```
+- **Review a cost increase.** “Show which teams drove this month's bill. Let me filter by team, inspect the evidence and choose what to cut.”
+- **Present a decision.** “Turn these vendor quotes into a six-slide decision deck. Put the recommendation first and the evidence in the appendix.”
+- **Explain a change.** “Walk me through this retry policy with one example. Let me change the delay cap and compare it with today's behavior.”
+- **Refresh a review.** “Update the same page with these results. Show what still needs me, what we picked last time and whether it worked.”
 
-```text
-Create an explore-mode site where the reader can change the assumptions. Use our brand skill for the visual style.
-```
-
-```text
-Is the decision page up to date? Refresh it with what changed.
-```
+The bundled skill chooses a layout from the reader's task. You can ask for an editorial brief, dashboard, technical walkthrough or narrative. If you want a particular brand, chart or writing style, name an installed skill in your request. The page, charts, answer controls and evidence panels all work with Decision Artifacts alone.

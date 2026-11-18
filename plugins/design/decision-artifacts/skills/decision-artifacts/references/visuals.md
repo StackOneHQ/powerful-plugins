@@ -1,6 +1,6 @@
 # Visuals
 
-Read this when the page draws a chart, a number pair or a quantitative before/after. `tufte-viz` or `dataviz` own chart craft (data-ink, small multiples, palettes); this file covers what a decision page adds.
+Read this when the page draws a chart, a number pair or a quantitative before/after. Use the comparisons and encodings below.
 
 ## Proposals look like proposals
 
