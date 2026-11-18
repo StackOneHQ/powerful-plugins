@@ -9,7 +9,7 @@ The artifact fails if any answer is no:
 - Is the main conclusion or current state accurate, and is every volatile fact re-checked with its time?
 - Does the first screen show what needs the reader, in order, each with what done looks like, and nothing that Claude could do itself?
 - Do recommendations and timelines respect the user's standing rulings and stated scope?
-- Can the reader record an answer on every open decision, and can Claude read it back?
+- Can the reader record an answer on every open decision, and can the agent retrieve it from the host or the copy-and-paste handoff?
 - Are observation, inference, assumption, recommendation, delivery and verification kept distinct?
 - Are consequential claims backed by evidence reachable in one selection?
 - Is every change that can be shown, shown before and after, and are proposed or unverified values drawn differently from measured ones?
@@ -20,8 +20,9 @@ The artifact fails if any answer is no:
 - Does the page work at 320 px with no horizontal scroll, with targets of at least 24 px?
 - Is visible prose within the budget, with no session phrases and no mode or taste labels?
 - Are live, stored, unavailable and snapshot data states labelled accurately?
-- Does `scripts/audit-design-floor.mjs` exit 0 for the page in light and dark at desktop and 320 px, with every panel and tab opened by `--click`, and is every mark it counts under 3:1 a context mark whose value is printed or not needed?
-- Does each chart give its accent only to what the decision is about, from a palette validated for each theme against its real surface (the `dataviz` validator where it is installed; otherwise every series at 3:1 against the surface and each adjacent pair told apart in a colour-blind simulation)?
+- Do text and chart marks meet the [design floor](tastes.md#design-floor-every-taste) across themes and widths? Use the optional audit when available and report any untested conditions.
+- Can readers distinguish each chart series by its labels or marks in both themes?
+- On refresh, do the headline and open count reflect the current choices, and does each settled receipt distinguish the answer from evidence of action?
 - Does each choice use the control that fits its shape, per [interaction.md](interaction.md)?
 
 ## Reader tasks

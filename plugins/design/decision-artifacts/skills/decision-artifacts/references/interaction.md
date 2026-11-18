@@ -4,14 +4,22 @@ Every control must reduce the reader's work or support a decision; leave out any
 
 ## Answer controls
 
-- One control group per decision, on its row and repeated in its sheet: a segmented choice (or checkboxes for multi-select) plus a note. Each row has a bare `#d-<id>` anchor.
+- One control group per decision, on its row and repeated in its sheet: a segmented choice (or checkboxes for multi-select) plus a note. Each row has a unique, stable `#d-<id>` anchor. Preserve links from previous versions. If ids collide or a decision fails to render, show the error before accepting answers.
 - The recommended option is tagged, never pre-selected unless the reader asked for defaults. "Approve all recommended" fills only unanswered items and stores them as `source: bulk` (a click is `source: pick`). It offers Undo until the next action, and the counter reads "8 of 8 answered · 5 by Approve all". Any row can be cleared; never call `confirm()`.
-- Controls stay disabled, with the counter showing that answers are loading, until the stored answers arrive, so Approve all can't overwrite answers it hasn't seen.
-- Each row shows Saving…, Saved hh:mm, or Not saved with Retry. If another viewer's write reaches a row the reader is editing, keep the reader's typing and offer Use theirs or Keep mine.
+- On a host with readable storage, controls stay disabled, with the counter showing that answers are loading, until the stored answers arrive, so Approve all can't overwrite answers it hasn't seen.
+- With readable storage, each row shows Saving…, Saved hh:mm, or Not saved with Retry. If another viewer's write reaches a row the reader is editing, keep the reader's typing and offer Use theirs or Keep mine.
 - Above "Copy my answers", a "Your answers" list: each decision with its choice, note and a Change link to its row; unanswered ones say so and link to the question. A decision that depends on another shows "Waiting on …" and is disabled. When an id was answered in an earlier version and its inputs haven't changed, offer "Last time: … Use again"; it counts only once clicked.
 - "Copy my answers" copies a prompt-ready list with each choice, note and source, and names the unanswered ones. If the clipboard call fails, show the text selected for a manual copy.
-- Write one document per decision, only on a reader action. Coalesce typing into one write per pause; closing the sheet saves a pending note.
+- With readable storage, write one document per decision, only on a reader action. Coalesce typing into one write per pause; closing the sheet saves a pending note.
 - Render viewer-written text with `textContent`. Keep decision ids stable and rebuild every control from the stored answers on load.
+
+## Settled decisions
+
+On refresh, fold confirmed answers under “Settled · N” after the open rows. Keep each row's anchor and open the section when a link targets it. “Change answer” reopens its controls. Keep the current answer and note available while editing, and keep earlier applied work in the record when a pick changes.
+
+A receipt shows the pick, note, date if known, and whether it came from bulk approval. Show “Answered” as the decision status and track delivery separately. Record implementation only with evidence of where the change was applied, such as a document revision. For a measured effect, show expected and observed values with the source and time window. For an expected effect, show the next check date if known. Include how to reverse an applied change where relevant.
+
+Preserve receipt fields when saving an answer and preserve the reader's answer when recording an outcome. On a local page, build receipts from answers pasted back and evidence supplied on refresh. An uncopied selection is still a draft.
 
 ## Sheet
 
