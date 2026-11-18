@@ -214,7 +214,8 @@ try {
   const stat=await savedPortFile.stat();
   if(!stat.isFile() || stat.size>5)throw Error('Invalid private listener port file.');
   const saved=await savedPortFile.readFile('utf8');
-  if(/^\d{4,5}$/.test(saved) && +saved>=1024 && +saved<=65535)preferredPort=Number(saved);
+  if(!/^\d{4,5}$/.test(saved) || +saved<1024 || +saved>65535)throw Error('Invalid saved listener port. Check the private receipt directory before restarting.');
+  preferredPort=Number(saved);
 } catch(error) { if(error.code!=='ENOENT')throw error; }
 finally {await savedPortFile?.close();}
 function listen(port) {
@@ -230,11 +231,15 @@ catch(error) {
   await listen(0);
 }
 const port=server.address().port;
+let separateOrigin=preferredPort!==0 && preferredPort!==port;
 if(!preferredPort) {
   try {await writeFile(portFile,String(port),{flag:'wx',mode:0o600});}
-  catch(error) {if(error.code!=='EEXIST')throw error;}
+  catch(error) {
+    if(error.code!=='EEXIST')throw error;
+    separateOrigin=true;
+  }
 }
 localOrigin='http://127.0.0.1:'+port;
 console.log(JSON.stringify({local:localOrigin+localPath,hosted:site?localOrigin+hostedPath:undefined,taskId,label,
-  expiresAt:new Date(expiresAt).toISOString(),...(preferredPort && preferredPort!==port?{draftNotice:'The previous port is occupied. This local link has separate browser storage; check earlier receipts in the chat before resubmitting.'}:{})}));
+  expiresAt:new Date(expiresAt).toISOString(),...(separateOrigin?{draftNotice:'The previous port is occupied. This local link has separate browser storage; check earlier receipts in the chat before resubmitting.'}:{})}));
 setTimeout(()=>server.close(),Math.max(1,expiresAt-Date.now())).unref();
