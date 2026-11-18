@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtemp, writeFile, readFile, rm } from 'node:fs/promises';
+import { mkdtemp, writeFile, readFile, unlink, rmdir, rename } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { createHash } from 'node:crypto';
@@ -13,13 +13,27 @@ import { openDeckFile } from '../skills/tinder-artifact/scripts/deck-template.mj
 
 test('a paired receiver saves and queues a reviewed batch once, to the issuing chat',async t=>{
   const home=await mkdtemp(join(tmpdir(),'deck-receiver-'));
-  t.after(()=>rm(home,{recursive:true,force:true}));
   const thread='12345678-1234-4123-9123-123456789012';
   const entry=fileURLToPath(new URL('../skills/tinder-artifact/scripts/connect-deck.mjs',import.meta.url));
   const fixture={id:'check-pair',brief:'Prepare an internal draft.',payload:{title:'Draft review',cards:[{
     job:'guide',kind:'proposal',required:true,question:'Use this draft?',context:'Internal pilot.',
     recommendation:'Use it.',reason:'Matches the brief.',action:'Prepare the draft.',source:'Pilot brief.',uncertainty:'Untested.'
   }]}};
+  const hash=value=>createHash('sha256').update(value).digest('hex');
+  const receiptFolder=join(home,'receipts',thread,hash(fixture.id).slice(0,24));
+  const submissionPath=id=>join(receiptFolder,hash('submission/'+id));
+  const removeIfPresent=async (operation,path)=>{
+    try {await operation(path);} catch(error){if(error.code!=='ENOENT')throw error;}
+  };
+  t.after(async ()=>{
+    // Clean only named files created by this fixture; unexpected files are retained.
+    for(const file of ['codex','deck.json','calls.txt'])await removeIfPresent(unlink,join(home,file));
+    for(const id of ['delivery-test-01','delivery-test-02']){
+      for(const suffix of ['.json','.receipt.json','.receipt.json.tmp'])await removeIfPresent(unlink,submissionPath(id)+suffix);
+    }
+    await removeIfPresent(unlink,join(receiptFolder,'delivery-test-01.receipt.json'));
+    for(const directory of [receiptFolder,join(home,'receipts',thread),join(home,'receipts'),home])await removeIfPresent(rmdir,directory);
+  });
   const file=join(home,'deck.json');
   await writeFile(file,JSON.stringify(fixture));
   // A recording CLI makes this test independent of a user account and live chats.
@@ -74,6 +88,8 @@ test('a paired receiver saves and queues a reviewed batch once, to the issuing c
   assert.deepEqual(repeated,submitted);
   const changes={...snapshot,decisions:[{...snapshot.decisions[0],notes:'Different text.'}]};
   assert.equal((await post('/submit',changes)).status,409);
+  await rename(submissionPath(snapshot.submissionId)+'.receipt.json',join(receiptFolder,snapshot.submissionId+'.receipt.json'));
+  assert.deepEqual(await (await post('/submit',snapshot)).json(),submitted);
   const calls=await readFile(log,'utf8');
   assert.equal(calls.split('\n').filter(v=>v==='queue').length,1);
   assert.ok(calls.includes('--thread\n'+thread+'\n'));
@@ -87,7 +103,7 @@ test('a paired receiver saves and queues a reviewed batch once, to the issuing c
     ...snapshot.decisions[0],group:'Unresolved',intent:'dismiss',notes:'Already reviewed elsewhere.'
   }]};
   assert.equal((await (await post('/submit',feedback)).json()).state,'queued');
-  const feedbackPacket=JSON.parse(await readFile(filePath.replace(createHash('sha256').update('submission/delivery-test-01').digest('hex'),createHash('sha256').update('submission/delivery-test-02').digest('hex')),'utf8'));
+  const feedbackPacket=JSON.parse(await readFile(submissionPath(feedback.submissionId)+'.json','utf8'));
   assert.equal(feedbackPacket.decisions[0].requestedWork,null);
   assert.equal(feedbackPacket.decisions[0].notes,'Already reviewed elsewhere.');
 });

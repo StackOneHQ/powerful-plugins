@@ -1,4 +1,5 @@
 import http from 'node:http';
+import { constants } from 'node:fs';
 import { openDeckFile } from './deck-template.mjs';
 import { createHash, randomBytes } from 'node:crypto';
 import { execFile } from 'node:child_process';
@@ -92,6 +93,22 @@ function checkedSnapshot(input) {
   });
   return {submissionId:input.submissionId,createdAt:input.createdAt,taskId,task:title,processingPolicy:input.processingPolicy,scope:deck.scope,decisions};
 }
+async function readReceipt(path, expectedHash) {
+  let handle;
+  let prior;
+  try {
+    handle=await open(path,constants.O_RDONLY | (constants.O_NOFOLLOW || 0) | (constants.O_NONBLOCK || 0));
+    const stat=await handle.stat();
+    if(!stat.isFile() || stat.size>16384)throw Error('Invalid receipt');
+    prior=JSON.parse(await handle.readFile('utf8'));
+  } catch {
+    throw fail(409,'A delivery receipt is unavailable or still being written. Check this submission again.');
+  } finally {
+    await handle?.close();
+  }
+  if(prior.hash!==expectedHash)throw fail(409,'This submission ID already belongs to different answers.');
+  return prior;
+}
 async function enqueue(snapshot) {
   const content=JSON.stringify(snapshot,null,2)+'\n';
   const hash=digest(content);
@@ -102,19 +119,11 @@ async function enqueue(snapshot) {
   const receiptPath=join(directory,basename+'.receipt.json');
   const legacy=(await readdir(directory,{withFileTypes:true})).find(entry=>
     entry.isFile() && entry.name===snapshot.submissionId+'.receipt.json');
-  if(legacy){
-    let prior;
-    try {prior=JSON.parse(await readFile(join(directory,legacy.name),'utf8'));} catch {throw fail(409,'Check the earlier delivery receipt.');}
-    if(prior.hash!==hash)throw fail(409,'This submission ID already belongs to different answers.');
-    return prior;
-  }
+  if(legacy)return readReceipt(join(directory,legacy.name),hash);
   let lock;
   try {lock=await open(receiptPath,'wx',0o600);} catch(error) {
     if(error.code!=='EEXIST')throw error;
-    let prior;
-    try {prior=JSON.parse(await readFile(receiptPath,'utf8'));} catch {throw fail(409,'A delivery attempt is in progress. Check this submission again.');}
-    if(prior.hash!==hash)throw fail(409,'This submission ID already belongs to different answers.');
-    return prior;
+    return readReceipt(receiptPath,hash);
   }
   const receipt={hash,submissionId:snapshot.submissionId,label,state:'pending',detail:'Delivery started. Check this receipt before trying another handoff.'};
   try {await lock.writeFile(JSON.stringify(receipt));} finally {await lock.close();}
@@ -133,8 +142,8 @@ async function enqueue(snapshot) {
     receipt.state='unknown';
     receipt.detail='Delivery could not be confirmed. Check the originating chat for this submission ID before sending another copy.';
   }
-  const tmp=receiptPath+'.tmp';
-  await writeFile(tmp,JSON.stringify(receipt),{mode:0o600});
+  const tmp=receiptPath+'.'+randomBytes(12).toString('hex')+'.tmp';
+  await writeFile(tmp,JSON.stringify(receipt),{flag:'wx',mode:0o600});
   await rename(tmp,receiptPath);
   return receipt;
 }
