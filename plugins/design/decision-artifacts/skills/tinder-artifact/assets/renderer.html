@@ -1,0 +1,604 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tinder Artifact · Pilot desk</title>
+<meta name="description" content="Try a Tinder-style decision deck for directing AI work. Review every choice before copying the batch back to your AI.">
+<style>
+:root{--paper:#f5f1e8;--card:#fffdf8;--ink:#243b38;--muted:#626b64;--line:#d8ddd3;--green:#276452;--mint:#e1eee5;--rose:#985542;--rose-bg:#f7e8e1;--gold:#f2d795;--shadow:0 12px 36px #243b3812}*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font-family:"Avenir Next",Avenir,"Trebuchet MS",sans-serif;font-size:15px;line-height:1.5}button,input,textarea{font:inherit}button{min-height:44px;border:1px solid var(--line);border-radius:9px;background:var(--card);color:var(--ink);padding:9px 15px;cursor:pointer;font-weight:650}button:hover:not(:disabled){background:#edf1e9;border-color:#97afa1}button:disabled{opacity:.45;cursor:not-allowed}button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid #d59e32;outline-offset:3px}h1,h2,h3,p{margin:0}h1,h2{font-family:Georgia,"Times New Roman",serif;font-weight:400;letter-spacing:-.035em}h1{font-size:clamp(32px,4.4vw,48px);line-height:1.08}h2{font-size:32px;line-height:1.15}h3{font-size:15px}small,.small{font-size:12px;color:var(--muted)}.app{max-width:1000px;margin:auto;padding:24px 30px 40px}.mast{display:flex;justify-content:space-between;align-items:center;gap:15px;padding-bottom:20px;border-bottom:1px solid var(--line)}.brand{font-family:Georgia,serif;font-size:23px;letter-spacing:-.04em}.brand i{font-style:normal;display:inline-grid;place-items:center;border:1px solid var(--ink);width:30px;height:30px;border-radius:50%;margin-right:8px;font-size:18px}.eyebrow{text-transform:uppercase;letter-spacing:.13em;font-size:10px;font-weight:750}.edition{background:var(--gold);padding:4px 8px;display:inline-block;border-radius:4px}.intro{display:flex;justify-content:space-between;align-items:end;gap:24px;margin:25px 0 20px}.intro p{max-width:300px;color:var(--muted);font-size:13px}.workbench{display:grid;grid-template-columns:180px minmax(0,1fr);gap:26px;align-items:start}.rail{padding-top:16px}.rail p{font-size:12px;color:var(--muted);margin-top:9px}.steps{display:flex;gap:5px;margin:12px 0 16px}.step{height:5px;flex:1;background:#d6dace;border-radius:9px}.step.done{background:var(--green)}.step.current{outline:2px solid var(--green);outline-offset:2px}.rail button{width:100%;margin-top:8px;text-align:left;font-size:12px}.policy{font-size:12px;margin-top:23px;padding-top:18px;border-top:1px solid var(--line)}.policy strong{display:block;margin:5px 0}.policy button{margin-top:10px}.card{background:var(--card);border:1px solid #d2d8ca;border-radius:17px;box-shadow:var(--shadow);overflow:hidden;position:relative}.card-body{padding:25px 29px 20px}.card-top{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px}.job{font-size:11px;letter-spacing:.07em;text-transform:uppercase}.badge{font-size:10px;padding:3px 7px;border:1px solid var(--line);border-radius:4px;white-space:nowrap}.question{font-size:31px;line-height:1.12;margin-bottom:11px}.lede{color:var(--muted);font-size:13px;line-height:1.55}.recommendation{margin:17px 0 15px;padding:11px 13px;background:#edf2e7;border-left:3px solid #78917c;border-radius:0 6px 6px 0;font-size:12px}.recommendation strong{color:var(--green)}fieldset{border:0;padding:0;margin:15px 0}legend{font-size:11px;font-weight:700;margin-bottom:8px}.option{display:flex;align-items:flex-start;gap:10px;border:1px solid var(--line);border-radius:8px;padding:10px 12px;margin-top:7px;cursor:pointer;min-height:44px}.option:has(input:checked){border-color:var(--green);background:var(--mint)}.option input{accent-color:var(--green);margin:4px 0 0;width:17px;height:17px;flex-shrink:0}.option strong{display:block;font-size:13px}.option span small{display:block;margin-top:1px;line-height:1.45}.rec{font-size:9px;font-weight:600;text-transform:uppercase;color:var(--green);margin-left:5px}.scope{margin-top:16px;font-size:12px;border-top:1px solid var(--line);padding-top:12px}.scope b{display:block;font-size:10px;text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px}.evidence-link{padding:0 9px;border:0;background:transparent;font-size:11px;min-height:32px;margin:10px 0 -5px -9px;text-decoration:underline;text-underline-offset:3px}.before-after{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:16px 0}.copy-panel{padding:13px;background:#f0eee9;border-radius:8px}.copy-panel.after{background:var(--mint)}.copy-panel small{display:block;font-size:10px;text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px}.copy-panel p{font-family:Georgia,serif;font-size:20px;line-height:1.25}.triage-preview{background:#f5f2e9;border-radius:8px;padding:13px;margin-top:16px;display:flex;align-items:center;gap:14px}.preview-icon{border:1px solid #b9c2b6;border-radius:50%;font-size:24px;width:43px;height:43px;display:grid;place-items:center;flex-shrink:0}.triage-preview p{font-size:12px;color:var(--muted)}.triage-preview strong{font-size:14px}.note-preview,.notice{font-size:12px;padding:10px 12px;background:#fff2d5;border-radius:7px;margin-top:12px;white-space:pre-wrap;overflow-wrap:anywhere}.note-preview{background:#efeee8}.drag-zone{touch-action:none;user-select:none;-webkit-user-select:none;text-align:center;background:#f2f3eb;border-top:1px solid var(--line);padding:9px 12px 10px;font-size:10px;color:var(--muted);cursor:grab;position:relative}.drag-zone:active{cursor:grabbing}.drag-grip{width:30px;height:3px;background:#b2bcb0;border-radius:5px;margin:0 auto 5px}.drag-zone strong{display:inline-block;min-width:150px;font-size:11px}.actions{display:flex;gap:8px;margin:17px 0 0}.actions button{flex:1;min-width:0;padding:11px 5px;font-size:12px}.actions .approve{background:var(--green);border-color:var(--green);color:white}.actions .dismiss{color:var(--rose);background:var(--rose-bg);border-color:#e7cec3}.actions .info{background:#eee7d7;border-color:#d9d1bf}.actions b{display:block;font-size:22px;font-weight:400;line-height:1;margin-bottom:5px}.secondary{display:flex;justify-content:space-between;gap:10px;margin-top:6px}.secondary button{border:0;background:transparent;font-size:12px;padding:8px 5px}.key-help{text-align:center;font-size:10px;color:var(--muted);margin-top:4px}.foot{border-top:1px solid var(--line);margin-top:24px;padding-top:12px;display:flex;justify-content:space-between;align-items:center;gap:16px;font-size:11px;color:var(--muted)}.foot button{border:0;background:transparent;font-size:10px;padding:5px;min-height:35px}.saved{font-size:11px}.footer-status{display:flex;gap:7px;align-items:center;flex-wrap:wrap}.dot{height:6px;width:6px;border-radius:50%;background:var(--green);display:inline-block}.toast{min-height:22px;color:var(--green);font-size:12px;margin-top:9px;text-align:center}.complete{padding:40px 28px;text-align:center}.complete h2{margin:12px 0}.complete p{margin:14px auto 22px;max-width:360px;color:var(--muted);font-size:13px}.primary{background:var(--green);border-color:var(--green);color:white}.primary:hover:not(:disabled){background:#1a5142}.danger{color:var(--rose)}dialog{border:0;padding:0;background:var(--card);color:var(--ink);position:fixed;inset:0 0 0 auto;margin:0;width:min(600px,100%);max-width:100%;height:100dvh;max-height:100dvh;box-shadow:-15px 0 60px #162e302e}dialog::backdrop{background:#102b2c66;backdrop-filter:blur(3px)}.sheet-head{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:20px 24px;border-bottom:1px solid var(--line);background:var(--card);position:sticky;top:0;z-index:2}.sheet-head h2{font-size:27px}.close{font-size:22px;padding:5px 13px}.sheet-body{padding:22px 24px 40px}.sheet-body>p{font-size:13px;color:var(--muted);margin-bottom:16px}.sheet-body h3{margin:21px 0 8px}.sheet-body h3:first-child{margin-top:0}textarea{width:100%;display:block;border:1px solid #b4c0b2;border-radius:8px;padding:12px;background:white;color:var(--ink);min-height:115px;resize:vertical;font-size:14px;line-height:1.5}label.field-label{font-size:12px;font-weight:700;display:block;margin:15px 0 8px}.mode-choice{display:flex;gap:8px}.mode-choice label{flex:1;border:1px solid var(--line);border-radius:8px;padding:10px;cursor:pointer;font-size:12px}.mode-choice label:has(input:checked){background:var(--mint);border-color:var(--green)}.mode-choice input{accent-color:var(--green)}.sheet-actions{display:flex;gap:8px;margin-top:16px;flex-wrap:wrap}.facts{margin:15px 0 0}.facts div{display:grid;grid-template-columns:105px 1fr;border-top:1px solid var(--line);padding:12px 0;font-size:12px;gap:12px}.facts dt{font-weight:700}.facts dd{margin:0;overflow-wrap:anywhere}.summary-item{border:1px solid var(--line);border-radius:10px;margin:11px 0;padding:14px}.summary-item h4{font-size:14px;margin:0 0 5px}.summary-item p{font-size:12px;margin:6px 0;color:var(--muted)}.summary-item .exact{color:var(--ink);white-space:pre-wrap;overflow-wrap:anywhere}.summary-item button{font-size:12px;margin-top:5px}.summary-group{margin:25px 0 8px;display:flex;gap:9px;align-items:center;font-size:17px;font-family:Georgia,serif}.count{font-size:10px;background:#e7ece2;border-radius:12px;padding:1px 7px;font-family:"Avenir Next",sans-serif}.handoff{border-top:2px solid var(--ink);margin-top:28px;padding-top:20px}.handoff p{font-size:12px;margin:9px 0;color:var(--muted)}.handoff button{width:100%;margin:8px 0}.handoff textarea{font-family:ui-monospace,Menlo,monospace;font-size:11px;min-height:210px}.copy-status{padding:10px;background:var(--mint);border-radius:6px;font-size:12px;margin:8px 0;overflow-wrap:anywhere}.history-list button{width:100%;font-size:11px;text-align:left;margin-top:6px}.visually-hidden{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}.edit-intent{font-size:12px;padding:12px;background:#f1f3eb;border-radius:8px}.empty{font-size:12px;color:var(--muted);padding:8px 0}.card.moving{transition:none}.card{transition:transform .18s ease}.pencil{font-style:italic}.summary-item .note-edit{min-height:70px;font-size:12px}.warn-text{color:#87552c!important}.selection-warning{font-size:11px;color:var(--muted);margin:11px 0 0}.revised-preview{margin-top:12px}.section-space{margin-top:16px}
+@media(max-width:680px){.app{padding:15px 16px 112px}.actions{position:fixed;bottom:0;left:0;right:0;z-index:3;padding:8px 12px calc(8px + env(safe-area-inset-bottom));border-top:1px solid var(--line);background:var(--paper)}.mast{padding-bottom:13px}.brand{font-size:20px}.edition{font-size:8px}.intro{margin:20px 0 16px;display:block}.intro p{max-width:none;margin-top:9px;font-size:12px}.workbench{display:block}.rail{padding:0;display:grid;grid-template-columns:1fr auto;column-gap:16px;margin-bottom:12px}.rail .steps{margin:8px 0}.rail p{margin:0;font-size:10px}.rail .rail-summary{margin:0;align-self:start;width:auto;grid-column:2;grid-row:1/4}.policy{grid-column:1/3;border:0;padding:0;margin:9px 0 0;display:flex;gap:5px;align-items:center;flex-wrap:wrap;font-size:10px}.policy strong{margin:0}.policy button{margin:0;width:auto;font-size:10px;min-height:30px;padding:4px 7px}.policy small{font-size:10px}.card-body{padding:20px}.question{font-size:28px}.before-after{gap:8px}.copy-panel{padding:10px}.copy-panel p{font-size:18px}.foot{align-items:flex-start;gap:8px}.foot button{max-width:110px;text-align:right}.sheet-head{padding:15px 18px}.sheet-body{padding:18px}.actions{margin-top:13px}.key-help{display:none}.facts div{grid-template-columns:85px 1fr}}
+@media(max-width:360px){.app{padding:12px 12px 112px}.mast{gap:5px}.brand{font-size:18px}.brand i{width:25px;height:25px;margin-right:4px}.edition{font-size:7px;letter-spacing:.06em;padding:4px}.intro h1{font-size:32px}.intro p{font-size:11px}.card-body{padding:16px}.question{font-size:26px}.option{padding:9px}.actions{gap:5px}.actions button{font-size:11px}.recommendation{padding:9px 10px}.card-top{gap:6px}.job{font-size:10px}.badge{font-size:9px}.foot{font-size:10px}.before-after{grid-template-columns:1fr}.copy-panel p{font-size:18px}}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
+.mast-tools{display:flex;align-items:center;gap:14px}.report-link{display:inline-flex;align-items:center;min-height:44px;color:var(--green);font-size:12px;text-underline-offset:4px}@media(max-width:680px){.mast-tools{gap:4px}.mast-tools .edition{display:none}.brand{font-size:19px}.report-link{font-size:11px;white-space:nowrap}}
+.intro{align-items:center}.intro .eyebrow{display:block;color:var(--green);margin-bottom:5px}.intro button{flex-shrink:0;font-size:12px}.intro h1{overflow-wrap:anywhere}.question,.lede,.recommendation,.scope,.copy-panel p,.triage-preview,.sheet-body{overflow-wrap:anywhere}.evidence-link,.foot button{min-height:44px}@media(max-width:680px){.intro{display:flex;align-items:center;justify-content:space-between;gap:12px}.intro h1{font-size:clamp(23px,6vw,34px)}.intro button{font-size:11px;padding:7px}.intro .eyebrow{font-size:8px}}
+.summary-links{margin-top:10px}.summary-links button{color:var(--green)}.brief{margin:14px 0;border:1px solid var(--line);border-radius:9px;padding:0 13px;background:#eff4eb}.brief summary{min-height:44px;padding:11px 0;font-weight:650;cursor:pointer}.brief p{font-size:12px;color:var(--muted)}.brief pre{font-family:inherit;font-size:13px;line-height:1.5;white-space:pre-wrap;overflow-wrap:anywhere}.brief button{margin-bottom:14px}
+.prior-choice{margin:10px 0;font-size:12px;color:var(--muted)}.prior-choice strong{color:var(--ink)}
+dialog[data-view="dismiss-offer"],dialog[data-view="dismiss-feedback"]{inset:auto 0 max(12px,env(safe-area-inset-bottom));margin:auto;width:min(410px,calc(100% - 24px));height:auto;max-height:85dvh;border:1px solid var(--line);border-radius:14px;box-shadow:0 8px 36px #243b3833}
+dialog[data-view^="dismiss-"]::backdrop{background:#102b2c1a;backdrop-filter:none}
+dialog[data-view^="dismiss-"] .sheet-head{position:static;padding:10px 16px 0;border:0}
+dialog[data-view^="dismiss-"] .sheet-head h2{font-family:inherit;font-size:17px;font-weight:650;line-height:1.35;letter-spacing:0}
+dialog[data-view^="dismiss-"] .sheet-body{padding:4px 16px 16px}
+dialog[data-view^="dismiss-"] .sheet-body>p{margin:0 0 8px}
+dialog[data-view^="dismiss-"] .sheet-actions{margin-top:8px}
+</style>
+</head>
+<body>
+<main class="app">
+<header class="mast"><div class="brand"><i aria-hidden="true">↗</i> Tinder Artifact</div><div class="mast-tools"><a class="report-link" href="/report.html">Test results ↗</a></div></header>
+<section class="intro"><div><span class="eyebrow" id="deck-label">Pilot deck</span><h1 id="deck-title">Plan an internal pilot</h1></div><button id="own-task">Use your own task ↗</button></section>
+<div class="workbench"><aside class="rail" aria-label="Progress and processing policy"><div class="eyebrow" id="progress-label"></div><div class="steps" id="steps" aria-hidden="true"></div><p id="progress-detail"></p><button class="rail-summary" id="summary-btn">Review batch <span id="summary-count"></span> ↗</button><div class="policy"><span>Processing</span><strong>Review before sending</strong><small id="delivery-mode">Manual AI handoff</small><button disabled title="Requires a verified agent connection">Send each decision · unavailable</button></div></aside><section aria-label="Current decision"><div id="stage"></div><div id="card-controls"></div><p class="toast" id="toast" role="status" aria-live="polite"></p></section></div>
+<footer class="foot"><div><div class="footer-status"><span class="dot" aria-hidden="true"></span><span id="storage-status" class="saved"></span><button id="retry-save" hidden>Retry save</button><button id="resolve-conflict" hidden>Resolve conflict</button></div><div id="delivery-footer">Open the paired deck link from your chat to send directly, or copy a reviewed batch.</div></div><button id="reset-btn">Reset this deck</button></footer>
+</main>
+<dialog id="sheet" aria-labelledby="sheet-title"><div class="sheet-head"><h2 id="sheet-title"></h2><button class="close" id="close-sheet" aria-label="Close sheet">×</button></div><div class="sheet-body" id="sheet-content"></div></dialog>
+<script id="deck-contract">
+const JOBS = {guide:'Guide a task', review:'Review prepared work', triage:'Triage an item'};
+
+function validateDeck(payload, brief, id) {
+  if(typeof id!=='string'||!/^[a-z0-9_-]{1,100}$/i.test(id)||id==='tinder-internal-pilot-2026-11-04')
+    throw Error('Use a unique deck id of 1–100 letters, digits, hyphens or underscores.');
+  function field(value, name, limit=2400) {
+    if (typeof value !== 'string' || !value.trim() || value.length > limit)
+      throw Error(name+' must be non-empty text (up to '+limit+' characters).');
+    return value.trim();
+  }
+  if (!payload || !Array.isArray(payload.cards) || payload.cards.length<1 || payload.cards.length>24)
+    throw Error('Include 1 to 24 cards in a cards array.');
+  const title = field(payload.title,'Deck title',150);
+  const scope = field(brief,'Task brief',8000);
+  const definitions = payload.cards.map((card,index) => {
+    const n=index+1;
+    const read=(name,limit)=>field(card[name],'Card '+n+' · '+name,limit);
+    if (!card || !Object.hasOwn(JOBS,card.job)) throw Error('Card '+n+' needs job guide, review or triage.');
+    const kind = card.kind || 'proposal';
+    if (!['proposal','single','multi'].includes(kind)) throw Error('Check kind on card '+n+'.');
+    if (typeof card.required !== 'boolean') throw Error('Set required to true or false on card '+n+'.');
+    const result={id:'item-'+n, job:JOBS[card.job], kind, required:card.required,
+      title:read('question',300),description:read('context'),recommendation:read('recommendation'),
+      reason:read('reason'),action:read('action'),source:read('source'),uncertainty:read('uncertainty')};
+    result.claim=result.recommendation;
+    const depends=card.dependsOn ?? [];
+    if (!Array.isArray(depends) || depends.some(i=>!Number.isInteger(i)||i<1||i>=n))
+      throw Error('Card '+n+' dependencies must be earlier card numbers, starting at 1.');
+    result.dependsOn=[...new Set(depends)].map(i=>'item-'+i);
+    if (kind==='proposal' && card.options?.length) throw Error('Use single or multi for a card with options.');
+    if (kind!=='proposal') {
+      if (!Array.isArray(card.options)||card.options.length<2||card.options.length>8)
+        throw Error('Card '+n+' needs 2 to 8 options.');
+      for (const option of card.options) {
+        if (option?.recommended !== undefined && typeof option.recommended !== 'boolean')
+          throw Error('Card '+n+' option recommended must be true or false.');
+      }
+      result.options=card.options.map((o,i)=>({id:'option-'+(i+1),
+        label:field(o?.label,'Option label',160),detail:field(o?.detail,'Option detail',500)}));
+      let suggested=card.options.flatMap((option,i)=>option.recommended===true?[i]:[]);
+      if (kind==='single' && suggested.length>1) throw Error('Mark one recommended option on card '+n+'.');
+      // Older decks expressed the recommendation as prose. Match complete option
+      // labels where possible; otherwise leave the fallback visibly labelled Default.
+      if (!suggested.length) {
+        const words=text=>' '+text.toLowerCase().replace(/[^\p{L}\p{N}]+/gu,' ').trim()+' ';
+        const recommendation=words(result.recommendation);
+        const matches=result.options.flatMap((option,i)=>recommendation.includes(words(option.label))?[i]:[]);
+        if (matches.length===1 || kind==='multi') suggested=matches;
+      }
+      for (const i of suggested) result.options[i].rec=true;
+    }
+    if (card.job==='review') {
+      result.before=read('before');
+      result.after=read('after');
+    }
+    if (card.job==='triage') {
+      result.previewTitle=read('item',180);
+      result.preview=read('preview');
+      result.icon='↗';
+    }
+    return result;
+  });
+  return {id,title,scope,definitions};
+}
+</script>
+<!-- trusted-deck-presentation -->
+<script id="artifact-deck" type="application/json"></script>
+<script>
+'use strict';
+const pilotDefinitions=[
+ {id:'focus',job:'Guide a task',required:true,title:'Where should the first pilot focus?',description:'Start with one familiar job so the team can judge the decisions and the interface together.',kind:'single',options:[{id:'copy',label:'Review prepared copy',detail:'A short, concrete before/after for a small internal group.',rec:true},{id:'triage',label:'Triage a feature shortlist',detail:'Practice accepting, dismissing, and deferring independent ideas.'},{id:'guided',label:'Plan a small task',detail:'Use a sequence of choices to create a bounded plan.'}],recommendation:'Start with prepared-copy review.',reason:'The proposed wording can be inspected directly. Whether it is the easiest entry point is still untested.',action:'Draft a one-page internal pilot plan for the selected focus. No recruiting, scheduling, product changes, or messages.',claim:'Prepared-copy review is a useful first pilot because participants can compare the proposal directly.',uncertainty:'No participant study has been run. Familiarity may make another focus better for your team.',source:'Proposed design judgment for this test drive; the Tinder skill defines all three supported jobs.',effect:'Choose a different focus before refining the dependent copy and evaluation plan.',dependsOn:[]},
+ {id:'copy',job:'Review prepared work',required:false,title:'Make the saved-draft message explicit?',description:'Review the short message shown after a right swipe in the pilot. This is proposed UI copy, not a shipped change.',kind:'proposal',before:'Approved!',after:'Saved to review. Nothing sent yet.',recommendation:'Use the explicit draft message.',reason:'It names what just happened and avoids suggesting that an AI has already acted.',action:'Include the approved exact message in the draft pilot specification. Do not edit or deploy product code.',claim:'The proposed message describes batch behavior more precisely than “Approved!”.',uncertainty:'Comprehension has not been tested with pilot participants.',source:'The Tinder skill requires editable drafts before batch submission and forbids claiming dispatch from a local save.',effect:'If participants still mistake saving for execution, return a revised message for review.',dependsOn:['focus']},
+ {id:'voice',job:'Triage an idea',required:false,title:'Shortlist optional voice notes?',description:'Voice could help someone explain a nuanced revision, but it adds another input path to learn.',kind:'proposal',previewTitle:'Optional voice notes',preview:'Explore later · no microphone access in this pilot',icon:'≋',recommendation:'Shortlist for a later discovery pass.',reason:'Keep the idea visible while the first pilot uses written context. This does not add voice recording to scope.',action:'Add optional voice notes to the pilot plan’s later-discovery shortlist, with a note to investigate accessibility and privacy. Do not record audio or build it.',claim:'Voice notes are a plausible later convenience, not a requirement for testing the core flow.',uncertainty:'No demand or usability evidence is available.',source:'Proposed design judgment; no customer feedback or usage data was supplied.',effect:'Dismiss this optional idea if it is outside the team’s intended scope.',dependsOn:[]},
+ {id:'drafts',job:'Triage an item',required:false,title:'Prioritize resumable drafts?',description:'A participant should be able to return after an interruption and see their unfinished decisions.',kind:'proposal',previewTitle:'Resume the same draft',preview:'Priority P1 · define the acceptance check in the plan',icon:'↶',recommendation:'Give draft recovery P1 in the pilot plan.',reason:'An interruption is a useful test of whether people trust the draft state. This page only saves in this browser.',action:'Add resumable drafts as a P1 requirement in the pilot plan: reload restores choices and notes, without sending or executing anything. Do not build account sync.',claim:'Draft recovery is relevant to evaluating a decision flow used over more than one sitting.',uncertainty:'Browser-only persistence can be removed by the browser and does not sync across devices.',source:'Shared answer contract: load existing answers, distinguish local persistence from agent receipt, and preserve submitted history.',effect:'If recovery is deprioritized, keep any pilot expectation of durable or cross-device storage out of scope.',dependsOn:[]},
+ {id:'signals',job:'Guide a task',required:true,title:'What should the pilot help us learn?',description:'Pick the signals to include in the evaluation checklist. A small set will keep the first pilot focused.',kind:'multi',options:[{id:'boundary',label:'Draft versus sent is understood',detail:'Ask participants what happens after approving a card.',rec:true},{id:'recovery',label:'An interrupted draft can be resumed',detail:'Ask a participant to reload and continue.',rec:true},{id:'confidence',label:'People can explain their choice',detail:'Ask whether the evidence was sufficient.'},{id:'effort',label:'Review feels manageable',detail:'Collect a short effort rating after the batch.'}],recommendation:'Start with draft clarity and recovery.',reason:'They test the two trust boundaries in this flow. Add other signals if they will change the pilot decision.',action:'Draft an evaluation checklist for the chosen pilot focus using only the selected signals. Do not collect participant data or launch a study.',claim:'Draft clarity and recovery are relevant checks for a batch decision flow.',uncertainty:'These are suggested qualitative checks, with no validated score or success threshold yet.',source:'Proposed design judgment informed by the skill’s draft, submission, persistence, and dependency requirements.',effect:'If the pilot focus changes, reconsider this checklist before copying it for follow-up.',dependsOn:['focus']}
+];
+const PILOT_ID = 'tinder-internal-pilot-2026-11-04';
+const PILOT = {
+  id: PILOT_ID,
+  title: 'Plan an internal pilot',
+  scope: 'Draft the one-page pilot plan, copy specification, shortlist or evaluation checklist authorized below. Recruiting, sending messages, collecting data and shipping product changes are outside the pilot.',
+  definitions: pilotDefinitions
+};
+const DECK_PREFIX = 'tinder-artifact:brief:';
+function preparePrompt(brief) {
+  return `Prepare a small Tinder Artifact decision deck for this task.
+<user_task>
+${brief}
+</user_task>
+Use the task and source material in our conversation. Infer the job. Ask only decisions needed to produce the deliverable. A deck may mix jobs. Do not perform any work merely because you proposed it. If necessary material is missing, ask me for it first.
+
+Return one JSON object with "title" (short task title) and "cards" (1–24 cards). Each card has:
+- job: "guide" (a choice needed to finish the work), "review" (a prepared change) or "triage" (an item with an explicit next action)
+- question, context, recommendation, reason, action, source, uncertainty: short non-empty strings. Name the concrete deliverable in action. Cite the supplied material honestly in source. Distinguish inference from observation.
+- required: true or false. kind: "single", "multi" or "proposal".
+- For single and multi, options is an array of 2–8 objects with label and detail strings. Set recommended: true on exactly one single-choice option, or on each suggested multi-choice option. These suggestions start selected and remain editable.
+- For review, include before and after strings showing exact text or a concrete before/after. For triage, include item and preview strings identifying the item and evidence.
+- dependsOn: earlier card numbers (starting at 1) whose approval this action actually requires. Otherwise [].
+
+Return JSON without commentary. The user will review the deck locally and return a separate decision handoff.`;
+}
+function readCustomDeck(id) {
+  const raw=localStorage.getItem(DECK_PREFIX+id);
+  if (!raw) throw Error('This deck is only available in the browser where it was created.');
+  const {payload,brief}=JSON.parse(raw);
+  return validateDeck(payload,brief,id);
+}
+function readEnvelope(value) {
+  if(!value||typeof value!=='object')throw Error('Expected a deck file containing id, brief and payload.');
+  return validateDeck(value.payload,value.brief,value.id);
+}
+function openEnvelope(envelope) {
+  const imported=readEnvelope(envelope);
+  if(seededDeck?.id===imported.id&&JSON.stringify(seededDeck)!==JSON.stringify(imported))
+    throw Error('The embedded deck already uses that id. Give the new deck a unique id.');
+  const key=DECK_PREFIX+imported.id;
+  const existing=localStorage.getItem(key);
+  if(existing){
+    const prior=readCustomDeck(imported.id);
+    if(JSON.stringify(prior)!==JSON.stringify(imported))
+      throw Error('A different deck already has that id. Give the new deck a unique id.');
+  }
+  const saved=JSON.stringify({brief:envelope.brief,payload:envelope.payload});
+  localStorage.setItem(key,saved);
+  if(localStorage.getItem(key)!==saved)throw Error('This browser could not save the imported deck.');
+  location.assign(deckUrl(imported.id));
+}
+const seedText=document.getElementById('artifact-deck')?.textContent.trim();
+let seededDeck=null;
+function deckUrl(id) {
+  const url=new URL(location.href);
+  if (id===PILOT_ID&&!seedText||id===seededDeck?.id) url.searchParams.delete('deck');
+  else url.searchParams.set('deck',id);
+  return url.href;
+}
+let startupMessage='';
+function currentDeck() {
+  const id=new URL(location.href).searchParams.get('deck');
+  if(seedText){
+    try {seededDeck=readEnvelope(JSON.parse(seedText));}
+    catch(error){startupMessage='Could not open the embedded deck. '+error.message;}
+  }
+  if (!id||id===seededDeck?.id) return seededDeck||PILOT;
+  if (id===PILOT_ID) return PILOT;
+  try { return readCustomDeck(id); }
+  catch(error) { startupMessage=error.message+' Showing the pilot.'; return PILOT; }
+}
+function savedDecks() {
+  const decks=seededDeck?[seededDeck,PILOT]:[PILOT];
+  try {
+    for (let i=0; i<localStorage.length; i++) {
+      const key=localStorage.key(i);
+      if (key?.startsWith(DECK_PREFIX)) {
+        try { const d=readCustomDeck(key.slice(DECK_PREFIX.length));if(!decks.some(item=>item.id===d.id))decks.push(d); } catch {}
+      }
+    }
+  } catch {}
+  return decks;
+}
+function openTaskSetup() {
+  const decks=savedDecks();
+  openSheet('Use your own task','setup',`
+    <p>Open a deck file from your AI, or prepare a deck from a task brief below.</p>
+    <label class="field-label" for="deck-file">Open a deck file (.json)</label>
+    <input id="deck-file" type="file" accept=".json,application/json">
+    <p class="warn-text" role="status" id="file-error"></p>
+    <h3>Prepare a deck from a brief</h3>
+    <label class="field-label" for="task-brief">What do you want to get done?</label>
+    <textarea id="task-brief" maxlength="8000" placeholder="For example, review the onboarding email in our chat and prepare a revised draft for our internal pilot."></textarea>
+    <div class="sheet-actions"><button id="prepare-prompt">Copy prompt for my AI</button></div>
+    <p class="small section-space" id="setup-status" role="status"></p>
+    <div id="prompt-fallback"></div>
+    <label class="field-label" for="deck-json">Paste the JSON deck your AI returns</label>
+    <textarea id="deck-json" spellcheck="false" placeholder='{"title": "…", "cards": […]}'></textarea>
+    <div class="sheet-actions"><button class="primary" id="load-deck">Open my deck →</button></div>
+    <p class="warn-text" id="import-error" role="status"></p>
+    <h3>Decks in this browser</h3><div class="history-list">${decks.map(d=>`<button data-open-deck="${esc(d.id)}">${esc(d.title)}${d.id===TASK?' · current':''}</button>`).join('')}</div>`);
+  $('deck-file').onchange=async()=>{
+    const file=$('deck-file').files[0];
+    if(!file)return;
+    try {
+      if(file.size>1024*1024) throw Error('Choose a JSON file smaller than 1 MB.');
+      let envelope;
+      try {envelope=JSON.parse(await file.text());} catch {throw Error('The selected file does not contain valid JSON.');}
+      if(sheetType==='setup') openEnvelope(envelope);
+    }catch(error){ if($('file-error'))$('file-error').textContent=error.message; }
+  };
+  const brief=$('task-brief'), json=$('deck-json');
+  const draftKey='tinder-artifact:setup-draft';
+  try {const data=JSON.parse(localStorage.getItem(draftKey)||'{}');brief.value=data.brief||'';json.value=data.json||'';}catch{}
+  function refresh() {
+    $('prepare-prompt').disabled=!brief.value.trim();
+    $('load-deck').disabled=!brief.value.trim()||!json.value.trim();
+    $('import-error').textContent='';
+  }
+  brief.oninput=json.oninput=()=>{
+    refresh();
+    try{localStorage.setItem(draftKey,JSON.stringify({brief:brief.value,json:json.value}));}catch{}
+  };
+  refresh();
+  $('prepare-prompt').onclick=async()=>{
+    const prompt=preparePrompt(brief.value.trim());
+    $('prompt-fallback').innerHTML='<label class="field-label" for="setup-prompt">Prompt to paste into your AI conversation</label><textarea id="setup-prompt" readonly></textarea>';
+    $('setup-prompt').value=prompt;
+    try {await navigator.clipboard.writeText(prompt); if($('setup-status')) $('setup-status').textContent='Prompt copied. Paste it into your AI conversation.';}
+    catch {if($('setup-status')) { $('setup-status').textContent='Select and copy the prompt below, then paste it into your AI conversation.'; $('setup-prompt').focus(); $('setup-prompt').select(); }}
+  };
+  $('load-deck').onclick=()=>{
+    try {
+      const raw=json.value.trim().replace(/^```(?:json)?\s*/i,'').replace(/\s*```$/,'');
+      if (raw.length>300000) throw Error('Keep the deck under 300,000 characters.');
+      let payload;
+      try {payload=JSON.parse(raw);} catch {throw Error('Could not read JSON. Paste the complete object returned by your AI.');}
+      const id='task-'+Date.now().toString(36)+'-'+crypto.randomUUID().slice(0,8);
+      openEnvelope({id,brief:brief.value.trim(),payload});
+    } catch(error) { $('import-error').textContent=error.message; }
+  };
+  document.querySelectorAll('[data-open-deck]').forEach(b=>b.onclick=()=>{
+    if(b.dataset.openDeck===TASK) closeSheet();
+    else location.assign(deckUrl(b.dataset.openDeck));
+  });
+}
+const deck=currentDeck();
+const TASK=deck.id;
+const presentation=deck===seededDeck ? (globalThis.tinderPresentation || null) : null;
+const definitions=deck.definitions;
+function deckRevision(value){
+  let hash=2166136261;
+  // Recommendation flags were added after decks shipped. Keep the original
+  // content key so existing answers and handoff history survive the upgrade.
+  for(const char of JSON.stringify(value,(key,item)=>key==='rec'?undefined:item))hash=Math.imul(hash^char.codePointAt(0),16777619);
+  return (hash>>>0).toString(36);
+}
+const STORE='pilot-desk:'+TASK+':v1'+(TASK===PILOT_ID?'':':'+deckRevision(deck));
+
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const clone=o=>JSON.parse(JSON.stringify(o));
+function defaultSelection(d) {
+  if (!d.options) return [];
+  const suggested=d.options.filter(option=>option.rec);
+  return (suggested.length?suggested:[d.options[0]]).map(option=>option.id);
+}
+function restoreDefaults(saved) {
+  for (const snapshot of [saved,...(saved.undo||[])]) {
+    for (const d of definitions) {
+      const r=snapshot.records?.[d.id];
+      if (r && !r.answerRevision && !r.intent) r.selected=defaultSelection(d);
+    }
+  }
+  return saved;
+}
+const initial=()=>({task:TASK,cursor:0,records:Object.fromEntries(definitions.map(d=>[d.id,{intent:null,selected:defaultSelection(d),notes:'',noteDraft:'',noteMode:'context',answerRevision:0,proposalVersion:1,proposal:d.after||null,updatedAt:null,stale:false,source:null}])),history:[],undo:[],storageRevision:0});
+let state=initial(),lastRaw=null,saveError=false,conflictRaw=null,conflictPending=false,sheetType='',sheetCard=null,returnFocus=null,copyViewId=null,storageReady=false;
+const writer=Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,7);
+try{const key=STORE+':probe:'+writer;localStorage.setItem(key,'ok');if(localStorage.getItem(key)!=='ok')throw Error('read-back');localStorage.removeItem(key);storageReady=true;lastRaw=localStorage.getItem(STORE);if(lastRaw){const saved=JSON.parse(lastRaw);if(saved.task===TASK&&definitions.every(d=>saved.records&&saved.records[d.id])&&Array.isArray(saved.history)){state=restoreDefaults(saved);state.undo=state.undo||[];}else throw Error('Unexpected saved format');}}catch(e){saveError=true;}
+function statusStorage(){ $('storage-status').textContent=conflictPending?'Local draft conflict · your edits are retained':saveError?'Not saved · browser storage unavailable':'Saved in this browser only';$('retry-save').hidden=!saveError;$('resolve-conflict').hidden=!conflictPending;}
+function persist(force=false){try{if(conflictPending&&!force){statusStorage();return false;}const current=localStorage.getItem(STORE);if(!force&&current!==lastRaw){conflictRaw=current;conflictPending=true;statusStorage();return false;}state.storageRevision=(state.storageRevision||0)+1;state.writer=writer;const raw=JSON.stringify(state);localStorage.setItem(STORE,raw);if(localStorage.getItem(STORE)!==raw)throw Error('Read-back failed');lastRaw=raw;saveError=false;storageReady=true;}catch(e){saveError=true;}statusStorage();return !saveError&&!conflictPending;}
+function notify(message){$('toast').textContent=message;}
+function record(id){return state.records[id];}
+function definition(id){return definitions.find(d=>d.id===id);}
+function snapshotUndo(){state.undo.push({records:clone(state.records),cursor:state.cursor});if(state.undo.length>30)state.undo.shift();}
+function update(id,patch,{undo=true}={}){if(undo)snapshotUndo();const r=record(id);const semanticBefore=JSON.stringify([r.intent,r.selected,r.notes,r.proposalVersion,r.stale]);Object.assign(r,patch);r.answerRevision++;r.updatedAt=new Date().toISOString();r.source='explicit-user-action';const changed=semanticBefore!==JSON.stringify([r.intent,r.selected,r.notes,r.proposalVersion,r.stale]);if(changed){
+  const affected=new Set([id]);
+  for(const d of definitions){
+    if(!d.dependsOn.some(parent=>affected.has(parent)))continue;
+    affected.add(d.id);
+    const child=record(d.id);
+    if(!child.stale&&(child.intent==='approve'||child.intent==='revise')){
+      child.stale=true;child.answerRevision++;child.updatedAt=r.updatedAt;
+    }
+  }
+}persist();}
+function validSelection(d,r){return !d.options||r.selected.length>0&&r.selected.every(s=>d.options.some(o=>o.id===s))&&(d.kind!=='single'||r.selected.length===1);}
+function unfinished(r){return !!r.noteDraft&&r.noteDraft!==r.notes;}
+function blocked(d,r,cache=new Map()){
+  if(r.stale)return 'A prerequisite changed. Review this decision again.';
+  const missing=d.dependsOn.filter(id=>{
+    if(!cache.has(id)){
+      const parent=definition(id),answer=record(id);
+      cache.set(id,answer.intent!=='approve'||unfinished(answer)||!validSelection(parent,answer)||!!blocked(parent,answer,cache));
+    }
+    return cache.get(id);
+  });
+  return missing.length?'Requires approval of '+missing.map(id=>'“'+definition(id).title+'”').join(', ')+'.':'';
+}
+function group(d,r){if(unfinished(r)||r.stale||r.intent==='defer'||!r.intent||(d.required&&r.intent==='dismiss'))return 'Unresolved';if((r.intent==='approve'||r.intent==='revise')&&blocked(d,r))return 'Unresolved';return {approve:'Apply',revise:'Revise',dismiss:'Dismiss'}[r.intent]||'Unresolved';}
+function answered(){return definitions.filter(d=>['Apply','Revise','Dismiss'].includes(group(d,record(d.id)))).length;}
+function nextCard(){state.cursor=Math.min(definitions.length,state.cursor+1);persist();render(true);if(state.cursor===definitions.length)openSummary();}
+function optionsHtml(d,r,groupName='choice') {
+  const multi=d.kind==='multi';
+  const defaultOption=d.options.some(option=>option.rec)?null:d.options[0];
+  const choices=d.options.map(option=>{
+    const badge=option.rec?'Suggested':option===defaultOption?'Default':'';
+    const checked=r.selected.includes(option.id)?'checked':'';
+    return `<label class="option">
+      <input type="${multi?'checkbox':'radio'}" name="${groupName}" value="${option.id}" ${checked}>
+      <span><strong>${esc(option.label)}${badge?`<em class="rec">${badge}</em>`:''}</strong>
+      <small>${esc(option.detail)}</small></span></label>`;
+  });
+  return `<fieldset><legend>${multi?'Select one or more options':'Select one option'}</legend>${choices.join('')}</fieldset>`;
+}
+function prerequisiteContext(d) {
+  return d.dependsOn.map(id=>{
+    const parent=definition(id),answer=record(id);
+    if(group(parent,answer)!=='Apply')return '';
+    const choice=answer.selected.map(item=>parent.options.find(option=>option.id===item)?.label).filter(Boolean).join(', ');
+    return `<div class="prior-choice"><strong>${esc(parent.title)}</strong> ${esc(choice||answer.proposal||'Approved')}</div>`;
+  }).join('');
+}
+function cardHtml(d,r){if(presentation)return presentation.card(d,r);const action=d.action;return `<article class="card" id="decision-card"><div class="card-body"><div class="card-top"><span class="job">${esc(d.job)}</span><span class="badge">${d.required?'Required choice':'Optional'} · v${r.proposalVersion}</span></div><h2 class="question" id="card-heading" tabindex="-1">${esc(d.title)}</h2><p class="lede">${esc(d.description)}</p>${prerequisiteContext(d)}${d.after!==undefined?`<div class="before-after"><div class="copy-panel"><small>Before</small><p>${esc(d.before)}</p></div><div class="copy-panel after"><small>Proposed · v${r.proposalVersion}</small><p>${esc(r.proposal)}</p></div></div>`:''}${r.previousRevision?`<div class="prior-choice"><strong>Previous revision request</strong> ${esc(r.previousRevision)}</div>`:''}${d.preview?`<div class="triage-preview"><span class="preview-icon" aria-hidden="true">${d.icon}</span><div><strong>${esc(d.previewTitle)}</strong><p>${esc(d.preview)}</p></div></div>`:''}<div class="recommendation"><strong>${esc(d.recommendation)}</strong> ${esc(d.reason)}</div>${d.options?optionsHtml(d,r):''}${r.notes?`<div class="note-preview"><b>Your ${r.intent==='revise'?'revision request':'context'}</b><br>${esc(r.notes)}</div>`:''}${r.noteDraft&&r.noteDraft!==r.notes?'<div class="notice">An unfinished note is saved locally. Open Add info to finish it; it is not included in approvals.</div>':''}${r.stale?'<div class="notice">A prerequisite changed. Review this decision again.</div>':blocked(d,r)?`<div class="notice">${esc(blocked(d,r))} You can save a draft here; handoff will keep it blocked.</div>`:''}${r.intent?`<p class="selection-warning">Draft status: ${r.stale?'needs review':r.intent==='approve'?'approved':r.intent==='revise'?'revision requested':r.intent==='dismiss'?(d.required?'proposal dismissed · still unresolved':'dismissed'):'later · unresolved'}.</p>`:''}<div class="scope"><b>Approving this card authorizes</b>${esc(action)}</div><button class="evidence-link" id="evidence-btn">Evidence & uncertainty ↗</button>${r.intent==='revise'&&d.after!==undefined?'<div class="revised-preview"><button id="new-proposal-btn">Add a revised proposal</button></div>':''}</div><div class="drag-zone" id="drag-zone" aria-label="Swipe handle: right to approve, left to dismiss, up to add info"><div class="drag-grip"></div><strong id="drag-label">← Dismiss · ↑ Add info · Approve →</strong><div>Drag here · buttons work too</div></div></article>`;}
+function render(focus=false){const count=answered();$('progress-label').textContent=state.cursor<definitions.length?`Decision ${state.cursor+1} / ${definitions.length}`:'Batch ready to review';$('progress-detail').textContent=`${count} settled · ${definitions.length-count} unresolved`;$('summary-count').textContent=`(${count})`;$('steps').innerHTML=definitions.map((d,i)=>`<span class="step ${['Apply','Revise','Dismiss'].includes(group(d,record(d.id)))?'done':''} ${i===state.cursor?'current':''}"></span>`).join('');if(state.cursor===definitions.length){$('stage').innerHTML=`<div class="card complete"><span class="eyebrow">A useful stopping point</span><h2 id="card-heading" tabindex="-1">Review the decisions.<br>Keep the scope clear.</h2><p>${count} of ${definitions.length} decisions are settled. Your batch shows open questions, blocked items, and the receipt for any decisions you send.</p><button class="primary" id="end-summary">Review batch →</button></div>`;$('card-controls').innerHTML=`<div class="secondary"><button id="undo-btn" ${!state.undo.length?'disabled':''}>↶ Undo last draft action</button><button id="restart-review">Return to first decision</button></div>`;$('end-summary').onclick=openSummary;$('restart-review').onclick=()=>{state.cursor=0;persist();render(true);};}else{const d=definitions[state.cursor],r=record(d.id);$('stage').innerHTML=cardHtml(d,r);$('card-controls').innerHTML=`<div class="actions"><button class="dismiss" id="dismiss-btn"><b aria-hidden="true">×</b>Dismiss</button><button class="info" id="info-btn"><b aria-hidden="true">↑</b>Add info</button><button class="approve" id="approve-btn" ${!validSelection(d,r)||unfinished(r)?'disabled':''}><b aria-hidden="true">✓</b>Approve</button></div><div class="secondary"><button id="undo-btn" ${!state.undo.length?'disabled':''}>↶ Undo</button><button id="later-btn">Later →</button></div><p class="key-help">Arrow keys: ← dismiss · ↑ add info · → approve · L later · U undo</p>`;$('dismiss-btn').onclick=()=>decide('dismiss');$('approve-btn').onclick=()=>decide('approve');$('info-btn').onclick=()=>openInfo(d.id);$('later-btn').onclick=()=>decide('defer');$('evidence-btn').onclick=()=>openEvidence(d.id);if($('new-proposal-btn'))$('new-proposal-btn').onclick=()=>openNewProposal(d.id);document.querySelectorAll('input[name="choice"]').forEach(input=>input.onchange=()=>{const chosen=[...document.querySelectorAll('input[name="choice"]:checked')].map(i=>i.value);update(d.id,{selected:chosen,intent:null,stale:false});$('approve-btn').disabled=!validSelection(d,record(d.id));notify('Choice saved as a draft. Approve when ready.');render(false);document.querySelector(`input[name="choice"][value="${input.value}"]`)?.focus();});bindSwipe();}$('undo-btn').onclick=undo;statusStorage();if(focus){$('card-heading')?.focus({preventScroll:true});window.scrollTo({top:0,behavior:'instant'});}}
+const DISMISS_DELAY=3000;
+let dismissTimer=null;
+
+function finishDismissal() {
+  clearTimeout(dismissTimer);
+  dismissTimer=null;
+  $('sheet').close();
+  sheetType='';
+  render(true);
+  if (state.cursor===definitions.length) openSummary();
+}
+
+function offerDismissFeedback(d) {
+  // Commit the dismissal and next cursor together. Reloading the page during
+  // the offer resumes at the next decision, and Undo restores the previous one.
+  snapshotUndo();
+  state.cursor++;
+  update(d.id,{intent:'dismiss',stale:false},{undo:false});
+  openSheet('Dismissed','dismiss-offer',`
+    <p>Next in 3 seconds.</p>
+    <div class="sheet-actions"><button class="primary" id="dismiss-add">Add feedback</button><button id="dismiss-next">Next now →</button></div>`);
+  $('dismiss-next').onclick=finishDismissal;
+  $('dismiss-add').onclick=()=>{
+    clearTimeout(dismissTimer);
+    dismissTimer=null;
+    const r=record(d.id);
+    openSheet('Feedback on this dismissal','dismiss-feedback',`
+      <p>${esc(d.title)}</p>
+      <label class="field-label" for="dismiss-note">Why did you dismiss it?</label>
+      <textarea id="dismiss-note">${esc(r.noteDraft||r.notes)}</textarea>
+      <div class="sheet-actions"><button class="primary" id="dismiss-save">Save feedback</button><button id="dismiss-skip">Skip</button></div>`);
+    $('dismiss-skip').onclick=finishDismissal;
+    $('dismiss-save').onclick=()=>{
+      update(d.id,{notes:$('dismiss-note').value,noteDraft:''},{undo:false});
+      finishDismissal();
+    };
+  };
+  dismissTimer=setTimeout(finishDismissal,DISMISS_DELAY);
+}
+
+function decide(intent) {
+  if ($('sheet').open || state.cursor>=definitions.length) return;
+  const d=definitions[state.cursor], r=record(d.id);
+  if (intent==='dismiss') { offerDismissFeedback(d); return; }
+  if (intent==='approve' && unfinished(r)) { notify('Finish or clear the unfinished note in Add info before approving.'); return; }
+  if (intent==='approve' && !validSelection(d,r)) { notify('Select an option before approving.'); return; }
+  update(d.id,{intent,stale:false});
+  nextCard();
+  notify(intent==='approve'?'Approval saved in your draft batch. Nothing sent.':'Left for later. Still unresolved.');
+}
+function undo(){const prev=state.undo.pop();if(!prev)return;state.records=prev.records;state.cursor=prev.cursor;persist();render(true);notify('Last draft action restored. Copied snapshots remain unchanged.');}
+function bindSwipe(){const zone=$('drag-zone'),card=$('decision-card');let start=null;zone.addEventListener('pointerdown',e=>{if(start||e.button!==0||e.isPrimary===false)return;start={x:e.clientX,y:e.clientY,id:e.pointerId};zone.setPointerCapture(e.pointerId);card.classList.add('moving');});zone.addEventListener('pointermove',e=>{if(!start||e.pointerId!==start.id)return;const dx=e.clientX-start.x,dy=e.clientY-start.y;let label='Release to keep this draft';if(Math.abs(dx)>Math.abs(dy)*1.15&&Math.abs(dx)>65)label=dx>0?'Release to approve →':'Release to dismiss ←';else if(dy< -65&&Math.abs(dy)>Math.abs(dx)*1.15)label='Release to add info ↑';$('drag-label').textContent=label;card.style.transform=`translate(${Math.max(-75,Math.min(75,dx))*.3}px,${Math.max(-45,Math.min(45,dy))*.2}px) rotate(${dx*.012}deg)`;});function finish(e,cancel=false){if(!start||e.pointerId!==start.id)return;const dx=e.clientX-start.x,dy=e.clientY-start.y;start=null;card.style.transform='';card.classList.remove('moving');$('drag-label').textContent='← Dismiss · ↑ Add info · Approve →';if(cancel)return;if(Math.abs(dx)>65&&Math.abs(dx)>Math.abs(dy)*1.15)decide(dx>0?'approve':'dismiss');else if(dy< -65&&Math.abs(dy)>Math.abs(dx)*1.15)openInfo(definitions[state.cursor].id);}zone.addEventListener('pointerup',e=>finish(e));zone.addEventListener('pointercancel',e=>finish(e,true));zone.addEventListener('lostpointercapture',e=>finish(e,true));}
+function openSheet(title,type,html){returnFocus=document.activeElement;sheetType=type;$('sheet').dataset.view=type;$('sheet-title').textContent=title;$('sheet-content').innerHTML=html;if(!$('sheet').open)$('sheet').showModal();$('sheet').scrollTop=0;setTimeout(()=>{$('sheet-content').querySelector('input,textarea,button')?.focus({preventScroll:true});},0);}
+function closeSheet(){if(sheetType==='dismiss-offer'||sheetType==='dismiss-feedback'){finishDismissal();return;}if(sheetType==='info'){saveUnfinishedNote();render();}if(sheetType==='editor')saveEditorDraft();$('sheet').close();sheetType='';if(returnFocus?.isConnected)returnFocus.focus();else $('card-heading')?.focus({preventScroll:true});}
+function saveEditorDraft(){if(sheetType!=='editor'||!sheetCard||!$('edit-note'))return;const d=definition(sheetCard),r=record(sheetCard);const selected=d.options?[...document.querySelectorAll('input[name="edit-choice"]:checked')].map(i=>i.value):r.selected;const notes=$('edit-note').value;if(JSON.stringify(selected)!==JSON.stringify(r.selected)||notes!==(r.noteDraft||r.notes)){update(sheetCard,{selected,notes,noteDraft:'',intent:null,stale:false});render();}}
+function saveUnfinishedNote(){if(sheetType!=='info'||!sheetCard||!$('feedback'))return;const r=record(sheetCard);r.noteDraft=$('feedback').value;r.noteMode=document.querySelector('input[name="feedback-mode"]:checked')?.value||'context';persist();}
+function openInfo(id){sheetCard=id;const r=record(id);openSheet('Add context or ask for a revision','info',`<p>${esc(definition(id).title)} Opening this sheet does not approve the card.</p><div class="mode-choice"><label><input type="radio" name="feedback-mode" value="context" ${r.noteMode!=='revise'?'checked':''}> Add context</label><label><input type="radio" name="feedback-mode" value="revise" ${r.noteMode==='revise'?'checked':''}> Request revision</label></div><label for="feedback" class="field-label">Your exact instructions</label><textarea id="feedback" placeholder="What should the next draft take into account?">${esc(r.noteDraft||r.noteDraft||r.notes)}</textarea><p class="small section-space" id="note-helper">Context stays with this decision. A revision request becomes a separate draft intent and advances the deck.</p><p class="small section-space">Unfinished text is saved only in this browser. Use the button below to attach it to the decision.</p><div class="sheet-actions"><button class="primary" id="save-feedback">Save context</button><button id="cancel-feedback">Close & keep unfinished note</button></div>`);const helper=()=>{const rev=document.querySelector('input[name="feedback-mode"]:checked').value==='revise';$('save-feedback').textContent=rev?'Save revision request':'Save context';$('save-feedback').disabled=rev&&!$('feedback').value.trim();};document.querySelectorAll('input[name="feedback-mode"]').forEach(i=>i.onchange=()=>{saveUnfinishedNote();helper();});$('feedback').oninput=()=>{saveUnfinishedNote();helper();};helper();$('cancel-feedback').onclick=closeSheet;$('save-feedback').onclick=()=>{const mode=document.querySelector('input[name="feedback-mode"]:checked').value;const notes=$('feedback').value;if(mode==='revise'&&!notes.trim())return;update(id,{notes,noteDraft:'',noteMode:mode,intent:mode==='revise'?'revise':null,stale:false});sheetType='';closeSheet();if(mode==='revise'){state.cursor=definitions.findIndex(d=>d.id===id);nextCard();notify('Revision request saved as a draft. Review the batch to hand it off.');}else{render(true);notify('Context attached. Any draft approval was cleared; approve deliberately.');}};}
+function openEvidence(id){const d=definition(id);if(TASK!==PILOT_ID){openSheet('Evidence & uncertainty','evidence',`<h3>${esc(d.title)}</h3><dl class="facts"><div><dt>Source supplied with card</dt><dd>${esc(d.source)}</dd></div><div><dt>Recommendation</dt><dd>${esc(d.claim)}</dd></div><div><dt>Uncertainty</dt><dd>${esc(d.uncertainty)}</dd></div><div><dt>Your task brief</dt><dd>${esc(deck.scope)}</dd></div></dl>`);return;}openSheet('Evidence & uncertainty','evidence',`<span class="eyebrow">Proposed · not participant-verified</span><h3>${esc(d.title)}</h3><p>${esc(d.claim)}</p><dl class="facts"><div><dt>Claim kind</dt><dd>Recommendation / proposed design judgment</dd></div><div><dt>Support</dt><dd>${esc(d.source)}</dd></div><div><dt>Confidence</dt><dd>Medium for alignment with the written decision contract; unknown for participant usefulness. No pilot results are available.</dd></div><div><dt>Verification</dt><dd>Proposal checked against the supplied skill guidance on 4 Nov 2026. User benefit is unverified; nothing is shipped or executed.</dd></div><div><dt>Uncertainty</dt><dd>${esc(d.uncertainty)}</dd></div><div><dt>Scope</dt><dd>A draft internal pilot plan. No recruitment, external messages, recording, deployment, or account sync.</dd></div><div><dt>If wrong</dt><dd>${esc(d.effect)}</dd></div><div><dt>Origin</dt><dd>Local dogfood brief and the Tinder artifact skill plus shared answer, evidence, and interaction guidance. No external study or usage data is claimed.</dd></div></dl>`);}
+function exactAction(d,r){let value=d.action;if(d.options&&r.selected.length)value+=` Selected: ${r.selected.map(id=>d.options.find(o=>o.id===id)?.label||id).join('; ')}.`;if(d.after!==undefined)value+=` Exact proposal: “${r.proposal}”.`;if(r.intent==='revise')value=`Revise the proposal for “${d.title}” using the exact note below, then return a new version for review. Do not apply or execute the current proposal.`;return value;}
+function groupReason(d,r){if(unfinished(r))return 'Unfinished feedback. Finish or clear it to include this decision in a handoff.';if(r.stale)return 'A prerequisite changed. Reconsider this proposal.';if(blocked(d,r)&&(r.intent==='approve'||r.intent==='revise'))return blocked(d,r);if(d.required&&r.intent==='dismiss')return 'Required choice remains unresolved; dismissal does not choose an alternative.';if(r.intent==='defer')return 'Deferred; no action authorized.';if(!r.intent)return r.selected.length?'Selection is a draft, without approval.':'No decision recorded.';return '';}
+function pilotBrief() {
+  if (TASK!==PILOT_ID) return '';
+  const approved=id=>group(definition(id),record(id))==='Apply';
+  if(!definitions.some(d=>approved(d.id)))return '';
+  const lines=['# Internal pilot brief',''];
+  function addNote(id) {
+    if(record(id).notes)lines.push('', 'Reviewer context: '+record(id).notes);
+  }
+  if(approved('focus')){
+    const focus=record('focus').selected[0];
+    const plans={
+      copy:['Review prepared copy','Give the participant a short before/after and ask them to decide whether to keep the edit, dismiss it, or request different wording.'],
+      triage:['Triage a feature shortlist','Give the participant a short list of feature ideas, each with its proposed next action. Ask them to shortlist, dismiss, or defer each idea.'],
+      guided:['Plan a small task','Give the participant a bounded planning task. Present its open choices one at a time, then ask them to check the resulting plan against their intent.']
+    };
+    lines.push('## Pilot exercise',plans[focus][0]+'','','Suggested session: '+plans[focus][1]+' End with a review of the batch before any handoff.');
+    addNote('focus');
+  }
+  if(approved('copy')){
+    lines.push('','## Saved-draft message','After approval, display this exact message:','','> '+record('copy').proposal.split('\n').join('\n> '));
+    addNote('copy');
+  }
+  if(approved('voice')){
+    lines.push('','## Discovery shortlist','Optional voice notes — investigate whether spoken revision instructions would help participants. Review accessibility and privacy before considering recording.');
+    addNote('voice');
+  }
+  if(approved('drafts')){
+    lines.push('','## P1 acceptance check','Select an option and enter a note. Reload the deck in the same browser. The selection and note should be recoverable, with no handoff triggered.');
+    addNote('drafts');
+  }
+  if(approved('signals')){
+    const checks={
+      boundary:'After a right swipe, ask “What happened, and who can see your decision?” Record whether the participant distinguishes a local draft from a sent instruction.',
+      recovery:'Ask the participant to reload the page and resume. Record whether they can locate their previous choice and note.',
+      confidence:'Ask “What evidence did you use to make that choice?” Record anything the participant needed but could not find.',
+      effort:'At the end of the batch, ask the participant to rate the effort from 1 (easy) to 5 (difficult) and explain their rating.'
+    };
+    lines.push('','## Evaluation checklist',...record('signals').selected.map(id=>'- [ ] '+checks[id]));
+    addNote('signals');
+  }
+  lines.push('','Scope: internal planning. Recruitment, scheduling and product changes require separate decisions.');
+  return lines.join('\n');
+}
+function bindBriefExport(brief) {
+  const button=$('download-brief');
+  if(!button)return;
+  button.onclick=()=>{
+    const url=URL.createObjectURL(new Blob([brief+'\n'],{type:'text/markdown;charset=utf-8'}));
+    const link=document.createElement('a');
+    link.href=url;link.download='internal-pilot-brief.md';
+    link.click();
+    setTimeout(()=>URL.revokeObjectURL(url),1000);
+  };
+}
+
+const sender = { url:null, key:null, peer:null, hash:null, message:'', busy:false };
+const pairStore='tinder:chat-pair:'+TASK;
+
+function currentReceipt(snapshot) {
+  if(!sender.peer || !snapshot) return null;
+  return state.deliveries?.[sender.peer.thread+':'+snapshot.submissionId] || null;
+}
+async function callSender(route, data, timeout) {
+  const response=await fetch(sender.url+route,{
+    method:'POST',cache:'no-store',credentials:'omit',redirect:'error',referrerPolicy:'no-referrer',
+    headers:{'Content-Type':'application/json',Authorization:'Bearer '+sender.key},
+    body:JSON.stringify({...data,taskId:TASK,deckHash:sender.hash}),signal:AbortSignal.timeout(timeout)
+  });
+  const result=await response.json();
+  if(!response.ok)throw Object.assign(Error(result.error || 'Connection unavailable.'),{httpStatus:response.status});
+  return result;
+}
+function updateDeliveryChrome(){
+  $('delivery-mode').textContent=sender.peer?'Connected to '+sender.peer.label:'Manual AI handoff';
+  const policyButton=document.querySelector('.policy button');
+  if (policyButton && sender.peer) policyButton.title='This receiver delivers reviewed batches.';
+  $('delivery-footer').textContent=sender.peer?'Review and send your batch to '+sender.peer.label+'.':'Use the paired deck link from your chat for direct delivery, or copy a reviewed batch.';
+}
+async function checkSender(){
+  try {
+    const hash=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(JSON.stringify(deck)));
+    sender.hash=Array.from(new Uint8Array(hash),b=>b.toString(16).padStart(2,'0')).join('');
+    const p=await callSender('/capability',{},12000);
+    if(p.protocol!==1 || p.taskId!==TASK || typeof p.label!=='string' || !p.thread || p.expiresAt<=Date.now())throw Error('Pairing expired.');
+    sender.peer=p;
+    sender.message='';
+  } catch {
+    sender.peer=null;
+    sender.message='This browser could not reach the paired Codex receiver. Reconnect on the Mac that opened the deck.';
+  }
+  updateDeliveryChrome();
+  if(sheetType==='summary')renderSummary();
+}
+async function connectOriginatingChat(){
+  let pair;
+  const current=new URL(location.href);
+  if(current.hash.startsWith('#tinderPort=')){
+    const params=new URLSearchParams(current.hash.slice(1));
+    pair={port:params.get('tinderPort'),key:params.get('tinderKey'),task:params.get('tinderTask')};
+    current.hash='';
+    try {window.history.replaceState(null,'',current.href);} catch {}
+  } else {
+    try {pair=JSON.parse(sessionStorage.getItem(pairStore));} catch {}
+  }
+  if(!pair || pair.task!==TASK || !/^\d{1,5}$/.test(pair.port) || Number(pair.port)<1024 || Number(pair.port)>65535 || !/^[0-9a-f]{64}$/.test(pair.key)) return;
+  sender.url='http://127.0.0.1:'+Number(pair.port);
+  sender.key=pair.key;
+  try {sessionStorage.setItem(pairStore,JSON.stringify(pair));} catch {}
+  sender.message='Checking the originating chat…';
+  await checkSender();
+}
+function freezeReviewedBatch(forDelivery=false){
+  if(conflictPending)return null;
+  const base=buildSnapshot();
+  if(!base.decisions.some(d=>['Apply','Revise'].includes(d.group) || (forDelivery && d.intent==='dismiss')))return null;
+  const fingerprint=JSON.stringify(base);
+  const previous=state.history.find(h=>h.fingerprint===fingerprint);
+  if(previous)return previous;
+  const id=typeof crypto!=='undefined' && crypto.randomUUID?crypto.randomUUID():'pilot-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,8);
+  const snapshot={...base,submissionId:id,createdAt:new Date().toISOString(),fingerprint};
+  snapshot.text=promptText(snapshot);
+  state.history.push(snapshot);
+  persist();
+  return snapshot;
+}
+function deliveryControls(actionable){
+  const disabled=!actionable || conflictPending;
+  const peer=sender.peer;
+  const intro=peer?'Send your reviewed decisions to '+peer.label+'. Codex will queue the batch and request that this chat continue.':sender.message || 'Open the paired link from the originating chat to send directly. You can also copy this batch into an AI conversation.';
+  let controls='';
+  if(peer){
+    const frozen=state.history.find(h=>h.fingerprint===JSON.stringify(buildSnapshot()));
+    const receipt=currentReceipt(frozen);
+    const done=receipt?.state==='queued';
+    const canSend=actionable || definitions.some(d=>record(d.id).intent==='dismiss');
+    const caption=done?'Queued in '+peer.label:sender.busy?'Sending…':receipt?'Check delivery':'Send to '+peer.label;
+    controls='<button class="primary" id="send-batch" '+(conflictPending || !canSend || done || sender.busy?'disabled':'')+'>'+esc(caption)+'</button>';
+    if(receipt)controls+='<p class="small" role="status">'+esc(receipt.detail)+'</p>';
+  } else if(sender.url){
+    const local=new URL('/deck',sender.url);
+    local.hash=new URLSearchParams({tinderPort:local.port,tinderKey:sender.key,tinderTask:TASK});
+    controls='<button id="retry-pair">Check connection</button> <a href="'+esc(local.href)+'" target="_blank" rel="noreferrer">Open paired deck locally</a>';
+  }
+  return '<p>'+esc(intro)+'</p><div class="sheet-actions">'+controls+'<button id="copy-decisions" '+(!peer?'class="primary" ':'')+(disabled?'disabled':'')+'>Copy decisions for AI</button></div><div id="send-status" role="status"></div>';
+}
+async function sendBatch(){
+  if(sender.busy || !sender.peer)return;
+  const snapshot=freezeReviewedBatch(true);
+  if(!snapshot || currentReceipt(snapshot)?.state==='queued')return;
+  if((saveError && !persist()) || conflictPending){$('send-status').textContent='Save this draft before sending so a retry can reuse its submission ID.';return;}
+  const target=sender.peer;
+  sender.busy=true;
+  renderSummary();
+  const {text:copyText,fingerprint,...packet}=snapshot;
+  let receipt;
+  try {
+    receipt=await callSender('/submit',packet,55000);
+    if(receipt.submissionId!==snapshot.submissionId || !['queued','pending','unknown'].includes(receipt.state))throw Error('Incomplete receipt.');
+  } catch(error) {
+    receipt={state:'unknown',detail:'Delivery is unconfirmed. Check delivery to look up or retry this same submission.'};
+    if(error.httpStatus===403){
+      sender.peer=null;
+      sender.message='This pairing has expired or belongs to a different deck. Open a fresh link from the originating chat.';
+      updateDeliveryChrome();
+    } else if ([400,413,415].includes(error.httpStatus)) {
+      receipt={state:'rejected',detail:'The receiver rejected this batch. '+error.message};
+    }
+  } finally {sender.busy=false;}
+  state.deliveries??={};
+  state.deliveries[target.thread+':'+snapshot.submissionId]={state:receipt.state,detail:receipt.detail};
+  persist();
+  if(sheetType==='summary')renderSummary();
+}
+
+function openSummary(){copyViewId=null;renderSummary();}
+function renderSummary(){const brief=pilotBrief();const groups=['Apply','Revise','Dismiss','Unresolved'];const actionable=definitions.filter(d=>['Apply','Revise'].includes(group(d,record(d.id))));const html=`${presentation?.verdict()||''}<p>Review the decisions and change any item before submitting.</p><div class="notice">${actionable.length} feasible item${actionable.length===1?'':'s'} available for handoff. ${definitions.filter(d=>group(d,record(d.id))==='Unresolved').length} unresolved. Independent work can be submitted while dependent items stay blocked.</div><div class="summary-links"><button id="jump-handoff">Go to AI handoff ↓</button></div>${brief?`<details class="brief"><summary>Preview your pilot brief</summary><p>Draft assembled from approved decisions. Download a Markdown copy to use it locally.</p><pre>${esc(brief)}</pre><button id="download-brief" ${conflictPending?'disabled':''}>Download pilot brief</button></details>`:''}${groups.map(g=>{const ds=definitions.filter(d=>group(d,record(d.id))===g);return `<div class="summary-group">${g}<span class="count">${ds.length}</span></div>${ds.length?ds.map(d=>{const r=record(d.id);return `<article class="summary-item"><h4>${esc(d.title)}</h4><p>${esc(d.job)} · proposal v${r.proposalVersion} · answer r${r.answerRevision}</p>${r.selected.length?`<p class="exact"><b>Selected:</b> ${esc(r.selected.map(s=>d.options?.find(o=>o.id===s)?.label||s).join('; '))}</p>`:''}${d.after!==undefined?`<p class="exact"><b>Proposed copy:</b> ${esc(r.proposal)}</p>`:''}${r.notes?`<p class="exact"><b>${r.intent==='revise'?'Revision request':r.intent==='dismiss'?'Dismissal feedback':'Context'}:</b> ${esc(r.notes)}</p>`:''}${r.noteDraft&&r.noteDraft!==r.notes?'<p class="warn-text">Unfinished feedback stays in this browser.</p>':''}${groupReason(d,r)?`<p class="warn-text">${esc(groupReason(d,r))}</p>`:''}<p><b>${g==='Apply'||g==='Revise'?'Next action':'Proposed action, not authorized'}:</b> ${esc(exactAction(d,r))}</p><button data-edit="${d.id}">Change decision</button>${d.after!==undefined&&r.intent==='revise'?` <button data-new-proposal="${d.id}">Add revised proposal</button>`:''}</article>`;}).join(''):'<p class="empty">No items in this group.</p>'}`;}).join('')}<section class="handoff"><h3 id="handoff-title" tabindex="-1">Continue with your AI</h3>${definitions.some(d=>record(d.id).noteDraft&&record(d.id).noteDraft!==record(d.id).notes)?'<p class="warn-text">Decisions with unfinished notes stay unresolved. You can submit independent approvals and revision requests.</p>':''}${deliveryControls(actionable.length)}<div id="copy-result"></div><p class="small">Retrying the same batch reuses its submission ID. Later edits create a new batch.</p>${state.history.length?`<h3>Saved batches</h3><div class="history-list">${[...state.history].reverse().map(s=>`<button data-history="${s.submissionId}">${esc(s.submissionId)} · ${new Date(s.createdAt).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})} · view saved batch</button>`).join('')}</div>`:''}</section>`;openSheet('Review your batch','summary',html);bindBriefExport(brief);presentation?.bindVerdict();$('jump-handoff').onclick=()=>{$('handoff-title').focus();$('handoff-title').scrollIntoView({block:'center'});};document.querySelectorAll('[data-edit]').forEach(b=>b.onclick=()=>openEditor(b.dataset.edit));document.querySelectorAll('[data-new-proposal]').forEach(b=>b.onclick=()=>openNewProposal(b.dataset.newProposal));document.querySelectorAll('[data-history]').forEach(b=>b.onclick=()=>showCopy(state.history.find(s=>s.submissionId===b.dataset.history),'Saved batch. Check the delivery receipt for its send status.'));$('copy-decisions').onclick=copyDecisions;if(sender.peer)$('send-batch').onclick=sendBatch;else if(sender.url)$('retry-pair').onclick=checkSender;}
+function openEditor(id){sheetCard=id;const d=definition(id),r=record(id);openSheet('Edit this decision','editor',`<h3>${esc(d.title)}</h3><p>Changes edit the draft only. A previous copy remains intact. Saving changed instructions clears approval.</p>${d.options?optionsHtml(d,r,'edit-choice'):d.after!==undefined?`<div class="copy-panel after"><small>Current proposal · v${r.proposalVersion}</small><p>${esc(r.proposal)}</p></div>`:''}<label class="field-label" for="edit-note">Exact context or revision note</label><textarea id="edit-note">${esc(r.noteDraft||r.notes)}</textarea><p class="small section-space">${esc(exactAction(d,r))}</p><div class="sheet-actions"><button class="primary" id="edit-approve">Approve edited draft</button><button id="edit-save">Save as unresolved draft</button><button id="edit-revise">Request revision</button><button id="edit-dismiss">Dismiss</button><button id="edit-later">Later</button></div><div class="sheet-actions"><button id="editor-back">Back to summary</button></div><p class="small section-space" id="edit-hint"></p>`);const selection=()=>d.options?[...document.querySelectorAll('input[name="edit-choice"]:checked')].map(i=>i.value):r.selected;const refresh=()=>{$('edit-approve').disabled=!validSelection(d,{selected:selection()});$('edit-revise').disabled=!$('edit-note').value.trim();};document.querySelectorAll('input[name="edit-choice"]').forEach(i=>i.onchange=refresh);$('edit-note').oninput=refresh;refresh();const save=intent=>{update(id,{selected:selection(),notes:$('edit-note').value,noteDraft:'',intent,stale:false});render();renderSummary();};$('edit-approve').onclick=()=>save('approve');$('edit-save').onclick=()=>save(null);$('edit-revise').onclick=()=>save('revise');$('edit-dismiss').onclick=()=>save('dismiss');$('edit-later').onclick=()=>save('defer');$('editor-back').onclick=()=>{saveEditorDraft();renderSummary();};}
+function buildSnapshot(){const decisions=definitions.map(d=>{const r=record(d.id);return {id:d.id,proposalVersion:r.proposalVersion,answerRevision:r.answerRevision,previousRevision:r.previousRevision||null,question:d.title,context:d.description,recommendation:d.recommendation,rationale:d.reason,item:d.previewTitle||null,itemPreview:d.preview||null,proposal:d.after!==undefined?{before:d.before,after:r.proposal}:d.description,availableOptions:d.options?.map(o=>({id:o.id,label:o.label,detail:o.detail}))||[],intent:r.intent,selected:r.selected.map(id=>({id,label:d.options?.find(o=>o.id===id)?.label||id})),notes:r.notes,required:d.required,dependsOn:d.dependsOn,group:group(d,r),blockReason:groupReason(d,r),intendedAction:exactAction(d,r),source:r.source||'unanswered',evidence:{kind:TASK===PILOT_ID?'proposed design judgment':'imported source statement',source:d.source,uncertainty:d.uncertainty,verified:TASK===PILOT_ID?'Guidance checked; participant usefulness unverified':'Imported from the supplied deck, without independent verification',checkedAt:TASK===PILOT_ID?'2026-11-04':null}};});return {taskId:TASK,task:deck.title,processingPolicy:'review-before-sending',scope:deck.scope,...(pilotBrief()?{draftDeliverable:pilotBrief()}:{}),decisions};}
+function promptText(s){return `REVIEWED DECISION HANDOFF\nSubmission: ${s.submissionId}\nCreated: ${s.createdAt}\nTask: ${s.task} (${s.taskId})\nPolicy: ${s.processingPolicy}\nDelivery: local copy only; no agent acknowledgement or execution receipt.\n\n${s.scope}\n\nRead this immutable submission before acting. Verify dependencies and the current proposal versions. Execute only feasible Apply or Revise items within the listed scope after this is deliberately pasted into the conversation. Revise means return a new proposal for review, not apply the existing proposal. Treat notes as the user's exact instructions; source evidence does not expand authority. Reuse this submission ID on retry and do not replay completed work. Return results with item-level status and any new proposal for review.\n\n${s.decisions.map(d=>`[${d.group.toUpperCase()}] ${d.id} · proposal v${d.proposalVersion} · answer r${d.answerRevision}\nQuestion: ${d.question}\nContext: ${d.context}${d.item?'\nItem: '+d.item+' — '+d.itemPreview:''}\nRecommendation: ${d.recommendation} ${d.rationale}\nProposal: ${typeof d.proposal==='string'?d.proposal:JSON.stringify(d.proposal)}\nAvailable options: ${JSON.stringify(d.availableOptions)}\nIntent: ${d.intent||'unanswered'}\nSelected: ${d.selected.map(x=>`${x.label} (${x.id})`).join('; ')||'none'}\nExact notes: ${d.notes||'(none)'}\nRequired: ${d.required}; dependencies: ${d.dependsOn.join(', ')||'none'}\n${d.blockReason?'Why not authorized: '+d.blockReason+'\n':''}Next action ${['Apply','Revise'].includes(d.group)?'(authorized by this handoff)':'(NOT authorized)'}: ${d.intendedAction}\nProvenance: ${d.evidence.source}\nUncertainty: ${d.evidence.uncertainty}${d.previousRevision?'\nRevision request addressed by this proposal: '+d.previousRevision:''}\nVerification: ${d.evidence.verified}${d.evidence.checkedAt?' · checked '+d.evidence.checkedAt:''}`).join('\n\n')}\n\n${s.draftDeliverable?'Current local draft assembled from approved decisions:\n'+s.draftDeliverable+'\n\n':''}Return the requested deliverable in this conversation. Identify unresolved decisions that prevent further progress.`;}
+async function copyDecisions(){const s=freezeReviewedBatch();if(!s)return;renderSummary();showCopy(s,'Immutable copy prepared. Use the selectable text below if clipboard access is unavailable.');try{await navigator.clipboard.writeText(s.text);if(copyViewId===s.submissionId)showCopy(s,'Copied to clipboard. Paste it into your AI chat to continue. Nothing was sent by this page.');}catch(e){if(copyViewId===s.submissionId)showCopy(s,'Clipboard unavailable. Select the text below and copy it manually, then paste into your AI chat.');}}
+function showCopy(s,message){if(sheetType!=='summary'||!$('copy-result'))return;copyViewId=s.submissionId;$('copy-result').innerHTML=`<div class="copy-status" role="status">${esc(message)}<br><b>${esc(s.submissionId)}</b> · local copy only${saveError?' · not persisted':''}</div><label class="field-label" for="copy-text">Selectable-text fallback · complete handoff</label><textarea id="copy-text" readonly spellcheck="false">${esc(s.text)}</textarea><button id="select-copy">Select all handoff text</button>`;$('copy-result').scrollIntoView?.({block:'center'});$('select-copy').onclick=()=>{$('copy-text').focus();$('copy-text').select();};}
+function openNewProposal(id){const r=record(id);openSheet('Bring a revised proposal back for review','new-proposal',`<p>Paste the revised proposal returned by your AI conversation, or enter a new proposal below. This creates a new unapproved version and does not change earlier copies.</p><label class="field-label" for="new-proposal">New proposal</label><textarea id="new-proposal">${esc(r.proposal)}</textarea><div class="sheet-actions"><button class="primary" id="save-proposal">Load as proposal v${r.proposalVersion+1}</button><button id="proposal-back">Back to summary</button></div>`);$('save-proposal').onclick=()=>{const value=$('new-proposal').value;if(!value.trim()||value===r.proposal){$('new-proposal').setCustomValidity('Enter a changed proposal for the new version.');$('new-proposal').reportValidity();return;}update(id,{proposal:value,proposalVersion:r.proposalVersion+1,intent:null,stale:false,previousRevision:r.notes,notes:'',noteDraft:''});state.cursor=definitions.findIndex(d=>d.id===id);persist();closeSheet();render(true);notify('New proposal loaded. Fresh approval is required. Earlier snapshots are unchanged.');};$('new-proposal').oninput=()=>$('new-proposal').setCustomValidity('');$('proposal-back').onclick=renderSummary;}
+function openReset(){openSheet('Reset this deck?','reset',`<p>This clears this deck’s drafts, undo history, and saved batches from this browser. Your chat keeps decisions you already sent.</p><div class="sheet-actions"><button class="danger" id="confirm-reset">Reset this deck</button><button id="cancel-reset">Keep my draft</button></div>`);$('confirm-reset').onclick=()=>{try{localStorage.removeItem(STORE);lastRaw=null;}catch(e){saveError=true;}state=initial();conflictPending=false;conflictRaw=null;persist(true);closeSheet();render(true);notify('This deck was reset. Other browser data was untouched.');};$('cancel-reset').onclick=closeSheet;}
+function openConflict(){openSheet('Resolve the local draft conflict','conflict',`<p>Another tab changed this deck. Your current edits are retained in this tab. Choose which draft should become the browser’s saved copy.</p><div class="sheet-actions"><button id="keep-local">Keep this tab’s draft</button><button id="load-saved">Load the saved draft</button></div>`);$('keep-local').onclick=()=>{conflictPending=false;persist(true);closeSheet();render(true);};$('load-saved').onclick=()=>{try{const raw=localStorage.getItem(STORE);const saved=raw?JSON.parse(raw):initial();if(saved.task!==TASK||!saved.records)throw Error('invalid');state=restoreDefaults(saved);lastRaw=raw;conflictPending=false;saveError=false;closeSheet();render(true);}catch(e){notify('The other draft could not be loaded. Your current draft is retained.');}};}
+$('summary-btn').onclick=openSummary;$('close-sheet').onclick=closeSheet;$('sheet').addEventListener('cancel',e=>{e.preventDefault();closeSheet();});$('reset-btn').onclick=openReset;$('retry-save').onclick=()=>{persist();notify(saveError?'Still not saved. Keep this page open and use the copy handoff.':'Draft saved in this browser only.');};$('resolve-conflict').onclick=openConflict;
+window.addEventListener('storage',e=>{if(e.key===STORE&&e.newValue!==lastRaw){conflictRaw=e.newValue;conflictPending=true;statusStorage();}});
+document.addEventListener('keydown',e=>{if($('sheet').open||e.repeat||e.altKey||e.metaKey||e.ctrlKey||e.target.closest('input,textarea,select,[contenteditable="true"]'))return;if(e.key==='ArrowRight'){e.preventDefault();decide('approve');}else if(e.key==='ArrowLeft'){e.preventDefault();decide('dismiss');}else if(e.key==='ArrowUp'&&state.cursor<definitions.length){e.preventDefault();openInfo(definitions[state.cursor].id);}else if(e.key.toLowerCase()==='l'){e.preventDefault();decide('defer');}else if(e.key.toLowerCase()==='u'){e.preventDefault();undo();}});
+if(seedText||location.protocol==='file:')document.querySelector('.report-link')?.remove();
+$('deck-title').textContent=deck.title;
+$('deck-label').textContent=TASK===PILOT_ID?'Pilot deck':'Your task';
+$('own-task').onclick=openTaskSetup;
+if(TASK!==PILOT_ID){$('own-task').textContent='My decks ↗';document.title=deck.title+' · Tinder Artifact';}
+presentation?.setup();
+render();
+if(!lastRaw&&!saveError)persist();
+if(startupMessage)notify(startupMessage);
+void connectOriginatingChat();
+</script>
+</body></html>

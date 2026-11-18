@@ -15,6 +15,15 @@ Use decision-artifacts with mode=decide taste=technical.
 
 They can also name another installed writing, brand, or design skill. That skill becomes the authority for its concern while the decision structure, evidence, and accessibility rules remain in place.
 
+## Tinder mode
+
+Use `/decision-artifacts:tinder-artifact` in Claude Code or `$tinder-artifact` in Codex. Give the task after the command. The companion skill presents one decision at a time, preselects suggested choices and saves swipes as drafts. Swipe up to add context or request a revision. A dismissal gives you three seconds to add feedback before advancing.
+
+Try the [ticket-page design duel](skills/tinder-artifact/examples/after-hours/after-hours.tinder.json) using the [renderer guide](skills/tinder-artifact/references/renderer.md). Compare two concert pages, inspect simulated conversion rates, then export a verdict image and experiment brief. Node 18+ renders a standalone HTML file without installing dependencies.
+
+On a supported Codex installation the optional local receiver can send the reviewed batch to its originating chat. It uses a private pairing link, listens on loopback, and expires after eight hours. Submit writes the reviewed decisions to a private receipt folder and queues a reference in that chat. The reviewer can also copy a batch for another host. The receiver runs only when launched.
+
+
 ## Default output
 
 The default is an editorial decision page built around **simple at rest, exhaustive on demand**:

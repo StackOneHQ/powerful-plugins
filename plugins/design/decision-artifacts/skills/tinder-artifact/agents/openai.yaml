@@ -1,0 +1,6 @@
+interface:
+  display_name: "Tinder Artifact"
+  short_description: "Swipe through AI decisions, then review and submit"
+  default_prompt: "Use $tinder-artifact to guide this work one decision at a time, with an editable summary before submission."
+policy:
+  allow_implicit_invocation: true
