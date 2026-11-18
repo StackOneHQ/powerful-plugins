@@ -4,7 +4,7 @@ Choose the mode from the reader's job, not from the available data. Combine at m
 
 ## Show the change, in every mode
 
-Wherever a decision or change has a visible effect, show it before and after rather than describing it: a chart with both series, a number pair with the delta, a screenshot of today next to a labelled mockup, a diff, or a rendered option. Do this for every item, not a sample. A mockup is labelled as one, matches the real surface, and is drawn at production quality with the brand or mockup skill, not as a placeholder.
+Wherever a decision or change has a visible effect, show it before and after rather than describing it: a chart with both series, a number pair with the delta, a screenshot of today next to a labelled mockup, a diff, or a rendered option. Do this for every item, not a sample. A mockup is labelled as one, matches the real surface, and uses the project's components or the bundled visual guidance.
 
 Pick the layout from the question. If the values matter, overlay before and after on one axis; if the change matters, draw it as arrows or signed bars from zero, sorted by size. Rendered surfaces (screens, mockups, copy) sit side by side at the same scale, crop and order, stacked on phones. Use swipe or onion skin only for pixel-aligned images, on a range input with a text value, a Before/After toggle and alt text on both.
 

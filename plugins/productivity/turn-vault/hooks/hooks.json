@@ -1,0 +1,38 @@
+{
+  "description": "Turn Vault - capture completed tasks and session wrap-ups into a backlinked Obsidian folder without per-turn spam.",
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "PLUGIN_ROOT=\"${PLUGIN_ROOT:-${CLAUDE_PLUGIN_ROOT:-}}\"; [ -n \"$PLUGIN_ROOT\" ] || exit 0; sh \"$PLUGIN_ROOT/scripts/run-cli.sh\" hook-stop",
+            "timeout": 15
+          }
+        ]
+      }
+    ],
+    "PreCompact": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "PLUGIN_ROOT=\"${PLUGIN_ROOT:-${CLAUDE_PLUGIN_ROOT:-}}\"; [ -n \"$PLUGIN_ROOT\" ] || exit 0; sh \"$PLUGIN_ROOT/scripts/run-cli.sh\" hook-flush",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "PLUGIN_ROOT=\"${PLUGIN_ROOT:-${CLAUDE_PLUGIN_ROOT:-}}\"; [ -n \"$PLUGIN_ROOT\" ] || exit 0; sh \"$PLUGIN_ROOT/scripts/run-cli.sh\" hook-flush",
+            "timeout": 3
+          }
+        ]
+      }
+    ]
+  }
+}

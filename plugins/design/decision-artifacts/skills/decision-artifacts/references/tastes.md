@@ -4,7 +4,7 @@ Taste changes visual grammar, not truth or decision structure. Precedence: expli
 
 ## Design floor, every taste
 
-Take colour, type and spacing from the project's brand or design-system skill; with none, the validated palette and ink roles from `dataviz`.
+Use the project's existing tokens when available. Otherwise use the editorial guidance below with neutral surfaces, readable body text and one accent.
 
 | Area | Floor |
 |---|---|
@@ -13,11 +13,11 @@ Take colour, type and spacing from the project's brand or design-system skill; w
 | Colour | One accent per chart, on what the decision is about; the rest context grey. At most 4 coloured series plus Other in a stack, 3 in a scatter. No text in series colours; status colours only for status. Validate each theme's palette against its real surface; dark uses its own steps, never an inverted light palette. |
 | Marks | Cards on a neutral page plane; at most five hairline gridlines, no axis lines; rounded bar ends with a 2 px gap between stacked segments; dots ringed in the surface colour. |
 
-Measure it with `node scripts/audit-design-floor.mjs <page.html or URL> --click '<selector>'` from this skill (needs Playwright; `--click` opens each panel or tab in turn; for a local page you wrote, add `--allow-cdn` when it loads libraries or fonts from a CDN on the script's allow-list, since page code can then send the files served beside it to that CDN; without the flag a local page reaches only its own files). It reads every visible text node's size and contrast against its resolved background and counts chart marks under 3:1, in both themes at 1440 and 320 px, and exits 1 on any text finding. Validate a categorical palette with `node <dataviz>/scripts/validate_palette.js "<hex,...>" --mode light --surface <card colour>`, then `--mode dark`. Run the project's render-overlap gate where it has one.
+Inspect the rendered page at desktop and 320 px in both themes, including open panels and tabs. When Node, Playwright and Chromium are available, the bundled audit can measure text size, contrast and chart marks. From the skill folder run `node scripts/audit-design-floor.mjs <page.html> --click '<selector>'`. The local audit allows only files served alongside the page by default. Without these tools, use the preview and available contrast tools and state which checks you could complete.
 
 ## Editorial, default
 
-For broad audiences, decision briefs and shareable reports. For a Claude artifact, `artifact-design`'s utilitarian treatment for a UI fits better than its editorial one.
+For broad audiences, decision briefs and shareable reports. For an interactive Claude artifact, keep the controls compact and follow the host's layout conventions.
 
 - A conclusion-led headline
 - A restrained palette with one semantic accent

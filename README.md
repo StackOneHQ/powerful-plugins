@@ -53,7 +53,7 @@ In Claude Cowork, open **Customize**, then **Plugins**, select **Add marketplace
 |--------|----------|--------------|
 | `workday-flex-credits` | Calculators | Forecasts Workday Flex Credit use and cost month by month for AI agents and integrations, from your Console, order form or estimates, as a spreadsheet and report. |
 | `animation-studio` | Design | Builds web animations, interactive system and mechanism explanations, and short videos. Explain Machine lets readers inspect, follow, operate and compare; existing exploded drawings remain available. |
-| `decision-artifacts` | Design | Turns findings, options, plans and status updates into short, evidence-backed pages that help people decide. |
+| `decision-artifacts` | Design | Compare options, inspect the evidence and record a choice on one interactive page. [Try it](plugins/design/decision-artifacts/README.md#try-it-with-one-decision). |
 | `diagram-explainer` | Design | Creates editable, source-grounded architecture, sequence, state and causal diagrams with previews and evidence. |
 | `tufte-viz` | Design | Designs and critiques charts with Edward Tufte's principles: data-ink ratio, graphical integrity, small multiples and sparklines. |
 | `natural-writing` | Documentation | Writes and edits prose that reads like a person wrote it, with a mechanical checker and a review command. |
@@ -65,6 +65,7 @@ In Claude Cowork, open **Customize**, then **Plugins**, select **Add marketplace
 | `browser-automation` | Engineering | Picks the right browser tool for the job: the agent's own browser extension, agent-browser, Playwright or Chrome DevTools. |
 | `cc-print` | Productivity | Exports Claude Code and Codex conversations to terminal-styled PNG, SVG, PDF or HTML. |
 | `say-hooks` | Productivity | Tells you out loud when a turn finishes or the agent is waiting on you, with offline [stackvox](https://github.com/StackOneHQ/stackvox) voices or the macOS `say` fallback. |
+| `turn-vault` | Productivity | Files finished coding tasks, past sessions and worked tickets into a backlinked Obsidian vault, so Graph View shows how your work connects. |
 
 Some of these build on other people's plugins. We pin each one to a commit we've reviewed (the
 `sha` in `.claude-plugin/marketplace.json`), and Claude Code and Codex both install that exact
@@ -76,7 +77,7 @@ commit:
 | `pr-review-toolkit` | Engineering | [anthropics/claude-plugins-official](https://github.com/anthropics/claude-plugins-official/tree/main/plugins/pr-review-toolkit) | `forge` |
 | `remotion-best-practices` | Design | [remotion-dev/skills](https://github.com/remotion-dev/skills) | `animation-studio` |
 | `skill-creator` | Engineering | [anthropics/claude-plugins-official](https://github.com/anthropics/claude-plugins-official/tree/main/plugins/skill-creator) | `reflect` |
-| `vercel-web-design-guidelines` | Design | [vercel-labs/agent-skills](https://github.com/vercel-labs/agent-skills/tree/main/skills/web-design-guidelines) | `decision-artifacts` |
+| `vercel-web-design-guidelines` | Design | [vercel-labs/agent-skills](https://github.com/vercel-labs/agent-skills/tree/main/skills/web-design-guidelines) | Optional UI review |
 
 Each local plugin has its own `README.md` under `plugins/<category>/<plugin>/`, and the pinned
 ones are documented upstream. This table can fall behind, so here's how to list the live catalog:

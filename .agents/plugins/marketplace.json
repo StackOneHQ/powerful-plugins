@@ -161,6 +161,18 @@
       "category": "Productivity"
     },
     {
+      "name": "turn-vault",
+      "source": {
+        "source": "local",
+        "path": "./plugins/productivity/turn-vault"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    },
+    {
       "name": "workday-flex-credits",
       "source": {
         "source": "local",
