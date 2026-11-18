@@ -90,6 +90,14 @@ test('a paired receiver saves and queues a reviewed batch once, to the issuing c
     processingPolicy:'review-before-sending',decisions:[{id:'item-1',group:'Apply',intent:'approve',
       proposalVersion:1,answerRevision:1,notes:'Retain heading.',selected:[]}]};
   assert.equal((await post('/submit',{...snapshot,decisions:[{...snapshot.decisions[0],group:'Dismiss'}]})).status,400);
+  assert.equal((await post('/submit',{...snapshot,createdAt:'invalid'})).status,400);
+  // A local write collision occurs before queue invocation. Removing the
+  // fixture obstruction allows the same reviewed submission to be sent once.
+  const occupied=submissionPath(snapshot.submissionId)+'.json';
+  await writeFile(occupied,'existing local fixture',{flag:'wx'});
+  assert.equal((await post('/submit',snapshot)).status,409);
+  assert.equal(await readFile(occupied,'utf8'),'existing local fixture');
+  await unlink(occupied);
   const submitted=await (await post('/submit',snapshot)).json();
   assert.equal(submitted.state,'queued');
   const repeated=await (await post('/submit',snapshot)).json();
