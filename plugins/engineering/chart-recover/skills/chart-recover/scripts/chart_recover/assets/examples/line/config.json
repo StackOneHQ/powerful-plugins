@@ -1,0 +1,19 @@
+{
+  "kind": "line",
+  "scale": "linear",
+  "ocr": false,
+  "anchors": [
+    {
+      "point_index": 0,
+      "value": 4982.324142084791,
+      "source": "Disclosed endpoint in synthetic example",
+      "matched": true
+    },
+    {
+      "point_index": -1,
+      "value": 49359.25064000478,
+      "source": "Disclosed endpoint in synthetic example",
+      "matched": true
+    }
+  ]
+}
