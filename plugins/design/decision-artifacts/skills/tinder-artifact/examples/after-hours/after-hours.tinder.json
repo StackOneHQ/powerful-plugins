@@ -1,0 +1,65 @@
+{
+  "id": "task-after-hours-ticket-test-v1",
+  "brief": "Prepare a one-page experiment brief for After Hours, a fictional £35 London club night. Record the user's visual prediction, the approved readout of the first run, the chosen follow-up, and selected guardrails. Use only approved decisions and label open questions. The data is simulated and the first run was observational. This task authorizes drafting only.",
+  "payload": {
+    "title": "The ticket test",
+    "cards": [
+      {
+        "job": "guide", "kind": "single", "required": false,
+        "question": "Which page sells more tickets?",
+        "context": "One London club night. Two £35 ticket pages. Make your call before opening the sales report.",
+        "options": [
+          {"label": "A · The poster", "detail": "A full-bleed crowd photograph and a headline that takes over the page. The ticket price sits beside the final call to action.", "recommended": true},
+          {"label": "B · The box office", "detail": "A compact photograph, prominent price and ticket details, followed by a solid purchase button."}
+        ],
+        "recommendation": "My first pick is A.",
+        "reason": "The crowd sells the feeling of being there. That is a design hunch.",
+        "action": "Record the selected design as my prediction in the brief.",
+        "source": "Two original mockups for the same fictional show, venue, price and purchase offer. The concert photograph was generated for this example.",
+        "uncertainty": "These visuals alone cannot establish which design converts better.", "dependsOn": []
+      },
+      {
+        "job": "review", "kind": "proposal", "required": false,
+        "question": "Would you send this headline?",
+        "context": "The first sales report is in. Each page received 10,000 eligible visits. A recorded 520 paid orders (5.2%) and B recorded 380 (3.8%).",
+        "before": "The poster design increased ticket sales by 37%.",
+        "after": "The poster page recorded 140 more orders. We still need to check who saw each page.",
+        "recommendation": "Use the revised headline.",
+        "reason": "The 140-order lead is observable. The two pages may have reached different audiences.",
+        "action": "Use the approved wording in the experiment brief.",
+        "source": "Simulated seven-day ticket-shop log. A had 520 orders from 10,000 visits. B had 380 from 10,000. The relative difference is 36.8%, rounded to 37% in the proposed headline.",
+        "uncertainty": "Page assignment followed campaign traffic and was not randomized. An order counts once per eligible visit.", "dependsOn": []
+      },
+      {
+        "job": "guide", "kind": "single", "required": true,
+        "question": "Which design earns a rematch?",
+        "context": "B leads on both devices. Mobile was 40/2,000 (2%) for A and 240/8,000 (3%) for B. Desktop was 480/8,000 (6%) for A and 140/2,000 (7%) for B. A got four times as many desktop visits.",
+        "options": [
+          {"label": "B · Test the box office", "detail": "Make B the challenger against A in a device-balanced test.", "recommended": true},
+          {"label": "A · Back the poster", "detail": "Keep A as the preferred design and challenge that choice against B."},
+          {"label": "Hold both designs", "detail": "Audit campaign and checkout instrumentation before scheduling a test."}
+        ],
+        "recommendation": "Give B a controlled rematch.",
+        "reason": "With the same 50/50 device mix, A models at 4% and B at 5%. The extra percentage point is a hypothesis worth testing.",
+        "action": "Draft the selected next step for the promoter.",
+        "source": "Simulated counts by device. Equal weighting gives A = (2% + 6%)/2 = 4% and B = (3% + 7%)/2 = 5%. This is standardization to an illustrative audience mix.",
+        "uncertainty": "Adjusting for device does not remove campaign, time, or audience differences. A controlled test is needed for a causal claim.", "dependsOn": []
+      },
+      {
+        "job": "guide", "kind": "multi", "required": false,
+        "question": "What would make you stop the test?",
+        "context": "For a rematch, randomly split traffic 1:1 within each device type and track paid orders per eligible visit. Choose the warning signs to monitor. If you chose to hold, these become checks for the audit.",
+        "options": [
+          {"label": "Payment errors", "detail": "Flag a rise of 0.5 percentage points in failed payments per checkout attempt versus control.", "recommended": true},
+          {"label": "Mobile load time", "detail": "Flag a 0.3-second regression in mobile p75 Largest Contentful Paint versus control.", "recommended": true},
+          {"label": "Refund requests", "detail": "Flag a rise of 1 percentage point in seven-day refund requests per order versus control."}
+        ],
+        "recommendation": "Watch payment errors and mobile speed.",
+        "reason": "The two checks catch a broken checkout or a slower page while the test is running.",
+        "action": "Add the selected monitoring thresholds to the brief for review.",
+        "source": "Illustrative operating thresholds proposed for this fictional test. A threshold crossing triggers an investigation and a decision about pausing.",
+        "uncertainty": "Baseline variation, sample size and duration need sizing with real traffic before launch.", "dependsOn": [3]
+      }
+    ]
+  }
+}

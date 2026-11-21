@@ -9,6 +9,8 @@ Load this skill before building, updating or republishing a decision page, and a
 
 The page is a working interface, not a decorated report: **simple at rest, exhaustive on demand**. The first screen says what needs the reader and what the answer is; every consequential claim's evidence is one selection away.
 
+For an explicit Tinder artifact or swipe-based review, use the sibling [Tinder Artifact skill](${CLAUDE_PLUGIN_ROOT}/skills/tinder-artifact/SKILL.md). It opens one decision at a time and submits the reviewed batch. Use this overview for ordinary decision pages.
+
 ## Boundaries
 
 - The user's explicit instructions outrank these defaults.

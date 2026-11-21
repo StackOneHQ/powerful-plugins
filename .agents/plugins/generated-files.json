@@ -37,6 +37,8 @@
     "plugins/design/decision-artifacts/.codex-plugin/plugin.json",
     "plugins/design/decision-artifacts/.codex/skills/decision-artifacts/SKILL.md",
     "plugins/design/decision-artifacts/.codex/skills/decision-artifacts/agents/openai.yaml",
+    "plugins/design/decision-artifacts/.codex/skills/tinder-artifact/SKILL.md",
+    "plugins/design/decision-artifacts/.codex/skills/tinder-artifact/agents/openai.yaml",
     "plugins/design/diagram-explainer/.codex-plugin/plugin.json",
     "plugins/design/diagram-explainer/.codex/skills/diagram-explainer/SKILL.md",
     "plugins/design/diagram-explainer/.codex/skills/diagram-explainer/agents/openai.yaml",
