@@ -99,3 +99,7 @@ Optional, all installable from this marketplace:
 | [anime.js](https://animejs.com) | `animejs` | Vanilla JS animations (SVG, timelines, stagger) |
 | [Three.js](https://threejs.org) | `three` | Explanations where volume or viewpoint matters; exploded-machine Clay and Realistic styles |
 | [Remotion](https://remotion.dev) | `remotion` | Programmatic video rendering (MP4/WebM) |
+
+## Maintaining
+
+The educational-explainer skill's frontmatter capability inventory describes its bundled checker script for SkillSpector.

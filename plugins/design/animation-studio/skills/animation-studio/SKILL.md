@@ -7,16 +7,9 @@ metadata:
     - remotion-best-practices
 ---
 
-## When to use
+Route teaching a concept or mechanism in a narrated video to `educational-explainer`. Route explaining a system, process or mechanism through inspection, a worked example, controls or comparisons to `explain-machine`; detailed exploded drawings use its `exploded-machine` Inspect recipe.
 
-Use this skill when:
-- Adding animations, transitions, or motion effects to any component or page
-- Creating marketing videos, product demos, or animated explainers
-- Teaching a concept or mechanism in a narrated video (route to `educational-explainer`)
-- Someone says "make it move", "animate this", "add motion", "floating", "parallax"
-- Building interactive visual effects (hover states, scroll-triggered, layout animations)
-- Working with SVG animations, path drawing, or morphing
-- Explaining a system, process or mechanism through inspection, a worked example, controls or comparisons (route to `explain-machine`; detailed exploded drawings use its `exploded-machine` Inspect recipe)
+Requests such as "make it move", "animate this", "add motion", "floating" and "parallax" belong here too.
 
 > **Design tokens**: use the project's own design tokens or brand guidelines for colour, spacing,
 > radius and motion curves. If the project has none, choose a readable neutral treatment. The values
