@@ -78,7 +78,6 @@ Keep `plan.json` relative to the user's project, not the plugin directory.
 The schema and a minimal example are in [references/narration.md](references/narration.md).
 The bundled checker reads the supplied plan and WAV files inside the plan's directory;
 it does not write files or access the network.
-The frontmatter capability inventory describes that script for SkillSpector.
 Running Python and reading inputs still use the host's existing tool permissions.
 The script detects out-of-bounds timing and narration that exceeds its scene;
 it does not establish that the video teaches accurately. Use the scene questions

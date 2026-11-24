@@ -200,19 +200,3 @@ author supplied the brand source plus two previously shipped examples of the sam
 
 Needs the `agent-browser` CLI on `PATH`. If it is missing the script exits `2` and says so. Report
 the assets as unverified, not done.
-
-## Checking the checker
-
-```bash
-node ${CLAUDE_PLUGIN_ROOT}/skills/tufte-viz/scripts/verify-asset-text.mjs --self-test
-```
-
-Runs the fixtures in `scripts/fixtures/` and asserts each defect class is still caught and that
-neither clean fixture false-positives. Run it after touching the script.
-
-The fixtures exist because the first version of this gate was validated only against
-flat-coordinate SVG, the one construction that hides the transform bug, and so it shipped both a
-false pass (an HTML carousel measured as its 40x40 inline logo) and a false fail (20 phantom
-defects on a correct chart built from translated groups). A gate that reports PASS on a broken
-asset is worse than no gate. If you extend the script, add a fixture that fails without your
-change.

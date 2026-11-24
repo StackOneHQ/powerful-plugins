@@ -205,9 +205,3 @@ Short list, no preamble:
 - New skills created: `<skill path>`. One line each (rare).
 - Backlog filed: `<issue title>` (`<tracker>`). One line each.
 - Dropped: one line per rejected finding + reason from the synthesizer.
-
-## Credit
-
-Ported from the `reflect` skill in [`cursor/plugins`](https://github.com/cursor/plugins/tree/main/pstack/skills/reflect)
-(pstack, MIT). The lenses and the triage criteria are upstream's; transcript discovery, subagent
-spawning, and the routing targets are rewritten for Claude Code.

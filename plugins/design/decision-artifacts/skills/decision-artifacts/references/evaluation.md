@@ -40,18 +40,3 @@ A review rubric on top of the critical checks:
 | Completeness | Evidence, nuance, exceptions and sources stay available on demand |
 | Comparison | Options and before/after states share one basis, labelled on the data |
 | Restraint | No repeated cards, decorative charts or duplicated prose |
-
-## Release dry run
-
-This section is for maintainers releasing the plugin. It is not part of building an artifact.
-
-Before a major release, run the skill against at least two structurally different cases:
-
-1. A completed technical change that must make sense to nontechnical readers, with technical evidence in a sheet.
-2. An audit with findings, proof, confidence, proposed fixes, and before/after outcomes, answered on the page.
-3. A living status view showing done, in progress, blocked, left, and deliberately not doing.
-4. A sequenced plan where each step explains its effect and what to report back.
-
-For each run: use real or clearly marked sample data; inspect the first screen before interacting; open every detail path and follow every link; record an answer and read it back; test copy controls against the exact copied value; test keyboard order, focus return, Escape and a 320 px viewport; compare displayed status with the source after rendering; test the shared page from the intended viewer's access level; and run one deletion pass without removing uncertainty, risk, evidence or requested detail. Record the prompt, mode and taste, output URL, evidence limits, interaction results and failures fixed.
-
-When changing the skill's behaviour, compare outputs from the released and candidate versions with the same request, inputs, source, audience, model settings and tool budget. Keep source-backed review, model-reader results and real user feedback separate.
