@@ -59,7 +59,7 @@ MIT
 ### Checking the checker
 
 ```bash
-node ${CLAUDE_PLUGIN_ROOT}/skills/tufte-viz/scripts/verify-asset-text.mjs --self-test
+node "${CLAUDE_PLUGIN_ROOT:-.}/skills/tufte-viz/scripts/verify-asset-text.mjs" --self-test
 ```
 
 Runs the fixtures in `scripts/fixtures/` and asserts each defect class is still caught and that
