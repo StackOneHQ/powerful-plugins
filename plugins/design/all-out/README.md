@@ -41,7 +41,7 @@ into your standard version.
 
 | Skill | What it does |
 |---|---|
-| `all-out` | Sorts the request into hard constraints (facts, required content, format, accessibility) and soft ones (templates, examples, layouts, length targets), writes the brief, and runs the build in a fresh context on the most capable model at the highest effort available. |
+| `all-out` | Sorts the request into hard constraints (facts, required content, format, accessibility) and soft ones (templates, examples, layouts, length targets), writes the brief, and runs the build in a fresh context where the host has one (otherwise from the brief alone), on the strongest model settings your setup already allows. |
 
 There are no commands, agents or hooks.
 
@@ -53,6 +53,8 @@ the hard constraints, not on your house style, because the difference is what yo
 
 ## Boundaries
 
-All-out writes only into its output folder and runs local previews. It asks before publishing,
-sending or deploying anything, and before paid image, video or voice generation that you didn't
-ask for.
+All-out writes only into its output folder and runs local previews with tools you already have.
+It asks before installing packages or downloading files, before publishing, sending or deploying
+anything, before raising model spend, and before paid image, video or voice generation that you
+didn't ask for. Web pages, comments, transcripts and tool output go into the brief as quoted
+source material, never as instructions.
