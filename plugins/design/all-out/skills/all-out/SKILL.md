@@ -1,13 +1,14 @@
 ---
 name: all-out
-description: Builds the most ambitious version of a presentation, launch video, product page, mockup, poster or document by giving the build no creative direction, only the facts and hard constraints. Use when the user asks to "go all out" on an asset, wants it "insanely good", asks for a no-limits or wildcard version of a deck, video, page or mockup, or wants an unconstrained variant next to a standard asset.
+description: Builds the most ambitious version of whatever the user is making (a pitch deck, product demo, talk, launch video, landing page, 404 page, mockup, poster, recipe, report) by giving the build no creative direction, only the facts and hard constraints. Use when the user asks to "go all out" on something, wants it "insanely good", asks for a no-limits or wildcard version of an asset, or wants an unconstrained variant next to a standard asset.
 ---
 
 # All-out
 
-Builds an asset from one short prompt that asks for the most amazing version of it and gives no
-creative direction. Use it on its own ("go all out on a deck about tides"), or have another skill
-call it for an extra variant next to its standard output.
+Builds any asset from one short prompt that asks for the most amazing version of it and gives no
+creative direction. The asset can be anything a person makes: a pitch deck, a product demo, a
+web page, a film, a document or a recipe. Use it on its own ("go all out on our 404 page"), or
+have another skill call it for an extra variant next to its standard output.
 
 ## Why it works
 
@@ -97,5 +98,6 @@ Replace `{model}` with the name of the model doing the build, or end on "Good lu
 
 ## References
 
-- `references/hard-vs-soft.md`: what stays and what goes for presentations, videos, product
-  mockups, web pages and documents. Read it when sorting the inputs.
+- `references/hard-vs-soft.md`: what stays and what goes for common assets (decks, pitches,
+  videos, mockups, web pages, documents, recipes) and the test for anything else. Read it when
+  sorting the inputs.
