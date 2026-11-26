@@ -721,7 +721,7 @@ scene({id:'soap',year:1998,dur:4.1,trans:'zoom',hud:'#ffe6d6',odo:'#ffc49e',cls:
   const back=el('div','e-back',env);
   const letter=box(persp,'e-letter',610,322,null,null);
   const xml=new Code(letter,'<soap:Envelope\n    xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">\n  <soap:Body>\n    <GetEmployee>\n      <Id>42</Id>\n    </GetEmployee>\n  </soap:Body>\n</soap:Envelope>','xml');
-  el('div','e-stamp',letter,'SOAP 1.1');
+  el('div','e-stamp',letter,'SOAP');
   const front=box(persp,'e-front',EX,EY,EW,EH);
   const flapW=box(persp,'',EX,EY,EW,EH);flapW.style.transformStyle='preserve-3d';
   const flap=el('div','e-flap',flapW);

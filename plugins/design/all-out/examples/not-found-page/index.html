@@ -1044,6 +1044,7 @@
     ripples = ripples.filter((r) => now - r.t < r.dur);
     ripples.forEach((r) => {
       const p = (now - r.t) / r.dur;
+      if (p < 0) return;
       c.strokeStyle = `rgba(159,35,24,${0.7 * (1 - p)})`;
       c.lineWidth = 2 * (1 - p) + 0.5;
       c.beginPath(); c.arc(r.x, r.y, 4 + easeOut(p) * r.max, 0, Math.PI * 2); c.stroke();

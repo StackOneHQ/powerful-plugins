@@ -728,13 +728,14 @@ function act(a){
 $("#prev").onclick=prev;$("#next").onclick=next;
 $("#apBtn").onclick=()=>act("auto");
 const help=$("#help");
-function toggleHelp(on){help.classList.toggle("on",on);if(on)help.querySelector(".card").setAttribute("tabindex","-1"),help.querySelector(".card").focus()}
+let helpOpener=null;
+function toggleHelp(on){help.classList.toggle("on",on);const card=help.querySelector(".card");if(on){helpOpener=document.activeElement;card.setAttribute("tabindex","-1");card.focus()}else if(helpOpener&&helpOpener.focus){helpOpener.focus();helpOpener=null}}
 $("#helpBtn").onclick=()=>toggleHelp(true);
 help.addEventListener("click",e=>{if(e.target===help)toggleHelp(false)});
 document.addEventListener("keydown",e=>{
   if(e.metaKey||e.ctrlKey||e.altKey)return;
   const k=e.key,onBtn=e.target.closest&&e.target.closest("button");
-  if(help.classList.contains("on")){if(k==="Escape"||k==="?"){toggleHelp(false);e.preventDefault()}return}
+  if(help.classList.contains("on")){if(k==="Escape"||k==="?"){toggleHelp(false);e.preventDefault()}else if(k==="Tab"){e.preventDefault();help.querySelector(".card").focus()}return}
   if(onBtn&&(k===" "||k==="Enter"))return;
   const s=SCENES[cur];let h=true;
   switch(k){
