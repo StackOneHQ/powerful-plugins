@@ -117,6 +117,16 @@
         "LP3"
       ],
       "rationale": "Generated runtime adapter for the pinned external vercel-web-design-guidelines plugin. Its only code is materialize_pinned_upstream.py, which runs git with an argument list, no shell and no credential helper to fetch the upstream at a fixed 40-character commit into a local cache; LP3 counts that as undeclared env, file-write and shell use."
+    },
+    {
+      "skill": "plugins/design/all-out",
+      "rules": [
+        "MP2",
+        "P2",
+        "PE3",
+        "TM1"
+      ],
+      "rationale": "All findings sit in examples/, which holds finished example runs (self-contained HTML demos and JPG posters) that the skill never reads. P2: section-label HTML comments in the pitch deck. PE3: an animated pill labelled \"access token\" in the talk demo, no credential is read. TM1 and MP2: byte patterns inside binary JPG posters."
     }
   ]
 }
