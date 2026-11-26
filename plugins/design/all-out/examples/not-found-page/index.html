@@ -1,0 +1,1303 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Page not found</title>
+<meta name="color-scheme" content="light">
+<meta name="description" content="This page was not found. A freshly surveyed map, and a red thread that leads home.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23efe1c1'/%3E%3Cpath d='M6 6h20v20H6zM6 16h10M16 6v6M21 11v15M11 21h5' fill='none' stroke='%232a1c11' stroke-width='2'/%3E%3Cpath d='M9 24C12 18 15 14 24 9' fill='none' stroke='%23a3261b' stroke-width='2.4' stroke-linecap='round'/%3E%3C/svg%3E">
+<style>
+  :root {
+    --paper: #efe1c1;
+    --card: #f7f0de;
+    --ink: #2a1c11;
+    --ink-soft: #5a4530;
+    --thread: #9f2318;
+    --thread-deep: #7d1a11;
+    --cell: 24px;
+    --serif: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", "URW Palladio L", "P052", Georgia, "Times New Roman", serif;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    height: 100%;
+    overflow: hidden;
+    background: #e8d8b4;
+    color: var(--ink);
+    font-family: var(--serif);
+    -webkit-font-smoothing: antialiased;
+  }
+  canvas#map {
+    position: fixed;
+    inset: 0;
+    width: 100vw;
+    height: 100vh;
+    display: block;
+    touch-action: manipulation;
+    cursor: default;
+  }
+  canvas#map.can-walk { cursor: pointer; }
+
+  .sr-only {
+    position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+    overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+  }
+
+  /* Margins of the map */
+  .marginalia {
+    position: fixed;
+    left: 0; right: 0;
+    pointer-events: none;
+    color: var(--ink-soft);
+    font-size: 12px;
+    letter-spacing: 0.32em;
+    text-transform: uppercase;
+    text-align: center;
+    opacity: 0;
+    transition: opacity 1.4s ease 0.4s;
+    z-index: 1;
+  }
+  .marginalia.shown { opacity: 1; }
+  .foot {
+    display: flex;
+    justify-content: space-between;
+    letter-spacing: 0.06em;
+    text-transform: none;
+    font-style: italic;
+    font-size: 13px;
+  }
+  .foot .scale { padding-left: calc(var(--cell) * 4 + 14px); }
+
+  /* The cartouche */
+  .panel {
+    position: fixed;
+    z-index: 3;
+    left: 50%;
+    translate: -50% 0;
+    width: clamp(440px, 40vw, 600px);
+    padding: 26px 32px 14px;
+    background:
+      radial-gradient(120% 140% at 0% 0%, rgba(255,255,255,0.55), rgba(255,255,255,0) 60%),
+      linear-gradient(180deg, #f9f3e3, #f3e8cf);
+    border: 1.5px solid var(--ink);
+    box-shadow:
+      0 0 0 4px #f6eedb,
+      0 0 0 5.5px rgba(42, 28, 17, 0.85),
+      0 22px 44px -20px rgba(70, 40, 10, 0.55);
+    animation: ink-in 1.2s cubic-bezier(.2,.7,.2,1) 0.25s both;
+  }
+  @keyframes ink-in {
+    from { opacity: 0; filter: blur(6px) saturate(0.4); }
+    to { opacity: 1; filter: none; }
+  }
+  .kicker {
+    margin: 0 0 6px;
+    font-size: 13px;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--thread-deep);
+    font-weight: 600;
+  }
+  h1 {
+    margin: 0 0 12px;
+    font-size: clamp(30px, 2.5vw, 44px);
+    line-height: 1.05;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+  .panel p.body {
+    margin: 0 0 18px;
+    font-size: 17px;
+    line-height: 1.55;
+    max-width: 50ch;
+  }
+  code {
+    font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, "DejaVu Sans Mono", monospace;
+    font-size: 0.86em;
+    background: rgba(42, 28, 17, 0.08);
+    border-radius: 4px;
+    padding: 0.08em 0.35em;
+    word-break: break-all;
+  }
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 14px;
+    align-items: center;
+    margin-bottom: 14px;
+  }
+  .home {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 11px 18px 11px 16px;
+    background: var(--thread);
+    color: #fbf4e4;
+    text-decoration: none;
+    font-size: 17px;
+    font-weight: 600;
+    border-radius: 3px;
+    box-shadow: inset 0 -2px 0 rgba(0,0,0,0.22), 0 2px 0 rgba(42,28,17,0.25);
+    transition: background-color .2s ease, transform .2s ease;
+  }
+  .home svg { flex: none; }
+  .home:hover { background: var(--thread-deep); }
+  .home.beckon { animation: beckon 1.1s ease-in-out 3; }
+  @keyframes beckon {
+    0%, 100% { transform: none; }
+    50% { transform: translateY(-3px); box-shadow: inset 0 -2px 0 rgba(0,0,0,0.22), 0 6px 14px rgba(159,35,24,0.35); }
+  }
+  button.redraw {
+    font: inherit;
+    font-size: 16px;
+    font-style: italic;
+    color: var(--ink);
+    background: none;
+    border: 0;
+    border-bottom: 1.5px dashed rgba(42,28,17,0.6);
+    padding: 6px 2px 3px;
+    cursor: pointer;
+  }
+  button.redraw:hover { border-bottom-style: solid; }
+  .home:focus-visible, button.redraw:focus-visible, .door:focus-visible {
+    outline: 3px solid var(--ink);
+    outline-offset: 3px;
+    border-radius: 3px;
+  }
+  .hint {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--ink-soft);
+    font-style: italic;
+  }
+  .hint kbd {
+    font-family: inherit;
+    font-style: normal;
+    font-size: 12px;
+    border: 1px solid rgba(42,28,17,0.45);
+    border-bottom-width: 2px;
+    border-radius: 3px;
+    padding: 0 5px;
+    color: var(--ink);
+  }
+  .touch-only, .short { display: none; }
+  @media (hover: none) and (pointer: coarse) {
+    .touch-only { display: inline; }
+    .fine-only { display: none; }
+  }
+  .status {
+    margin: 8px 0 0;
+    min-height: 1.4em;
+    font-size: 14px;
+    font-style: italic;
+    color: var(--thread-deep);
+  }
+
+  .seal {
+    position: absolute;
+    top: -30px;
+    right: -22px;
+    width: 76px;
+    height: 76px;
+    display: grid;
+    place-items: center;
+    border-radius: 47% 53% 50% 50% / 52% 46% 54% 48%;
+    background:
+      radial-gradient(circle at 35% 30%, #c2493a 0%, #9f2318 42%, #74160e 100%);
+    color: #f8ead0;
+    font-weight: 700;
+    font-size: 21px;
+    letter-spacing: 0.04em;
+    rotate: -14deg;
+    box-shadow: 0 3px 0 rgba(60,12,6,0.35), 0 8px 16px -6px rgba(60,12,6,0.5), inset 0 0 0 5px rgba(0,0,0,0.12), inset 0 0 0 7px rgba(255,220,200,0.12);
+    text-shadow: 0 -1px 0 rgba(0,0,0,0.35);
+    animation: seal-in .7s cubic-bezier(.3,1.6,.5,1) 1.1s both;
+  }
+  .seal::after {
+    content: "";
+    position: absolute;
+    inset: 9px;
+    border-radius: 50%;
+    border: 1.5px dotted rgba(248, 234, 208, 0.55);
+  }
+  @keyframes seal-in {
+    from { opacity: 0; scale: 1.8; }
+    to { opacity: 1; scale: 1; }
+  }
+
+  /* Labels on the map */
+  .door, .you {
+    position: fixed;
+    left: 0; top: 0;
+    z-index: 2;
+    font-style: italic;
+    white-space: nowrap;
+    text-shadow: 0 0 3px var(--paper), 0 0 3px var(--paper), 0 0 6px var(--paper);
+  }
+  .door {
+    color: var(--ink);
+    font-size: 16px;
+    font-weight: 600;
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 3px;
+    padding: 2px 4px;
+    visibility: hidden;
+    opacity: 0;
+    transition: opacity .6s ease, visibility 0s linear .6s;
+  }
+  .door.shown { visibility: visible; opacity: 1; transition: opacity .6s ease; }
+  .door:hover { color: var(--thread-deep); }
+  .you {
+    pointer-events: none;
+    font-size: 14px;
+    color: var(--ink);
+    opacity: 0;
+    transition: opacity .6s ease;
+  }
+  .you.shown { opacity: 1; }
+
+  @media (max-width: 719px), (max-aspect-ratio: 1/1) {
+    .panel {
+      left: var(--pl, 14px);
+      right: var(--pr, 14px);
+      width: auto;
+      translate: none;
+      padding: 18px 16px 10px;
+    }
+    h1 { font-size: 27px; margin-bottom: 8px; }
+    .kicker { font-size: 12px; margin-bottom: 4px; }
+    .panel p.body { font-size: 15px; line-height: 1.5; margin-bottom: 14px; }
+    .short { display: inline; }
+    .long { display: none; }
+    .actions { gap: 8px 12px; margin-bottom: 10px; }
+    .home { font-size: 15px; padding: 10px 11px; gap: 7px; }
+    button.redraw { font-size: 14px; }
+    .hint { font-size: 13px; }
+    .seal { width: 58px; height: 58px; font-size: 16px; top: -24px; right: -6px; }
+    .seal::after { inset: 7px; }
+    .marginalia { display: none; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .panel, .seal { animation: none; }
+    .marginalia, .door, .you { transition: none; }
+    .home.beckon { animation: none; }
+  }
+</style>
+</head>
+<body>
+<main class="panel" id="panel">
+  <p class="kicker">Error 404</p>
+  <h1>This page was not found.</h1>
+  <p class="body">Nothing lives at <code id="path">/</code>. It may have moved, been renamed, or never existed. <span class="long">While you were arriving, your browser surveyed the place it should have been, and left a red thread that leads home.</span><span class="short">Your browser just surveyed where it should be. The red thread leads home.</span></p>
+  <div class="actions">
+    <a class="home" id="homeLink" href="/">
+      Follow the thread home
+      <svg width="22" height="12" viewBox="0 0 22 12" aria-hidden="true" focusable="false"><path d="M1 7c4-4 7 2 11-1s4-4 8-1M15 1.5 20 5l-5 4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </a>
+    <button class="redraw" id="redraw" type="button">Redraw the map</button>
+  </div>
+  <p class="hint">
+    <span class="fine-only"><kbd>Arrow keys</kbd> walk the maze. Click any corridor to start from there. <kbd>R</kbd> draws a new map.</span>
+    <span class="touch-only">Tap any corridor to start from there. The thread will find its way.</span>
+  </p>
+  <p class="status" id="status" aria-live="polite"></p>
+  <div class="seal" aria-hidden="true">404</div>
+</main>
+
+<canvas id="map" role="img" aria-label="A hand drawn maze map. The digits 404 are carved into it as solid rock, and a red thread runs from where you are to a door marked home."></canvas>
+<div class="marginalia" id="title" aria-hidden="true">A map of everywhere this page is not</div>
+<div class="marginalia foot" id="foot" aria-hidden="true"><span class="scale">Scale: one wrong turn</span><span>Surveyed just now. No two visits get the same map.</span></div>
+<a class="door" id="door" href="/" aria-label="Home, the door at the top of the map">home</a>
+<span class="you" id="youLabel" aria-hidden="true">you are here</span>
+
+<script>
+(() => {
+  "use strict";
+  const $ = (id) => document.getElementById(id);
+  const canvas = $("map"), ctx = canvas.getContext("2d");
+  const panel = $("panel"), doorLink = $("door"), youLabel = $("youLabel");
+  const statusEl = $("status"), homeLink = $("homeLink");
+  const titleEl = $("title"), footEl = $("foot");
+  const root = document.documentElement;
+  const mq = matchMedia("(prefers-reduced-motion: reduce)");
+  let reduced = mq.matches;
+
+  // ---------- the path that was asked for ----------
+  (function () {
+    let p = location.pathname || "/";
+    try { p = decodeURIComponent(p); } catch (e) {}
+    if (location.protocol === "file:" || p === "/" || p === "") p = "/the-page-you-wanted";
+    if (p.length > 40) p = p.slice(0, 39) + "…";
+    $("path").textContent = p;
+  })();
+
+  // ---------- helpers ----------
+  const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
+  const easeInOut = (t) => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+  const easeOut = (t) => 1 - Math.pow(1 - t, 3);
+  const easeSine = (t) => -(Math.cos(Math.PI * t) - 1) / 2;
+  function rng(seed) {
+    let a = seed >>> 0;
+    return function () {
+      a = (a + 0x6d2b79f5) >>> 0;
+      let t = a;
+      t = Math.imul(t ^ (t >>> 15), t | 1);
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  const mk = (w, h) => { const c = document.createElement("canvas"); c.width = w; c.height = h; return c; };
+
+  // ---------- state ----------
+  let W, H, DPR, mobile, cell, cols, rows, gx, gy, N;
+  let type, visited, visitT, hW, vW, fH, fV, vj, hMid, vMid, ev, evIdx, liveStack;
+  let startCell, doorCol, doorX, doorY, islandX, digitBox, compass, panelTopRow;
+  let paper, base, baseCtx, stat, statCtx, hatch;
+  let seed, R;
+  let t0 = 0, genDur = 6.6, G0 = 0.6, G1, R0, R1, T0, T1, W0;
+  const REVEAL = 1.3, THREAD = 3.0;
+  let genDone = false, revealBaked = false, introDone = false;
+  let you, youPos = { x: 0, y: 0 }, bump = null;
+  let thread = null, threadStart = 0, threadDur = 0;
+  let userMoved = false, successT = -99, ripples = [], lastWalkPhase = 0;
+  let needle = { a: -Math.PI / 2, v: 0 };
+  let lastNow = 0, dirty = true, statusTimer = 0;
+
+  function computeTimeline() {
+    G1 = G0 + genDur; R0 = G1 + 0.1; R1 = R0 + REVEAL; T0 = R1 + 0.1; T1 = T0 + THREAD; W0 = T1 + 1.0;
+  }
+
+  // ---------- paper ----------
+  function makePaper() {
+    const c = mk(Math.round(W * DPR), Math.round(H * DPR));
+    const p = c.getContext("2d");
+    const r = rng(seed ^ 0x9e3779b9);
+    p.setTransform(DPR, 0, 0, DPR, 0, 0);
+    p.fillStyle = "#efe1c1"; p.fillRect(0, 0, W, H);
+    // warm light in the middle, darker age at the edges
+    let g = p.createRadialGradient(W * 0.48, H * 0.42, 0, W * 0.5, H * 0.5, Math.hypot(W, H) * 0.62);
+    g.addColorStop(0, "rgba(255,250,232,0.55)");
+    g.addColorStop(0.55, "rgba(255,246,222,0)");
+    g.addColorStop(0.85, "rgba(160,112,52,0.16)");
+    g.addColorStop(1, "rgba(110,70,25,0.34)");
+    p.fillStyle = g; p.fillRect(0, 0, W, H);
+    // stains
+    for (let i = 0; i < 9; i++) {
+      const x = r() * W, y = r() * H, rad = 40 + r() * Math.min(W, H) * 0.25;
+      const s = p.createRadialGradient(x, y, rad * 0.2, x, y, rad);
+      s.addColorStop(0, "rgba(170,120,60,0)");
+      s.addColorStop(0.82, "rgba(170,120,60," + (0.03 + r() * 0.04).toFixed(3) + ")");
+      s.addColorStop(1, "rgba(170,120,60,0)");
+      p.fillStyle = s; p.fillRect(x - rad, y - rad, rad * 2, rad * 2);
+    }
+    // folds
+    const fold = (x0, y0, x1, y1, vertical) => {
+      const w = 26;
+      const lg = vertical ? p.createLinearGradient(x0 - w, 0, x0 + w, 0) : p.createLinearGradient(0, y0 - w, 0, y0 + w);
+      lg.addColorStop(0, "rgba(120,80,30,0)");
+      lg.addColorStop(0.47, "rgba(120,80,30,0.09)");
+      lg.addColorStop(0.5, "rgba(90,60,20,0.16)");
+      lg.addColorStop(0.53, "rgba(255,252,240,0.28)");
+      lg.addColorStop(1, "rgba(255,252,240,0)");
+      p.fillStyle = lg;
+      if (vertical) p.fillRect(x0 - w, 0, w * 2, H); else p.fillRect(0, y0 - w, W, w * 2);
+    };
+    fold(W * (mobile ? 0.5 : 0.333), 0, 0, 0, true);
+    if (!mobile) fold(W * 0.666, 0, 0, 0, true);
+    fold(0, H * 0.5, 0, 0, false);
+    // fibres
+    p.lineCap = "round";
+    for (let i = 0; i < (W * H) / 2600; i++) {
+      const x = r() * W, y = r() * H, a = r() * Math.PI, l = 3 + r() * 10;
+      p.strokeStyle = r() < 0.5 ? "rgba(110,75,35,0.07)" : "rgba(255,255,245,0.16)";
+      p.lineWidth = 0.6;
+      p.beginPath(); p.moveTo(x, y);
+      p.quadraticCurveTo(x + Math.cos(a) * l * 0.5 + (r() - 0.5) * 3, y + Math.sin(a) * l * 0.5 + (r() - 0.5) * 3, x + Math.cos(a) * l, y + Math.sin(a) * l);
+      p.stroke();
+    }
+    // grain
+    const tile = mk(192, 192), tc = tile.getContext("2d");
+    const id = tc.createImageData(192, 192);
+    for (let i = 0; i < id.data.length; i += 4) {
+      const v = 226 + r() * 29;
+      id.data[i] = v; id.data[i + 1] = v - 3; id.data[i + 2] = v - 10; id.data[i + 3] = 255;
+    }
+    tc.putImageData(id, 0, 0);
+    p.setTransform(1, 0, 0, 1, 0, 0);
+    p.globalCompositeOperation = "multiply";
+    p.globalAlpha = 0.55;
+    p.fillStyle = p.createPattern(tile, "repeat");
+    p.fillRect(0, 0, c.width, c.height);
+    p.globalAlpha = 1; p.globalCompositeOperation = "source-over";
+    return c;
+  }
+
+  // ---------- layout & maze ----------
+  function layout() {
+    W = innerWidth; H = innerHeight;
+    DPR = Math.min(2, window.devicePixelRatio || 1);
+    mobile = W < 720 || W / H < 1;
+    canvas.width = Math.round(W * DPR); canvas.height = Math.round(H * DPR);
+    const mt = mobile ? 46 : 64, ms = mobile ? 14 : 52, mb = mobile ? 14 : 64;
+    cell = mobile ? clamp(Math.floor((W - 2 * ms) / 24), 13, 20)
+                  : clamp(Math.floor(Math.min(W, H * 1.78) / 72), 15, 28);
+    cols = Math.floor((W - 2 * ms) / cell);
+    rows = Math.floor((H - mt - mb) / cell);
+    gx = Math.round(ms + (W - 2 * ms - cols * cell) / 2);
+    gy = Math.round(mt + (H - mt - mb - rows * cell) / 2);
+    N = cols * rows;
+    root.style.setProperty("--cell", cell + "px");
+
+    // place the cartouche
+    const gridR = gx + cols * cell, gridB = gy + rows * cell;
+    if (mobile) {
+      panel.style.bottom = (H - gridB + 6) + "px";
+      root.style.setProperty("--pl", (gx + 6) + "px");
+      root.style.setProperty("--pr", (W - gridR + 6) + "px");
+    } else {
+      panel.style.bottom = (H - gridB + Math.round(cell * 2.2)) + "px";
+    }
+    titleEl.style.top = (gy - 46) + "px";
+    footEl.style.top = (gridB + 22) + "px";
+    footEl.style.left = gx + "px";
+    footEl.style.right = (W - gridR) + "px";
+  }
+
+  function buildMaze() {
+    seed = (Math.random() * 4294967296) >>> 0;
+    R = rng(seed);
+    type = new Uint8Array(N);       // 0 open, 1 digit rock, 2 reserved (cartouche, compass)
+    visited = new Uint8Array(N);
+    visitT = new Float32Array(N);
+    islandX = null; compass = null;
+
+    // reserve the cartouche
+    const pr = panel.getBoundingClientRect();
+    const inf = 7;
+    const c0 = clamp(Math.floor((pr.left - inf - gx) / cell), 0, cols - 1);
+    const c1 = clamp(Math.ceil((pr.right + inf - gx) / cell) - 1, 0, cols - 1);
+    const r0 = clamp(Math.floor((pr.top - inf - gy) / cell), 0, rows);
+    const r1 = clamp(Math.ceil((pr.bottom + inf - gy) / cell) - 1, -1, rows - 1);
+    panelTopRow = rows;
+    if (r0 < rows) {
+      panelTopRow = r0;
+      for (let r = r0; r <= r1; r++) for (let c = c0; c <= c1; c++) type[r * cols + c] = 2;
+    }
+
+    // compass plaza
+    if (!mobile && cols >= 44 && panelTopRow > 12) {
+      const cx = cols - 5, cy = 5, rr = 3.7;
+      compass = { x: gx + cx * cell, y: gy + cy * cell, r: rr * cell - 6 };
+      for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
+        if (Math.hypot(c + 0.5 - cx, r + 0.5 - cy) < rr + 0.35) type[r * cols + c] = 2;
+      }
+    }
+
+    // carve 404 as rock
+    const S = 4, m = mk(cols * S, rows * S), mc = m.getContext("2d");
+    mc.scale(S, S); mc.fillStyle = "#000";
+    const avail = panelTopRow;
+    const widthFor = mobile ? cols - 3 : cols - 24;
+    let h = Math.min(avail - (mobile ? 5 : 6), widthFor / 2.28);
+    h = Math.max(h, 6);
+    const gap = Math.max(0.15 * h, 1.7);
+    const totalW = 1.98 * h + 2 * gap;
+    let x = (cols - totalW) / 2;
+    const y = Math.max(2, (avail - h) * (mobile ? 0.52 : 0.46));
+    const four = (x) => {
+      const P = (u, v) => [x + u * h, y + v * h];
+      const outer = [[0.36, 0], [0.58, 0], [0.58, 0.62], [0.68, 0.62], [0.68, 0.79], [0.58, 0.79], [0.58, 1], [0.39, 1], [0.39, 0.79], [0, 0.79], [0, 0.63]];
+      const inner = [[0.39, 0.31], [0.39, 0.62], [0.19, 0.62]];
+      mc.beginPath();
+      [outer, inner].forEach((poly) => { poly.forEach(([u, v], i) => { const [px, py] = P(u, v); i ? mc.lineTo(px, py) : mc.moveTo(px, py); }); mc.closePath(); });
+      mc.fill("evenodd");
+    };
+    const zero = (x) => {
+      mc.beginPath();
+      mc.ellipse(x + 0.31 * h, y + 0.5 * h, 0.31 * h, 0.5 * h, 0, 0, Math.PI * 2);
+      mc.ellipse(x + 0.31 * h, y + 0.5 * h, 0.135 * h, 0.325 * h, 0, 0, Math.PI * 2);
+      mc.fill("evenodd");
+    };
+    four(x); x += 0.68 * h + gap; zero(x); x += 0.62 * h + gap; four(x);
+    const md = mc.getImageData(0, 0, m.width, m.height).data;
+    let minC = cols, maxC = 0, minR = rows, maxR = 0;
+    for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
+      let n = 0;
+      for (let yy = 0; yy < S; yy++) for (let xx = 0; xx < S; xx++) {
+        if (md[(((r * S + yy) * m.width) + c * S + xx) * 4 + 3] > 127) n++;
+      }
+      if (n >= (S * S) / 2 && type[r * cols + c] === 0) {
+        type[r * cols + c] = 1;
+        minC = Math.min(minC, c); maxC = Math.max(maxC, c); minR = Math.min(minR, r); maxR = Math.max(maxR, r);
+      }
+    }
+    digitBox = { x: gx + minC * cell, y: gy + minR * cell, w: (maxC - minC + 1) * cell, h: (maxR - minR + 1) * cell };
+
+    // where you stand
+    const tc = cols - 1, tr = mobile ? panelTopRow - 1 : rows - 1;
+    let best = -1, bd = 1e9;
+    for (let i = 0; i < N; i++) if (type[i] === 0) {
+      const d = Math.hypot(i % cols - tc, Math.floor(i / cols) - tr);
+      if (d < bd) { bd = d; best = i; }
+    }
+    startCell = best;
+
+    // wander: depth first, recorded so it can be replayed as ink
+    fH = new Uint8Array((rows + 1) * cols).fill(1);
+    fV = new Uint8Array(rows * (cols + 1)).fill(1);
+    const seen = new Uint8Array(N);
+    const st = [startCell]; seen[startCell] = 1;
+    const events = [];
+    const nb = [];
+    while (st.length) {
+      const cur = st[st.length - 1], r = Math.floor(cur / cols), c = cur % cols;
+      nb.length = 0;
+      if (r > 0 && !seen[cur - cols] && type[cur - cols] === 0) nb.push(cur - cols);
+      if (r < rows - 1 && !seen[cur + cols] && type[cur + cols] === 0) nb.push(cur + cols);
+      if (c > 0 && !seen[cur - 1] && type[cur - 1] === 0) nb.push(cur - 1);
+      if (c < cols - 1 && !seen[cur + 1] && type[cur + 1] === 0) nb.push(cur + 1);
+      if (nb.length) {
+        const n = nb[Math.floor(R() * nb.length)];
+        carve(fH, fV, cur, n);
+        seen[n] = 1; st.push(n); events.push(n);
+      } else { st.pop(); events.push(-1); }
+    }
+    ev = Int32Array.from(events);
+
+    // knock through some dead ends so there is more than one way home
+    for (let i = 0; i < N; i++) {
+      if (!seen[i] || R() > 0.32) continue;
+      const r = Math.floor(i / cols), c = i % cols;
+      const walls = [];
+      if (r > 0 && fH[r * cols + c] && seen[i - cols]) walls.push(i - cols);
+      if (r < rows - 1 && fH[(r + 1) * cols + c] && seen[i + cols]) walls.push(i + cols);
+      if (c > 0 && fV[r * (cols + 1) + c] && seen[i - 1]) walls.push(i - 1);
+      if (c < cols - 1 && fV[r * (cols + 1) + c + 1] && seen[i + 1]) walls.push(i + 1);
+      let open = 4 - [r > 0 ? fH[r * cols + c] : 1, r < rows - 1 ? fH[(r + 1) * cols + c] : 1, c > 0 ? fV[r * (cols + 1) + c] : 1, c < cols - 1 ? fV[r * (cols + 1) + c + 1] : 1].reduce((a, b) => a + b, 0);
+      if (open === 1 && walls.length) carve(fH, fV, i, walls[Math.floor(R() * walls.length)]);
+    }
+
+    // the door: the first corridor along the top edge
+    doorCol = -1;
+    for (let c = 1; c < cols; c++) if (seen[c]) { doorCol = c; break; }
+    if (doorCol < 0) for (let c = 0; c < cols; c++) if (seen[c]) { doorCol = c; break; }
+    if (doorCol < 0) doorCol = startCell % cols; // degenerate
+    fH[doorCol] = 0;
+    doorX = gx + (doorCol + 0.5) * cell;
+    doorY = gy - 3;
+
+    // pockets the wanderer never reached (inside the counters of the digits)
+    const isl = new Uint8Array(N);
+    for (let i = 0; i < N; i++) if (type[i] === 0 && !seen[i]) isl[i] = 1;
+    const comp = new Int32Array(N).fill(-1);
+    let bestSize = 0, bestCells = null;
+    for (let i = 0; i < N; i++) if (isl[i] && comp[i] < 0) {
+      const q = [i]; comp[i] = i; const cells = [];
+      while (q.length) {
+        const k = q.pop(); cells.push(k);
+        const r = Math.floor(k / cols), c = k % cols;
+        const ns = [r > 0 ? k - cols : -1, r < rows - 1 ? k + cols : -1, c > 0 ? k - 1 : -1, c < cols - 1 ? k + 1 : -1];
+        for (const n of ns) if (n >= 0 && isl[n] && comp[n] < 0) { comp[n] = i; q.push(n); }
+      }
+      if (cells.length > bestSize) { bestSize = cells.length; bestCells = cells; }
+    }
+    type.island = isl;
+    if (bestCells) {
+      let sx = 0, sy = 0;
+      bestCells.forEach((k) => { sx += k % cols + 0.5; sy += Math.floor(k / cols) + 0.5; });
+      sx /= bestCells.length; sy /= bestCells.length;
+      let bk = bestCells[0], bdd = 1e9;
+      bestCells.forEach((k) => { const d = Math.hypot(k % cols + 0.5 - sx, Math.floor(k / cols) + 0.5 - sy); if (d < bdd) { bdd = d; bk = k; } });
+      islandX = { x: gx + (bk % cols + 0.5) * cell, y: gy + (Math.floor(bk / cols) + 0.5) * cell };
+    }
+
+    // hand jitter
+    vj = new Float32Array((rows + 1) * (cols + 1) * 2);
+    const ja = cell * 0.04;
+    for (let i = 0; i < vj.length; i++) vj[i] = (R() - 0.5) * 2 * ja;
+    hMid = new Float32Array((rows + 1) * cols);
+    vMid = new Float32Array(rows * (cols + 1));
+    const ma = cell * 0.06;
+    for (let i = 0; i < hMid.length; i++) hMid[i] = (R() - 0.5) * 2 * ma;
+    for (let i = 0; i < vMid.length; i++) vMid[i] = (R() - 0.5) * 2 * ma;
+
+    paper = makePaper();
+    base = mk(canvas.width, canvas.height); baseCtx = base.getContext("2d");
+    baseCtx.drawImage(paper, 0, 0);
+    baseCtx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    baseCtx.strokeStyle = "rgba(64,92,132,0.17)";
+    baseCtx.lineWidth = 1;
+    baseCtx.beginPath();
+    for (let r = 0; r <= rows; r++) { baseCtx.moveTo(gx, gy + r * cell + 0.5); baseCtx.lineTo(gx + cols * cell, gy + r * cell + 0.5); }
+    for (let c = 0; c <= cols; c++) { baseCtx.moveTo(gx + c * cell + 0.5, gy); baseCtx.lineTo(gx + c * cell + 0.5, gy + rows * cell); }
+    baseCtx.stroke();
+    baseCtx.setTransform(1, 0, 0, 1, 0, 0);
+
+    stat = mk(canvas.width, canvas.height); statCtx = stat.getContext("2d");
+    hatch = makeHatch();
+
+    // live replay state
+    hW = new Uint8Array((rows + 1) * cols).fill(1);
+    vW = new Uint8Array(rows * (cols + 1)).fill(1);
+    evIdx = 0;
+    liveStack = [startCell];
+    visited[startCell] = 1;
+    visitT[startCell] = performance.now() / 1000;
+    patch(startCell);
+    genDone = false; revealBaked = false; introDone = false;
+
+    you = startCell;
+    const yc = cellCenter(you); youPos.x = yc.x; youPos.y = yc.y;
+    setThread(you, 0, 0);
+    userMoved = false; ripples = []; successT = -99; lastWalkPhase = 0;
+  }
+
+  function carve(h, v, a, b) {
+    const ra = Math.floor(a / cols), ca = a % cols, rb = Math.floor(b / cols), cb = b % cols;
+    if (ra === rb) v[ra * (cols + 1) + Math.max(ca, cb)] = 0;
+    else h[Math.max(ra, rb) * cols + ca] = 0;
+  }
+  function cellCenter(i) { return { x: gx + (i % cols + 0.5) * cell, y: gy + (Math.floor(i / cols) + 0.5) * cell }; }
+  function patch(i) {
+    const r = Math.floor(i / cols), c = i % cols;
+    const x = Math.floor((gx + c * cell) * DPR) - 1, y = Math.floor((gy + r * cell) * DPR) - 1, s = Math.ceil(cell * DPR) + 2;
+    baseCtx.drawImage(paper, x, y, s, s, x, y, s, s);
+  }
+
+  function applyTo(k, now) {
+    while (evIdx < k) {
+      const e = ev[evIdx++];
+      if (e >= 0) {
+        const from = liveStack[liveStack.length - 1];
+        carve(hW, vW, from, e);
+        visited[e] = 1; visitT[e] = now; patch(e);
+        liveStack.push(e);
+      } else liveStack.pop();
+    }
+  }
+
+  // ---------- ink ----------
+  const VX = (r, c) => gx + c * cell + vj[(r * (cols + 1) + c) * 2];
+  const VY = (r, c) => gy + r * cell + vj[(r * (cols + 1) + c) * 2 + 1];
+
+  function wallPaths(now, fresh) {
+    const po = new Path2D(), pf = fresh ? new Path2D() : po;
+    const isV = (i) => i >= 0 && visited[i];
+    for (let r = 0; r <= rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        const wi = r * cols + c;
+        if (!hW[wi]) continue;
+        const a = r > 0 ? wi - cols : -1, b = r < rows ? wi : -1;
+        const va = isV(a), vb = isV(b);
+        if (!va && !vb) continue;
+        const p = fresh && ((va && now - visitT[a] < fresh) || (vb && now - visitT[b] < fresh)) ? pf : po;
+        const x0 = VX(r, c), y0 = VY(r, c), x1 = VX(r, c + 1), y1 = VY(r, c + 1);
+        p.moveTo(x0, y0);
+        p.quadraticCurveTo((x0 + x1) / 2, (y0 + y1) / 2 + hMid[wi], x1, y1);
+      }
+    }
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c <= cols; c++) {
+        const wi = r * (cols + 1) + c;
+        if (!vW[wi]) continue;
+        const a = c > 0 ? r * cols + c - 1 : -1, b = c < cols ? r * cols + c : -1;
+        const va = isV(a), vb = isV(b);
+        if (!va && !vb) continue;
+        const p = fresh && ((va && now - visitT[a] < fresh) || (vb && now - visitT[b] < fresh)) ? pf : po;
+        const x0 = VX(r, c), y0 = VY(r, c), x1 = VX(r + 1, c), y1 = VY(r + 1, c);
+        p.moveTo(x0, y0);
+        p.quadraticCurveTo((x0 + x1) / 2 + vMid[wi], (y0 + y1) / 2, x1, y1);
+      }
+    }
+    return [po, pf];
+  }
+  const inkW = () => Math.max(1.35, cell * 0.085);
+
+  function strokeWalls(c, now, fresh) {
+    const [po, pf] = wallPaths(now, fresh);
+    c.lineCap = "round"; c.lineJoin = "round";
+    c.strokeStyle = "rgba(42,28,17,0.9)"; c.lineWidth = inkW();
+    c.stroke(po);
+    if (fresh) {
+      c.strokeStyle = "rgba(14,8,4,1)"; c.lineWidth = inkW() + 0.9;
+      c.stroke(pf);
+    }
+  }
+
+  function digitOutline() {
+    const p = new Path2D();
+    const isD = (r, c) => r >= 0 && r < rows && c >= 0 && c < cols && type[r * cols + c] === 1;
+    for (let r = 0; r <= rows; r++) for (let c = 0; c < cols; c++) {
+      if (isD(r - 1, c) !== isD(r, c)) { p.moveTo(VX(r, c), VY(r, c)); p.quadraticCurveTo((VX(r, c) + VX(r, c + 1)) / 2, (VY(r, c) + VY(r, c + 1)) / 2 + hMid[r * cols + c], VX(r, c + 1), VY(r, c + 1)); }
+    }
+    for (let r = 0; r < rows; r++) for (let c = 0; c <= cols; c++) {
+      if (isD(r, c - 1) !== isD(r, c)) { p.moveTo(VX(r, c), VY(r, c)); p.quadraticCurveTo((VX(r, c) + VX(r + 1, c)) / 2 + vMid[r * (cols + 1) + c], (VY(r, c) + VY(r + 1, c)) / 2, VX(r + 1, c), VY(r + 1, c)); }
+    }
+    return p;
+  }
+
+  function makeHatch() {
+    const c = mk(canvas.width, canvas.height), h = c.getContext("2d");
+    h.setTransform(DPR, 0, 0, DPR, 0, 0);
+    const clip = new Path2D();
+    for (let i = 0; i < N; i++) if (type[i] === 1) clip.rect(gx + (i % cols) * cell - 0.5, gy + Math.floor(i / cols) * cell - 0.5, cell + 1, cell + 1);
+    h.save(); h.clip(clip);
+    const b = digitBox;
+    h.fillStyle = "rgba(150,40,24,0.17)"; h.fillRect(b.x, b.y, b.w, b.h);
+    // shade toward lower right, as if the rock had depth
+    const sg = h.createLinearGradient(b.x, b.y, b.x + b.w * 0.3, b.y + b.h);
+    sg.addColorStop(0, "rgba(255,240,210,0.25)"); sg.addColorStop(1, "rgba(80,30,10,0.12)");
+    h.fillStyle = sg; h.fillRect(b.x, b.y, b.w, b.h);
+    const r = rng(seed ^ 0x51ed);
+    const sp = Math.max(4, cell * 0.26);
+    h.lineCap = "round";
+    h.strokeStyle = "rgba(42,28,17,0.55)"; h.lineWidth = 1;
+    h.beginPath();
+    for (let k = b.x - b.h; k < b.x + b.w + sp; k += sp) {
+      const j = (r() - 0.5) * 1.2;
+      h.moveTo(k + j, b.y + b.h + 2);
+      h.quadraticCurveTo(k + b.h * 0.5 + (r() - 0.5) * 3, b.y + b.h * 0.5, k + b.h + 2 + j, b.y - 2);
+    }
+    h.stroke();
+    h.strokeStyle = "rgba(42,28,17,0.2)"; h.lineWidth = 0.8;
+    h.beginPath();
+    for (let k = b.x - b.h + sp * 0.5; k < b.x + b.w + sp; k += sp * 2) {
+      h.moveTo(k, b.y + b.h + 2); h.lineTo(k + b.h + 2, b.y - 2);
+    }
+    h.stroke();
+    h.restore();
+    return c;
+  }
+
+  function stipple(c) {
+    const r = rng(seed ^ 0xabc);
+    c.fillStyle = "rgba(42,28,17,0.33)";
+    const isl = type.island;
+    for (let i = 0; i < N; i++) if (isl[i]) {
+      const x = gx + (i % cols) * cell, y = gy + Math.floor(i / cols) * cell;
+      const n = Math.round(cell * cell / 34);
+      for (let k = 0; k < n; k++) {
+        c.beginPath(); c.arc(x + 1 + r() * (cell - 2), y + 1 + r() * (cell - 2), 0.45 + r() * 0.6, 0, Math.PI * 2); c.fill();
+      }
+    }
+  }
+
+  function bake(withHatch) {
+    statCtx.setTransform(1, 0, 0, 1, 0, 0);
+    statCtx.drawImage(paper, 0, 0);
+    statCtx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    stipple(statCtx);
+    if (withHatch) { statCtx.setTransform(1, 0, 0, 1, 0, 0); statCtx.drawImage(hatch, 0, 0); statCtx.setTransform(DPR, 0, 0, DPR, 0, 0); }
+    strokeWalls(statCtx, 0, 0);
+    if (withHatch) {
+      statCtx.strokeStyle = "rgba(32,20,12,0.95)"; statCtx.lineWidth = inkW() * 1.9; statCtx.lineCap = "round";
+      statCtx.stroke(digitOutline());
+    }
+    statCtx.setTransform(1, 0, 0, 1, 0, 0);
+  }
+
+  function finishGen(now) {
+    applyTo(ev.length, now);
+    hW.set(fH); vW.set(fV);
+    genDone = true;
+    bake(false);
+  }
+  function finishReveal() { if (!revealBaked) { bake(true); revealBaked = true; } }
+
+  // ---------- the thread ----------
+  function bfs(from, to) {
+    const prev = new Int32Array(N).fill(-2);
+    const q = new Int32Array(N); let qh = 0, qt = 0;
+    q[qt++] = from; prev[from] = -1;
+    while (qh < qt) {
+      const k = q[qh++];
+      if (k === to) break;
+      const r = Math.floor(k / cols), c = k % cols;
+      if (r > 0 && !fH[r * cols + c] && prev[k - cols] === -2) { prev[k - cols] = k; q[qt++] = k - cols; }
+      if (r < rows - 1 && !fH[(r + 1) * cols + c] && prev[k + cols] === -2) { prev[k + cols] = k; q[qt++] = k + cols; }
+      if (c > 0 && !fV[r * (cols + 1) + c] && prev[k - 1] === -2) { prev[k - 1] = k; q[qt++] = k - 1; }
+      if (c < cols - 1 && !fV[r * (cols + 1) + c + 1] && prev[k + 1] === -2) { prev[k + 1] = k; q[qt++] = k + 1; }
+    }
+    if (prev[to] === -2) return null;
+    const path = [];
+    for (let k = to; k !== -1; k = prev[k]) path.push(k);
+    return path.reverse();
+  }
+
+  function setThread(from, dur, delayStart) {
+    const target = doorCol; // row 0
+    const cells = bfs(from, target) || [from];
+    const jr = rng(seed ^ 0x777);
+    const off = new Float32Array(N * 2);
+    for (let i = 0; i < off.length; i++) off[i] = (jr() - 0.5) * cell * 0.22;
+    const pts = cells.map((k) => {
+      const c = cellCenter(k);
+      return [c.x + (k === from ? 0 : off[k * 2]), c.y + (k === from ? 0 : off[k * 2 + 1])];
+    });
+    pts.push([doorX, gy - 1]);
+    pts.push([doorX, doorY - 9]);
+    // round the corners
+    const xs = [], ys = [];
+    xs.push(pts[0][0]); ys.push(pts[0][1]);
+    for (let i = 1; i < pts.length - 1; i++) {
+      const a = pts[i - 1], b = pts[i], c = pts[i + 1];
+      const m0 = [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2], m1 = [(b[0] + c[0]) / 2, (b[1] + c[1]) / 2];
+      if (i === 1) { xs.push(m0[0]); ys.push(m0[1]); }
+      for (let s = 1; s <= 6; s++) {
+        const t = s / 6, u = 1 - t;
+        xs.push(u * u * m0[0] + 2 * u * t * b[0] + t * t * m1[0]);
+        ys.push(u * u * m0[1] + 2 * u * t * b[1] + t * t * m1[1]);
+      }
+    }
+    xs.push(pts[pts.length - 1][0]); ys.push(pts[pts.length - 1][1]);
+    const cum = new Float32Array(xs.length);
+    for (let i = 1; i < xs.length; i++) cum[i] = cum[i - 1] + Math.hypot(xs[i] - xs[i - 1], ys[i] - ys[i - 1]);
+    thread = { xs, ys, cum, total: cum[cum.length - 1], cells };
+    threadStart = delayStart;
+    threadDur = dur;
+  }
+
+  function pointAt(d) {
+    const { xs, ys, cum } = thread;
+    let lo = 0, hi = cum.length - 1;
+    while (lo < hi) { const mid = (lo + hi) >> 1; if (cum[mid] < d) lo = mid + 1; else hi = mid; }
+    const i = Math.max(1, lo);
+    const t = clamp((d - cum[i - 1]) / Math.max(1e-6, cum[i] - cum[i - 1]));
+    return { x: xs[i - 1] + (xs[i] - xs[i - 1]) * t, y: ys[i - 1] + (ys[i] - ys[i - 1]) * t, i };
+  }
+
+  function threadPath(L) {
+    const { xs, ys, cum } = thread;
+    const p = new Path2D();
+    p.moveTo(xs[0], ys[0]);
+    for (let i = 1; i < xs.length; i++) {
+      if (cum[i] <= L) p.lineTo(xs[i], ys[i]);
+      else { const q = pointAt(L); p.lineTo(q.x, q.y); break; }
+    }
+    return p;
+  }
+
+  function drawThread(c, L, now) {
+    if (!thread || L <= 0) return;
+    const p = threadPath(L);
+    const w = Math.max(2.2, cell * 0.11);
+    const gold = clamp(1 - (now - successT) / 1.8);
+    c.lineCap = "round"; c.lineJoin = "round";
+    c.save(); c.translate(1.3, 2);
+    c.strokeStyle = "rgba(70,25,10,0.26)"; c.lineWidth = w * 1.9; c.stroke(p);
+    c.restore();
+    const rr = Math.round(163 + (206 - 163) * gold), gg = Math.round(38 + (148 - 38) * gold), bb = Math.round(27 + (40 - 27) * gold);
+    c.strokeStyle = `rgb(${rr},${gg},${bb})`; c.lineWidth = w; c.stroke(p);
+    c.save(); c.translate(-0.4, -0.6);
+    c.strokeStyle = "rgba(255,214,196,0.5)"; c.lineWidth = Math.max(0.7, w * 0.3); c.stroke(p);
+    c.restore();
+    if (L < thread.total) {
+      const q = pointAt(L);
+      c.fillStyle = "rgba(255,236,200,0.9)";
+      c.beginPath(); c.arc(q.x, q.y, w * 0.9, 0, Math.PI * 2); c.fill();
+      c.strokeStyle = "#7d1a11"; c.lineWidth = 1; c.stroke();
+    }
+  }
+
+  // ---------- furniture ----------
+  function drawFrame(c, p) {
+    const x = gx, y = gy, w = cols * cell, h = rows * cell;
+    const rects = [[x - 6, y - 6, w + 12, h + 12, 1], [x - 12, y - 12, w + 24, h + 24, 2.2]];
+    c.strokeStyle = "rgba(42,28,17,0.9)";
+    rects.forEach(([rx, ry, rw, rh, lw]) => {
+      const per = 2 * (rw + rh);
+      c.lineWidth = lw;
+      if (p < 1) c.setLineDash([per * p, per]);
+      c.strokeRect(rx, ry, rw, rh);
+    });
+    c.setLineDash([]);
+    if (p >= 1) {
+      // corner diamonds
+      c.fillStyle = "rgba(42,28,17,0.9)";
+      [[x - 12, y - 12], [x + w + 12, y - 12], [x - 12, y + h + 12], [x + w + 12, y + h + 12]].forEach(([cx, cy]) => {
+        c.beginPath(); c.moveTo(cx, cy - 5); c.lineTo(cx + 5, cy); c.lineTo(cx, cy + 5); c.lineTo(cx - 5, cy); c.closePath(); c.fill();
+      });
+      if (!mobile) {
+        // scale bar
+        const sx = gx, sy = gy + h + 28;
+        for (let i = 0; i < 4; i++) {
+          c.fillStyle = i % 2 ? "#f3e7cb" : "rgba(42,28,17,0.9)";
+          c.fillRect(sx + i * cell, sy, cell, 5);
+        }
+        c.strokeStyle = "rgba(42,28,17,0.9)"; c.lineWidth = 1; c.strokeRect(sx, sy, cell * 4, 5);
+      }
+    }
+  }
+
+  function drawDoor(c, lit) {
+    // knock the frame out where the door is
+    const kx = doorX - cell * 0.5 + 1, ky = gy - 16, kw = cell - 2, kh = 15;
+    c.drawImage(paper, kx * DPR, ky * DPR, kw * DPR, kh * DPR, kx, ky, kw, kh);
+    const x = doorX, y = doorY, dw = Math.max(11, cell * 0.55), dh = Math.max(14, cell * 0.6);
+    const p = new Path2D();
+    p.moveTo(x - dw / 2, y);
+    p.lineTo(x - dw / 2, y - dh + dw / 2);
+    p.arc(x, y - dh + dw / 2, dw / 2, Math.PI, 0);
+    p.lineTo(x + dw / 2, y);
+    if (lit > 0) {
+      const g = c.createRadialGradient(x, y - dh * 0.4, 0, x, y - dh * 0.4, dh * 2.4);
+      g.addColorStop(0, `rgba(255,214,120,${0.55 * lit})`); g.addColorStop(1, "rgba(255,214,120,0)");
+      c.fillStyle = g; c.beginPath(); c.arc(x, y - dh * 0.4, dh * 2.4, 0, Math.PI * 2); c.fill();
+    }
+    c.fillStyle = lit > 0 ? `rgb(${Math.round(42 + 200 * lit)},${Math.round(28 + 160 * lit)},${Math.round(17 + 70 * lit)})` : "#2a1c11";
+    c.fill(p);
+    c.strokeStyle = "#2a1c11"; c.lineWidth = 1.6; c.stroke(p);
+    c.beginPath(); c.moveTo(x - dw / 2 - 4, y + 0.5); c.lineTo(x + dw / 2 + 4, y + 0.5); c.stroke();
+  }
+
+  function drawCompass(c, alpha, now) {
+    if (!compass) return;
+    const { x, y, r } = compass;
+    c.save(); c.globalAlpha = alpha;
+    c.translate(x, y);
+    c.strokeStyle = "rgba(42,28,17,0.85)"; c.fillStyle = "rgba(42,28,17,0.85)";
+    c.lineWidth = 1.4; c.beginPath(); c.arc(0, 0, r, 0, Math.PI * 2); c.stroke();
+    c.lineWidth = 0.8; c.beginPath(); c.arc(0, 0, r * 0.86, 0, Math.PI * 2); c.stroke();
+    for (let i = 0; i < 64; i++) {
+      const a = (i / 64) * Math.PI * 2, l = i % 8 === 0 ? 0.8 : i % 2 === 0 ? 0.88 : 0.93;
+      c.lineWidth = i % 8 === 0 ? 1.2 : 0.7;
+      c.beginPath(); c.moveTo(Math.cos(a) * r * l, Math.sin(a) * r * l); c.lineTo(Math.cos(a) * r * 0.99, Math.sin(a) * r * 0.99); c.stroke();
+    }
+    const point = (a, len, wid) => {
+      const ax = Math.cos(a), ay = Math.sin(a), px = -ay, py = ax;
+      c.beginPath(); c.moveTo(0, 0); c.lineTo(ax * len, ay * len); c.lineTo(px * wid, py * wid); c.closePath();
+      c.fillStyle = "rgba(42,28,17,0.88)"; c.fill();
+      c.beginPath(); c.moveTo(0, 0); c.lineTo(ax * len, ay * len); c.lineTo(-px * wid, -py * wid); c.closePath();
+      c.fillStyle = "#f4ead2"; c.fill(); c.lineWidth = 0.8; c.strokeStyle = "rgba(42,28,17,0.88)"; c.stroke();
+    };
+    for (let i = 0; i < 4; i++) point(Math.PI / 4 + (i * Math.PI) / 2, r * 0.48, r * 0.08);
+    for (let i = 0; i < 4; i++) point(-Math.PI / 2 + (i * Math.PI) / 2, r * 0.78, r * 0.13);
+    // the needle points home
+    c.rotate(needle.a + Math.PI / 2);
+    const nl = r * 0.7, nw = r * 0.07;
+    c.shadowColor = "rgba(40,15,5,0.35)"; c.shadowBlur = 4; c.shadowOffsetY = 2;
+    c.beginPath(); c.moveTo(0, -nl); c.lineTo(nw, 0); c.lineTo(0, nl * 0.55); c.lineTo(-nw, 0); c.closePath();
+    c.fillStyle = "#a3261b"; c.fill();
+    c.shadowColor = "transparent";
+    c.beginPath(); c.moveTo(0, nl * 0.55); c.lineTo(nw, 0); c.lineTo(-nw, 0); c.closePath(); c.fillStyle = "#2a1c11"; c.fill();
+    c.beginPath(); c.arc(0, 0, r * 0.055, 0, Math.PI * 2); c.fillStyle = "#f4ead2"; c.fill(); c.lineWidth = 1; c.strokeStyle = "#2a1c11"; c.stroke();
+    c.restore();
+    c.save(); c.globalAlpha = alpha;
+    c.fillStyle = "#2a1c11";
+    c.font = `italic 600 ${Math.round(Math.max(13, r * 0.2))}px Georgia, serif`;
+    c.textAlign = "center"; c.textBaseline = "middle";
+    c.lineWidth = 4; c.strokeStyle = "#efe1c1"; c.lineJoin = "round";
+    c.strokeText("N", x, y - r - 9);
+    c.fillText("N", x, y - r - 9);
+    c.restore();
+  }
+
+  function drawX(c, s) {
+    if (!islandX || s <= 0) return;
+    const k = Math.max(5, cell * 0.36) * (s < 1 ? 1 + 0.6 * Math.sin(s * Math.PI) : 1) * Math.min(1, s * 3);
+    c.save(); c.translate(islandX.x, islandX.y); c.rotate(-0.08);
+    c.lineCap = "round";
+    c.strokeStyle = "rgba(255,246,228,0.9)"; c.lineWidth = Math.max(4.5, cell * 0.22);
+    c.beginPath(); c.moveTo(-k, -k); c.lineTo(k, k); c.moveTo(k, -k); c.lineTo(-k, k); c.stroke();
+    c.strokeStyle = "#9f2318"; c.lineWidth = Math.max(2.6, cell * 0.13);
+    c.beginPath(); c.moveTo(-k, -k); c.lineTo(k, k); c.moveTo(k, -k); c.lineTo(-k, k); c.stroke();
+    c.restore();
+  }
+
+  function drawYou(c, now, alpha) {
+    let { x, y } = youPos;
+    if (bump) {
+      const bt = (now - bump.t) / 0.28;
+      if (bt < 1) { const o = Math.sin(bt * Math.PI * 3) * (1 - bt) * cell * 0.18; x += bump.dx * o; y += bump.dy * o; }
+      else bump = null;
+    }
+    const rr = Math.max(4.5, cell * 0.24);
+    c.save(); c.globalAlpha = alpha;
+    if (!reduced) {
+      const ph = (now % 1.8) / 1.8;
+      c.strokeStyle = `rgba(159,35,24,${0.55 * (1 - ph)})`; c.lineWidth = 1.5;
+      c.beginPath(); c.arc(x, y, rr + ph * cell * 0.9, 0, Math.PI * 2); c.stroke();
+    }
+    c.fillStyle = "#f8f0dc"; c.strokeStyle = "#2a1c11"; c.lineWidth = 1.8;
+    c.beginPath(); c.arc(x, y, rr, 0, Math.PI * 2); c.fill(); c.stroke();
+    c.fillStyle = "#9f2318"; c.beginPath(); c.arc(x, y, rr * 0.45, 0, Math.PI * 2); c.fill();
+    c.restore();
+  }
+
+  function drawWalker(c, d) {
+    const q = pointAt(d);
+    const rad = cell * 2.6;
+    const g = c.createRadialGradient(q.x, q.y, 0, q.x, q.y, rad);
+    g.addColorStop(0, "rgba(255,238,178,0.62)");
+    g.addColorStop(0.45, "rgba(255,226,150,0.22)");
+    g.addColorStop(1, "rgba(255,220,140,0)");
+    c.fillStyle = g; c.beginPath(); c.arc(q.x, q.y, rad, 0, Math.PI * 2); c.fill();
+    c.fillStyle = "#ffd76e"; c.strokeStyle = "#2a1c11"; c.lineWidth = 1.2;
+    c.beginPath(); c.arc(q.x, q.y, Math.max(3.2, cell * 0.15), 0, Math.PI * 2); c.fill(); c.stroke();
+  }
+
+  function drawRipples(c, now) {
+    ripples = ripples.filter((r) => now - r.t < r.dur);
+    ripples.forEach((r) => {
+      const p = (now - r.t) / r.dur;
+      if (p < 0) return;
+      c.strokeStyle = `rgba(159,35,24,${0.7 * (1 - p)})`;
+      c.lineWidth = 2 * (1 - p) + 0.5;
+      c.beginPath(); c.arc(r.x, r.y, 4 + easeOut(p) * r.max, 0, Math.PI * 2); c.stroke();
+    });
+  }
+
+  // ---------- loop ----------
+  function elapsed(now) { return now - t0; }
+
+  function frame(ms) {
+    const now = ms / 1000;
+    const dt = Math.min(0.05, now - (lastNow || now)); lastNow = now;
+    const e = elapsed(now);
+
+    if (!genDone) {
+      const p = clamp((e - G0) / genDur);
+      applyTo(Math.floor(easeSine(p) * ev.length), now);
+      if (p >= 1) finishGen(now);
+      dirty = true;
+    }
+    if (genDone && !revealBaked && e >= R1) finishReveal();
+    if (!introDone && e >= T1) { introDone = true; dirty = true; }
+
+    // the you marker glides between cells
+    const yc = cellCenter(you);
+    const k = reduced ? 1 : 1 - Math.exp(-dt * 20);
+    if (Math.abs(yc.x - youPos.x) + Math.abs(yc.y - youPos.y) > 0.05) { youPos.x += (yc.x - youPos.x) * k; youPos.y += (yc.y - youPos.y) * k; dirty = true; }
+
+    if (reduced && !dirty && !ripples.length) { requestAnimationFrame(frame); return; }
+    dirty = false;
+
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    const z = reduced || genDone ? 1 : 1 + 0.05 * (1 - easeOut(clamp(e / (G0 + genDur))));
+    ctx.save();
+    if (z !== 1) { ctx.translate(W / 2, H / 2); ctx.scale(z, z); ctx.translate(-W / 2, -H / 2); }
+
+    if (!genDone) {
+      ctx.drawImage(base, 0, 0, W, H);
+      strokeWalls(ctx, now, 0.45);
+      // the wanderer's trail (the stack) and the quill
+      if (liveStack.length) {
+        ctx.beginPath();
+        liveStack.forEach((kk, i) => { const cc = cellCenter(kk); i ? ctx.lineTo(cc.x, cc.y) : ctx.moveTo(cc.x, cc.y); });
+        ctx.strokeStyle = "rgba(60,74,104,0.42)"; ctx.lineWidth = Math.max(1, cell * 0.06); ctx.lineJoin = "round"; ctx.stroke();
+        const hc = cellCenter(liveStack[liveStack.length - 1]);
+        const g = ctx.createRadialGradient(hc.x, hc.y, 0, hc.x, hc.y, cell * 1.6);
+        g.addColorStop(0, "rgba(40,24,12,0.35)"); g.addColorStop(1, "rgba(40,24,12,0)");
+        ctx.fillStyle = g; ctx.beginPath(); ctx.arc(hc.x, hc.y, cell * 1.6, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = "#140a04"; ctx.beginPath(); ctx.arc(hc.x, hc.y, Math.max(3, cell * 0.2), 0, Math.PI * 2); ctx.fill();
+      }
+    } else {
+      ctx.drawImage(stat, 0, 0, W, H);
+      if (!revealBaked) {
+        const p = easeInOut(clamp((e - R0) / REVEAL));
+        const b = digitBox, slant = b.h * 0.55;
+        const s = b.x - slant + (b.w + slant * 2) * p;
+        ctx.save();
+        ctx.beginPath();
+        ctx.moveTo(b.x - slant - 20, b.y - 10); ctx.lineTo(s + slant * 0.5, b.y - 10);
+        ctx.lineTo(s - slant * 0.5, b.y + b.h + 10); ctx.lineTo(b.x - slant - 20, b.y + b.h + 10);
+        ctx.closePath(); ctx.clip();
+        ctx.drawImage(hatch, 0, 0, W, H);
+        ctx.strokeStyle = "rgba(32,20,12,0.95)"; ctx.lineWidth = inkW() * 1.9; ctx.lineCap = "round";
+        ctx.stroke(digitOutline());
+        ctx.restore();
+      }
+    }
+
+    drawFrame(ctx, reduced ? 1 : easeOut(clamp(e / 1.1)));
+    drawCompass(ctx, reduced ? 1 : clamp((e - 0.3) / 1.2), now);
+
+    // needle: spins while the map is drawn, then settles on home
+    if (compass) {
+      const target = introDone || e > T0 ? Math.atan2(doorY - compass.y, doorX - compass.x) : needle.a + 2.4 * dt + Math.sin(now * 3.1) * 0.02;
+      if (reduced) { needle.a = Math.atan2(doorY - compass.y, doorX - compass.x); }
+      else {
+        let diff = target - needle.a; diff = Math.atan2(Math.sin(diff), Math.cos(diff));
+        needle.v += diff * 30 * dt - needle.v * 4.2 * dt;
+        needle.a += needle.v * dt * 6;
+        if (!(introDone || e > T0)) { needle.a += 2.2 * dt; needle.v *= 0.9; }
+      }
+      dirty = true;
+    }
+
+    if (genDone) drawX(ctx, reduced ? 1 : clamp((e - (R1 - 0.3)) / 0.5));
+
+    // thread
+    let L = 0;
+    if (genDone && thread) {
+      const st = threadStart === "intro" ? t0 + T0 : threadStart;
+      const td = threadStart === "intro" ? THREAD : threadDur;
+      L = reduced || td <= 0 ? thread.total : thread.total * easeInOut(clamp((now - st) / td));
+      if (threadStart === "intro" && e < T0) L = 0;
+      drawThread(ctx, L, now);
+      if (L < thread.total || now - successT < 2) dirty = true;
+    }
+    const doorShown = genDone && thread && L >= thread.total - 0.5;
+    const lit = clamp(1 - (now - successT) / 2.5) || (doorShown && !reduced ? 0.25 + 0.1 * Math.sin(now * 2) : doorShown ? 0.3 : 0);
+    if (genDone) drawDoor(ctx, lit);
+    if (doorShown && !doorLink.classList.contains("shown")) {
+      doorLink.classList.add("shown");
+      if (threadStart === "intro" && !reduced) ripples.push({ x: doorX, y: doorY - 8, t: now, dur: 1.4, max: cell * 3 });
+    }
+
+    drawYou(ctx, now, reduced ? 1 : clamp((e - G0) / 0.4));
+
+    // the lantern walks the thread home, again and again, until you take over
+    if (!reduced && !userMoved && introDone && thread && e > W0) {
+      const walkDur = clamp(thread.total / (cell * 13), 3.5, 6.5), cycle = walkDur + 2.2;
+      const ph = (e - W0) % cycle;
+      if (ph < walkDur) drawWalker(ctx, thread.total * easeSine(ph / walkDur));
+      if (lastWalkPhase < walkDur && ph >= walkDur) {
+        ripples.push({ x: doorX, y: doorY - 8, t: now, dur: 1.4, max: cell * 3 });
+        successT = Math.max(successT, now - 1.2);
+      }
+      lastWalkPhase = ph;
+      dirty = true;
+    }
+
+    drawRipples(ctx, now);
+    if (ripples.length || !reduced) dirty = true;
+    ctx.restore();
+
+    // HTML labels
+    const sx = W / 2 + (youPos.x - W / 2) * z, sy = H / 2 + (youPos.y - H / 2) * z;
+    const left = sx > W * 0.5;
+    youLabel.style.transform = left
+      ? `translate(${Math.round(sx - cell * 0.6)}px, ${Math.round(sy - cell * 0.55)}px) translate(-100%, -100%)`
+      : `translate(${Math.round(sx + cell * 0.6)}px, ${Math.round(sy - cell * 0.55)}px) translate(0, -100%)`;
+    youLabel.classList.toggle("shown", reduced || e > G0);
+    doorLink.style.transform = `translate(${Math.round(doorX + cell * 0.55)}px, ${Math.round(doorY - 24)}px)`;
+    titleEl.classList.add("shown"); footEl.classList.add("shown");
+
+    requestAnimationFrame(frame);
+  }
+
+  // ---------- control ----------
+  function begin(animated, dur) {
+    genDur = dur || 6.6;
+    computeTimeline();
+    buildMaze();
+    doorLink.classList.remove("shown");
+    threadStart = "intro";
+    t0 = performance.now() / 1000;
+    if (!animated || reduced) skip();
+    dirty = true;
+  }
+
+  function skip() {
+    const now = performance.now() / 1000;
+    if (!genDone) finishGen(now);
+    finishReveal();
+    t0 = now - T1;
+    introDone = true;
+    if (threadStart === "intro") { threadStart = now; threadDur = 0; }
+    dirty = true;
+  }
+
+  function say(msg) {
+    statusEl.textContent = msg;
+    clearTimeout(statusTimer);
+    statusTimer = setTimeout(() => { statusEl.textContent = ""; }, 7000);
+  }
+
+  function arrive() {
+    const now = performance.now() / 1000;
+    successT = now;
+    ripples.push({ x: doorX, y: doorY - 8, t: now, dur: 1.6, max: cell * 4 });
+    ripples.push({ x: doorX, y: doorY - 8, t: now + 0.25, dur: 1.6, max: cell * 6 });
+    say("You found your way to the door. Press Enter to go home.");
+    homeLink.classList.remove("beckon"); void homeLink.offsetWidth; homeLink.classList.add("beckon");
+    homeLink.focus({ preventScroll: true });
+    dirty = true;
+  }
+
+  function move(dx, dy) {
+    const r = Math.floor(you / cols), c = you % cols;
+    let open = false;
+    if (dx === 1) open = c < cols - 1 && !fV[r * (cols + 1) + c + 1];
+    if (dx === -1) open = c > 0 && !fV[r * (cols + 1) + c];
+    if (dy === 1) open = r < rows - 1 && !fH[(r + 1) * cols + c];
+    if (dy === -1) open = r > 0 && !fH[r * cols + c];
+    userMoved = true;
+    if (dy === -1 && r === 0 && c === doorCol) { arrive(); return; }
+    if (!open) { bump = { t: performance.now() / 1000, dx, dy }; dirty = true; return; }
+    you = you + dx + dy * cols;
+    setThread(you, 0, performance.now() / 1000);
+    if (you === doorCol) arrive();
+    dirty = true;
+  }
+
+  document.addEventListener("keydown", (e) => {
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    const dirs = { ArrowUp: [0, -1], ArrowDown: [0, 1], ArrowLeft: [-1, 0], ArrowRight: [1, 0], w: [0, -1], s: [0, 1], a: [-1, 0], d: [1, 0], W: [0, -1], S: [0, 1], A: [-1, 0], D: [1, 0] };
+    const dir = dirs[e.key];
+    const isR = e.key === "r" || e.key === "R";
+    if (!introDone) {
+      if (dir || isR || e.key === "Escape") { e.preventDefault(); skip(); }
+      return;
+    }
+    if (dir) { e.preventDefault(); move(dir[0], dir[1]); }
+    else if (isR) { e.preventDefault(); redraw(); }
+  });
+
+  function cellAt(x, y) {
+    const c = Math.floor((x - gx) / cell), r = Math.floor((y - gy) / cell);
+    if (c < 0 || r < 0 || c >= cols || r >= rows) return -1;
+    return r * cols + c;
+  }
+
+  canvas.addEventListener("pointerdown", (e) => {
+    if (!introDone) { skip(); return; }
+    const k = cellAt(e.clientX, e.clientY);
+    if (k < 0) return;
+    if (type[k] === 1) { say("That is the 404 itself. Solid rock. Try a corridor."); return; }
+    if (type.island[k]) { say("A sealed pocket. The X marks where the page was last seen."); return; }
+    if (!visited[k]) return;
+    userMoved = true;
+    you = k;
+    const now = performance.now() / 1000;
+    const c = cellCenter(k);
+    if (reduced) { youPos.x = c.x; youPos.y = c.y; }
+    setThread(k, reduced ? 0 : 0.9, now);
+    ripples.push({ x: c.x, y: c.y, t: now, dur: 0.8, max: cell * 1.4 });
+    if (k === doorCol) arrive();
+    dirty = true;
+  });
+  canvas.addEventListener("pointermove", (e) => {
+    if (!introDone) return;
+    const k = cellAt(e.clientX, e.clientY);
+    canvas.classList.toggle("can-walk", k >= 0 && visited[k] === 1);
+  });
+
+  function redraw() {
+    begin(true, 3.6);
+    say(reduced ? "A new map has been drawn." : "Surveying again…");
+  }
+  $("redraw").addEventListener("click", redraw);
+
+  let rt = 0;
+  addEventListener("resize", () => {
+    clearTimeout(rt);
+    rt = setTimeout(() => { const wasDone = introDone; layout(); begin(!wasDone, 6.6); }, 180);
+  });
+  const onMQ = () => { reduced = mq.matches; if (reduced) skip(); dirty = true; };
+  mq.addEventListener ? mq.addEventListener("change", onMQ) : mq.addListener(onMQ);
+
+  layout();
+  begin(true, 6.6);
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
