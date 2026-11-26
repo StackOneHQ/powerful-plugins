@@ -1,0 +1,21 @@
+{
+  "name": "all-out",
+  "version": "1.0.0",
+  "description": "Builds the most ambitious version of a presentation, video, mockup, page or document by giving the build no creative direction, only the facts and hard constraints. Use it on its own or as an extra variant next to a standard asset.",
+  "author": {
+    "name": "StackOne",
+    "url": "https://github.com/StackOneHQ"
+  },
+  "homepage": "https://github.com/StackOneHQ/powerful-plugins",
+  "repository": "https://github.com/StackOneHQ/powerful-plugins",
+  "license": "MIT",
+  "keywords": [
+    "design",
+    "presentation",
+    "video",
+    "mockup",
+    "creative",
+    "variant",
+    "prompting"
+  ]
+}

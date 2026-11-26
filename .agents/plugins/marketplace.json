@@ -5,6 +5,18 @@
   },
   "plugins": [
     {
+      "name": "all-out",
+      "source": {
+        "source": "local",
+        "path": "./plugins/design/all-out"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Design"
+    },
+    {
       "name": "animation-studio",
       "source": {
         "source": "local",
